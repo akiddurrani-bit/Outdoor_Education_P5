@@ -1,0 +1,355 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f3f5f7;
+  color: #222;
+}
+
+button,
+input,
+select {
+  font-family: inherit;
+}
+
+
+/* HEADER */
+
+header {
+  background-color: white;
+  text-align: center;
+  padding: 22px;
+  border-bottom: 1px solid #ddd;
+}
+
+header h1 {
+  margin: 0 0 8px;
+  font-size: 34px;
+}
+
+header p {
+  margin: 0;
+  font-size: 18px;
+}
+
+
+/* PAGE */
+
+.page-container {
+  padding: 24px;
+  max-width: 1700px;
+  margin: auto;
+}
+
+.reference-section,
+.maker-section {
+  background-color: white;
+  border-radius: 12px;
+  padding: 22px;
+  margin-bottom: 24px;
+}
+
+.section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 20px;
+  margin-bottom: 18px;
+}
+
+.section-heading h2 {
+  margin: 0 0 5px;
+}
+
+.section-heading p {
+  margin: 0;
+  color: #555;
+}
+
+
+/* REFERENCE MAP */
+
+#referenceMapContainer {
+  border: 2px solid #bbb;
+  border-radius: 8px;
+  overflow: hidden;
+  text-align: center;
+  background-color: white;
+}
+
+#referenceMap {
+  display: block;
+  width: 100%;
+  max-height: 600px;
+  object-fit: contain;
+}
+
+
+/* WORKSPACE */
+
+.workspace {
+  display: grid;
+
+  grid-template-columns:
+    230px
+    minmax(500px, 1fr)
+    230px;
+
+  gap: 20px;
+
+  align-items: start;
+}
+
+
+/* TOOLBAR */
+
+.toolbar,
+.legend-panel {
+  background-color: #f7f8fa;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.toolbar h3,
+.legend-panel h3 {
+  margin-top: 0;
+}
+
+.toolbar hr {
+  border: none;
+  border-top: 1px solid #ccc;
+  margin: 18px 0;
+}
+
+.tool-button,
+.secondary-button {
+  width: 100%;
+  min-height: 50px;
+  padding: 10px 12px;
+  margin-bottom: 10px;
+
+  font-size: 16px;
+
+  border: 1px solid #aaa;
+  border-radius: 7px;
+
+  background-color: white;
+
+  cursor: pointer;
+}
+
+.tool-button.active {
+  border: 3px solid #2767b1;
+  background-color: #e5f0ff;
+  font-weight: bold;
+}
+
+.tool-button:hover,
+.secondary-button:hover {
+  background-color: #eee;
+}
+
+.danger-button {
+  margin-top: 12px;
+  background-color: #fff1f1;
+}
+
+.toolbar label {
+  display: block;
+  margin: 14px 0 6px;
+}
+
+.toolbar select,
+.toolbar input {
+  width: 100%;
+  min-height: 44px;
+  padding: 9px;
+
+  font-size: 16px;
+
+  border: 1px solid #aaa;
+  border-radius: 6px;
+}
+
+.instructions {
+  margin-top: 20px;
+  background-color: white;
+  border-radius: 8px;
+  padding: 14px;
+
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.instructions p {
+  margin: 7px 0;
+}
+
+
+/* DRAWING AREA */
+
+.drawing-section {
+  min-width: 0;
+}
+
+.map-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+
+  margin-bottom: 8px;
+
+  font-size: 20px;
+}
+
+.north-arrow {
+  font-weight: bold;
+  font-size: 22px;
+}
+
+#statusBar {
+  min-height: 42px;
+
+  padding: 11px 14px;
+  margin-bottom: 8px;
+
+  background-color: #f3f5f7;
+
+  border-radius: 7px;
+
+  font-size: 14px;
+}
+
+#drawingCanvas {
+  display: block;
+
+  width: 100%;
+  height: auto;
+
+  border: 3px solid #333;
+  border-radius: 8px;
+
+  touch-action: none;
+
+  cursor: default;
+}
+
+.canvas-background {
+  fill: #ffffff;
+}
+
+.grid-line {
+  stroke: #ededed;
+  stroke-width: 1;
+}
+
+
+/* SHAPES */
+
+.map-shape {
+  stroke: #333;
+  stroke-width: 4;
+  cursor: grab;
+}
+
+.map-shape.selected {
+  stroke: #2267b5;
+  stroke-width: 7;
+  stroke-dasharray: 10 7;
+}
+
+.shape-label {
+  pointer-events: none;
+
+  font-size: 18px;
+  font-weight: bold;
+
+  text-anchor: middle;
+  dominant-baseline: middle;
+
+  fill: #111;
+}
+
+
+/* LEGEND */
+
+.legend-help {
+  font-size: 14px;
+  color: #555;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+
+  gap: 10px;
+
+  padding: 10px 0;
+
+  border-bottom: 1px solid #ddd;
+}
+
+.legend-symbol {
+  width: 36px;
+  height: 28px;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  font-weight: bold;
+  font-size: 24px;
+}
+
+.legend-text {
+  font-size: 14px;
+}
+
+.empty-legend {
+  color: #777;
+  font-style: italic;
+}
+
+
+/* RESPONSIVE */
+
+@media (max-width: 1100px) {
+
+  .workspace {
+    grid-template-columns: 200px 1fr;
+  }
+
+  .legend-panel {
+    grid-column: 1 / -1;
+  }
+
+}
+
+
+@media (max-width: 750px) {
+
+  .page-container {
+    padding: 12px;
+  }
+
+  .workspace {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .toolbar,
+  .legend-panel,
+  .drawing-section {
+    width: 100%;
+  }
+
+  .section-heading {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+}

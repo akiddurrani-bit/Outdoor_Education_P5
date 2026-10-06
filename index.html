@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0"
+  >
+
+  <title>OE Map Maker</title>
+
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <header>
+    <h1>Outdoor Education Map Maker</h1>
+
+    <p>
+      Create an abstract map showing the relative
+      size and position of key landmarks.
+    </p>
+  </header>
+
+
+  <main class="page-container">
+
+
+    <!-- REFERENCE MAP -->
+
+    <section class="reference-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>1. Observe the Area</h2>
+
+          <p>
+            Use the first-floor map as a reference.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          id="toggleReferenceButton"
+          class="secondary-button"
+        >
+          Hide Reference
+        </button>
+
+      </div>
+
+
+      <div id="referenceMapContainer">
+
+        <img
+          id="referenceMap"
+          src="assets/nie-map.png"
+          alt="NIE location reference map"
+          draggable="false"
+        >
+
+      </div>
+
+    </section>
+
+
+    <!-- MAP MAKER -->
+
+    <section class="maker-section">
+
+      <div class="section-heading">
+
+        <div>
+          <h2>2. Create Your Map</h2>
+
+          <p>
+            Use abstract shapes to represent
+            important places.
+          </p>
+        </div>
+
+      </div>
+
+
+      <div class="workspace">
+
+
+        <!-- TOOLBAR -->
+
+        <aside class="toolbar">
+
+          <h3>Map Tools</h3>
+
+
+          <button
+            type="button"
+            id="selectTool"
+            class="tool-button active"
+          >
+            👆 Select / Move
+          </button>
+
+
+          <button
+            type="button"
+            id="rectangleTool"
+            class="tool-button"
+          >
+            ▭ Rectangle
+          </button>
+
+
+          <button
+            type="button"
+            id="circleTool"
+            class="tool-button"
+          >
+            ○ Circle
+          </button>
+
+
+          <button
+            type="button"
+            id="triangleTool"
+            class="tool-button"
+          >
+            △ Triangle
+          </button>
+
+
+          <hr>
+
+
+          <label for="symbolMeaning">
+            <strong>Symbol represents:</strong>
+          </label>
+
+
+          <select id="symbolMeaning">
+
+            <option value="Building">
+              Building
+            </option>
+
+            <option value="Open Space">
+              Open Space
+            </option>
+
+            <option value="Facility">
+              Facility
+            </option>
+
+            <option value="Landmark">
+              Landmark
+            </option>
+
+            <option value="Walkway">
+              Walkway
+            </option>
+
+          </select>
+
+
+          <label for="landmarkName">
+            <strong>Landmark name:</strong>
+          </label>
+
+
+          <input
+            type="text"
+            id="landmarkName"
+            placeholder="e.g. LT1"
+            maxlength="30"
+          >
+
+
+          <button
+            type="button"
+            id="deleteButton"
+            class="secondary-button danger-button"
+          >
+            🗑 Delete Selected
+          </button>
+
+
+          <button
+            type="button"
+            id="clearButton"
+            class="secondary-button danger-button"
+          >
+            Clear Map
+          </button>
+
+
+          <div class="instructions">
+
+            <strong>How to draw</strong>
+
+            <p>
+              Choose a shape.
+            </p>
+
+            <p>
+              Enter what it represents.
+            </p>
+
+            <p>
+              Drag on the map to create it.
+            </p>
+
+            <p>
+              Use Select / Move to reposition it.
+            </p>
+
+          </div>
+
+        </aside>
+
+
+        <!-- DRAWING AREA -->
+
+        <section class="drawing-section">
+
+          <div class="map-topbar">
+
+            <div>
+              <strong>My Abstract Map</strong>
+            </div>
+
+            <div class="north-arrow">
+              N ↑
+            </div>
+
+          </div>
+
+
+          <div id="statusBar">
+            Select a tool and begin creating your map.
+          </div>
+
+
+          <svg
+            id="drawingCanvas"
+            viewBox="0 0 1000 650"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+
+            <rect
+              x="0"
+              y="0"
+              width="1000"
+              height="650"
+              class="canvas-background"
+            >
+            </rect>
+
+            <g id="gridLayer"></g>
+
+            <g id="shapeLayer"></g>
+
+            <g id="temporaryLayer"></g>
+
+          </svg>
+
+        </section>
+
+
+        <!-- LEGEND -->
+
+        <aside class="legend-panel">
+
+          <h3>Legend</h3>
+
+          <p class="legend-help">
+            Symbols you use will appear here.
+          </p>
+
+          <div id="legendList">
+
+            <p class="empty-legend">
+              No symbols yet.
+            </p>
+
+          </div>
+
+        </aside>
+
+      </div>
+
+    </section>
+
+  </main>
+
+
+  <script src="app.js"></script>
+
+</body>
+
+</html>
