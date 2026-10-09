@@ -20,12 +20,6 @@ const MAX_HISTORY = 60;
 
 /* =========================================================
    SUPABASE CONNECTION
-
-   Paste the two values from:
-   Supabase → Connect → .env.local
-
-   1. NEXT_PUBLIC_SUPABASE_URL
-   2. NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ========================================================= */
 
 const APP_CONFIG = {
@@ -263,6 +257,9 @@ const teacherTaskInstructions = $("teacherTaskInstructions");
 const saveTaskSettingsButton =
   $("saveTaskSettingsButton");
 
+const deleteTaskButton =
+  $("deleteTaskButton");
+
 const teacherReferenceFile =
   $("teacherReferenceFile");
 
@@ -277,6 +274,7 @@ const refreshSubmissionsButton =
 
 const submissionList = $("submissionList");
 
+
 const permissionInputs = {
   move: $("allowMove"),
   shapes: $("allowShapes"),
@@ -289,6 +287,7 @@ const permissionInputs = {
   reference: $("allowReference"),
   download: $("allowDownload")
 };
+
 
 const teacherReviewToolbar =
   $("teacherReviewToolbar");
@@ -387,6 +386,7 @@ let currentTeacherUser = null;
 let teacherTasks = [];
 let selectedTeacherTask = null;
 let reviewSubmission = null;
+
 let teacherLoginReturnView = "startup";
 
 let teacherClasses = [];
@@ -6295,6 +6295,7 @@ async function loginStudentProfile() {
   }
 
   studentLoginButton.disabled = true;
+
   studentLoginButton.textContent =
     "Opening…";
 
@@ -6384,6 +6385,7 @@ async function loginStudentProfile() {
 
   finally {
     studentLoginButton.disabled = false;
+
     studentLoginButton.textContent =
       "Continue";
   }
@@ -6577,6 +6579,7 @@ async function openTaskFromCode() {
   }
 
   openStudentTaskButton.disabled = true;
+
   openStudentTaskButton.textContent =
     "Checking…";
 
@@ -6942,6 +6945,7 @@ async function loadStudentProject(
 
     allowedTools = {
       ...DEFAULT_ALLOWED_TOOLS,
+
       ...(
         project.allowed_tools ||
         {}
@@ -7074,7 +7078,9 @@ async function returnToStudentProfile() {
   taskIntro.hidden = true;
 
   currentTask = null;
+
   currentSubmission = null;
+
   currentReferenceUrl = "";
 
   referenceOverlay.hidden = true;
@@ -7097,11 +7103,15 @@ switchStudentButton.addEventListener(
   "click",
   async () => {
     currentStudentProfile = null;
+
     currentStudentProjects = [];
+
     currentStudentRoster = [];
 
     studentProfilePage.hidden = true;
+
     studentWorkspace.hidden = true;
+
     teacherDashboard.hidden = true;
 
     startupModal.hidden = false;
@@ -7336,6 +7346,7 @@ async function openTeacherDashboard() {
     "teacher-dashboard";
 
   studentWorkspace.hidden = true;
+
   studentProfilePage.hidden = true;
 
   teacherDashboard.hidden = false;
@@ -7343,6 +7354,7 @@ async function openTeacherDashboard() {
   startupModal.hidden = true;
 
   teacherReviewToolbar.hidden = true;
+
   teacherFeedbackPanel.hidden = true;
 
   setTeacherSection("tasks");
@@ -7353,6 +7365,7 @@ async function openTeacherDashboard() {
   );
 
   await loadTeacherClasses();
+
   await loadTeacherTasks();
 }
 
@@ -7463,6 +7476,7 @@ async function loadTeacherClasses() {
     teacherClasses.map(
       item => ({
         ...item,
+
         student_count:
           counts[item.id] ||
           0
@@ -7493,7 +7507,9 @@ async function loadTeacherClasses() {
 
     else {
       selectedTeacherClass = null;
+
       noClassSelected.hidden = false;
+
       classEditor.hidden = true;
     }
   }
@@ -7705,6 +7721,7 @@ async function selectTeacherClass(
     }`;
 
   renderTeacherClassList();
+
   renderClassRoster();
 }
 
@@ -7825,6 +7842,7 @@ saveClassNameButton.addEventListener(
       alert(
         "Enter a class name."
       );
+
       return;
     }
 
@@ -7901,6 +7919,7 @@ archiveClassButton.addEventListener(
     selectedTeacherClass = null;
 
     noClassSelected.hidden = false;
+
     classEditor.hidden = true;
 
     await loadTeacherClasses();
@@ -7920,11 +7939,11 @@ function cleanImportedNames(
         String(
           name ?? ""
         )
-          .replace(
-            /\s+/g,
-            " "
-          )
-          .trim()
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim()
     )
     .filter(Boolean)
     .filter(
@@ -8118,21 +8137,23 @@ classListFile.addEventListener(
           names found
         </strong>
 
-        ${pendingClassImportNames
-          .map(
-            (
-              name,
-              index
-            ) =>
-              `${
-                index + 1
-              }. ${
-                escapeHtml(
-                  name
-                )
-              }`
-          )
-          .join("<br>")}
+        ${
+          pendingClassImportNames
+            .map(
+              (
+                name,
+                index
+              ) =>
+                `${
+                  index + 1
+                }. ${
+                  escapeHtml(
+                    name
+                  )
+                }`
+            )
+            .join("<br>")
+        }
         `;
 
       classImportPreview.hidden =
@@ -8790,6 +8811,7 @@ async function selectTeacherTask(task) {
 
   const tools = {
     ...DEFAULT_ALLOWED_TOOLS,
+
     ...(
       task.allowed_tools ||
       {}
@@ -8894,10 +8916,10 @@ saveTaskSettingsButton.addEventListener(
             'input[type="checkbox"]:checked'
           )
       )
-        .map(
-          input =>
-            input.value
-        );
+      .map(
+        input =>
+          input.value
+      );
 
     const payload = {
       title:
@@ -9047,6 +9069,235 @@ saveTaskSettingsButton.addEventListener(
 
 
 /* =========================================================
+   DELETE TEACHER TASK
+========================================================= */
+
+deleteTaskButton.addEventListener(
+  "click",
+  async () => {
+    if (
+      appMode !== "teacher-dashboard" ||
+      !currentTeacherUser ||
+      !selectedTeacherTask
+    ) {
+      return;
+    }
+
+    const taskToDelete =
+      selectedTeacherTask;
+
+    const taskName =
+      taskToDelete.title ||
+      "Untitled Task";
+
+    const firstConfirmation =
+      confirm(
+        `Delete "${taskName}"?\n\n` +
+        "This will permanently delete this task for ALL teachers and students, " +
+        "including student submissions, group links, teacher feedback and red-pen annotations.\n\n" +
+        "This cannot be undone."
+      );
+
+    if (!firstConfirmation) {
+      return;
+    }
+
+    const finalConfirmation =
+      confirm(
+        `Final confirmation:\n\nPermanently delete "${taskName}"?`
+      );
+
+    if (!finalConfirmation) {
+      return;
+    }
+
+    deleteTaskButton.disabled =
+      true;
+
+    deleteTaskButton.textContent =
+      "Deleting…";
+
+    setCloudStatus(
+      "Deleting task…",
+      "busy"
+    );
+
+    try {
+      const taskId =
+        taskToDelete.id;
+
+      const referencePath =
+        taskToDelete.reference_path ||
+        null;
+
+      const submissionsLookup =
+        await sb
+          .from("submissions")
+          .select("id")
+          .eq(
+            "task_id",
+            taskId
+          );
+
+      if (submissionsLookup.error) {
+        throw submissionsLookup.error;
+      }
+
+      const submissionIds =
+        (
+          submissionsLookup.data ||
+          []
+        )
+          .map(
+            submission =>
+              submission.id
+          )
+          .filter(Boolean);
+
+      if (submissionIds.length) {
+        const reviewDelete =
+          await sb
+            .from("submission_reviews")
+            .delete()
+            .in(
+              "submission_id",
+              submissionIds
+            );
+
+        if (reviewDelete.error) {
+          throw reviewDelete.error;
+        }
+      }
+
+      if (submissionIds.length) {
+        const memberDelete =
+          await sb
+            .from("submission_members")
+            .delete()
+            .in(
+              "submission_id",
+              submissionIds
+            );
+
+        if (memberDelete.error) {
+          throw memberDelete.error;
+        }
+      }
+
+      const submissionDelete =
+        await sb
+          .from("submissions")
+          .delete()
+          .eq(
+            "task_id",
+            taskId
+          );
+
+      if (submissionDelete.error) {
+        throw submissionDelete.error;
+      }
+
+      const classAssignmentDelete =
+        await sb
+          .from("task_classes")
+          .delete()
+          .eq(
+            "task_id",
+            taskId
+          );
+
+      if (classAssignmentDelete.error) {
+        throw classAssignmentDelete.error;
+      }
+
+      const taskDelete =
+        await sb
+          .from("tasks")
+          .delete()
+          .eq(
+            "id",
+            taskId
+          );
+
+      if (taskDelete.error) {
+        throw taskDelete.error;
+      }
+
+      if (referencePath) {
+        const referenceDelete =
+          await sb
+            .storage
+            .from(
+              APP_CONFIG.referenceBucket
+            )
+            .remove([
+              referencePath
+            ]);
+
+        if (referenceDelete.error) {
+          console.warn(
+            "Task deleted, but its old reference image could not be removed:",
+            referenceDelete.error
+          );
+        }
+      }
+
+      selectedTeacherTask = null;
+
+      currentTask = null;
+
+      currentReferenceUrl = "";
+
+      teacherReferencePreview.hidden =
+        true;
+
+      teacherReferencePreview.removeAttribute(
+        "src"
+      );
+
+      noTaskSelected.hidden =
+        false;
+
+      taskEditor.hidden =
+        true;
+
+      submissionList.innerHTML =
+        "";
+
+      setCloudStatus(
+        "Task deleted",
+        "good"
+      );
+
+      await loadTeacherTasks();
+    }
+
+    catch (error) {
+      console.error(error);
+
+      setCloudStatus(
+        "Delete failed",
+        "bad"
+      );
+
+      alert(
+        error.message ||
+        "Could not delete this task."
+      );
+    }
+
+    finally {
+      deleteTaskButton.disabled =
+        false;
+
+      deleteTaskButton.textContent =
+        "Delete Task";
+    }
+  }
+);
+
+
+/* =========================================================
    TEACHER REFERENCE MAP
 ========================================================= */
 
@@ -9101,6 +9352,7 @@ teacherReferenceFile.addEventListener(
           file,
           {
             upsert: false,
+
             contentType:
               file.type
           }
@@ -9802,7 +10054,9 @@ async function initialise() {
   updateStudentBadge();
 
   studentWorkspace.hidden = true;
+
   studentProfilePage.hidden = true;
+
   teacherDashboard.hidden = true;
 
   startupModal.hidden = false;
