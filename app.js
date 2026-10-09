@@ -1,21 +1,31 @@
 /* =========================================================
-OUTDOOR EDUCATION MAP MAKER
-Student + Teacher build
-========================================================= */
+   OUTDOOR EDUCATION MAP MAKER
+   Student + Teacher build
+   ========================================================= */
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 const CANVAS_WIDTH = 1600;
 const CANVAS_HEIGHT = 675;
+
 const MIN_SHAPE_SIZE = 30;
+
 const DEFAULT_SHAPE_FILL = "#c7d2df";
+
 const LOCAL_SAVE_KEY = "oeMapMakerLocalV9";
+
 const MAX_HISTORY = 60;
 
 
 /* =========================================================
-SUPABASE CONNECTION
+   SUPABASE CONNECTION
+
+   Paste the two values from:
+   Supabase → Connect → .env.local
+
+   1. NEXT_PUBLIC_SUPABASE_URL
+   2. NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
 ========================================================= */
 
 const APP_CONFIG = {
@@ -24,9 +34,11 @@ const APP_CONFIG = {
   referenceBucket: "reference-maps"
 };
 
+
 const BACKEND_READY =
   !APP_CONFIG.supabaseUrl.includes("PASTE_") &&
   !APP_CONFIG.supabaseAnonKey.includes("PASTE_");
+
 
 const sb =
   BACKEND_READY
@@ -68,7 +80,7 @@ const $ = id =>
 
 
 /* =========================================================
-DOM
+   DOM
 ========================================================= */
 
 const studentWorkspace = $("studentWorkspace");
@@ -83,7 +95,6 @@ const studentProfilePage = $("studentProfilePage");
 const profileStudentName = $("profileStudentName");
 const profileClassName = $("profileClassName");
 const switchStudentButton = $("switchStudentButton");
-
 const studentTaskCode = $("studentTaskCode");
 const openStudentTaskButton = $("openStudentTaskButton");
 const studentTaskError = $("studentTaskError");
@@ -171,14 +182,12 @@ const colourSwatches = $("colourSwatches");
 const fillColour = $("fillColour");
 const closeColourPanel = $("closeColourPanel");
 
-
 const startupModal = $("startupModal");
 const startupClassSelect = $("startupClassSelect");
 const startupStudentSelect = $("startupStudentSelect");
 const startupError = $("startupError");
 const studentLoginButton = $("studentLoginButton");
 const startupTeacherLink = $("startupTeacherLink");
-
 
 const groupModal = $("groupModal");
 const groupTaskTitle = $("groupTaskTitle");
@@ -187,7 +196,6 @@ const groupError = $("groupError");
 const cancelGroupButton = $("cancelGroupButton");
 const startGroupTaskButton = $("startGroupTaskButton");
 
-
 const teacherLoginModal = $("teacherLoginModal");
 const teacherEmail = $("teacherEmail");
 const teacherPassword = $("teacherPassword");
@@ -195,14 +203,12 @@ const teacherLoginError = $("teacherLoginError");
 const teacherLoginButton = $("teacherLoginButton");
 const cancelTeacherLogin = $("cancelTeacherLogin");
 
-
 const objectModal = $("objectModal");
 const objectNameInput = $("objectNameInput");
 const objectCategorySelect = $("objectCategorySelect");
 const objectError = $("objectError");
 const saveObjectDetailsButton = $("saveObjectDetailsButton");
 const discardObjectButton = $("discardObjectButton");
-
 
 const routeModal = $("routeModal");
 const routeModalLabel = $("routeModalLabel");
@@ -212,7 +218,6 @@ const routeError = $("routeError");
 const saveRouteDetailsButton = $("saveRouteDetailsButton");
 const discardRouteButton = $("discardRouteButton");
 
-
 const editModal = $("editModal");
 const editNameInput = $("editNameInput");
 const editCategoryWrap = $("editCategoryWrap");
@@ -220,7 +225,6 @@ const editCategorySelect = $("editCategorySelect");
 const editError = $("editError");
 const saveEditButton = $("saveEditButton");
 const cancelEditButton = $("cancelEditButton");
-
 
 const createTaskButton = $("createTaskButton");
 const teacherSignOutButton = $("teacherSignOutButton");
@@ -239,21 +243,17 @@ const createClassButton = $("createClassButton");
 const teacherClassesList = $("teacherClassesList");
 const noClassSelected = $("noClassSelected");
 const classEditor = $("classEditor");
-
 const teacherClassHeading = $("teacherClassHeading");
 const teacherClassCount = $("teacherClassCount");
 const teacherClassName = $("teacherClassName");
 const saveClassNameButton = $("saveClassNameButton");
 const archiveClassButton = $("archiveClassButton");
-
 const classListFile = $("classListFile");
 const classImportPreview = $("classImportPreview");
 const importClassListButton = $("importClassListButton");
-
 const newStudentName = $("newStudentName");
 const addStudentButton = $("addStudentButton");
 const classRosterList = $("classRosterList");
-
 
 const teacherTaskHeading = $("teacherTaskHeading");
 const teacherTaskCode = $("teacherTaskCode");
@@ -277,7 +277,6 @@ const refreshSubmissionsButton =
 
 const submissionList = $("submissionList");
 
-
 const permissionInputs = {
   move: $("allowMove"),
   shapes: $("allowShapes"),
@@ -290,7 +289,6 @@ const permissionInputs = {
   reference: $("allowReference"),
   download: $("allowDownload")
 };
-
 
 const teacherReviewToolbar =
   $("teacherReviewToolbar");
@@ -318,7 +316,7 @@ const saveTeacherFeedbackButton =
 
 
 /* =========================================================
-STATE
+   STATE
 ========================================================= */
 
 let appMode = "student";
@@ -389,7 +387,6 @@ let currentTeacherUser = null;
 let teacherTasks = [];
 let selectedTeacherTask = null;
 let reviewSubmission = null;
-
 let teacherLoginReturnView = "startup";
 
 let teacherClasses = [];
@@ -399,7 +396,7 @@ let pendingClassImportNames = [];
 
 
 /* =========================================================
-UTILITIES
+   UTILITIES
 ========================================================= */
 
 function deepClone(value) {
@@ -613,7 +610,7 @@ function getCanvasPoint(event) {
 
 
 /* =========================================================
-PERMANENT GRID
+   PERMANENT GRID
 ========================================================= */
 
 function createGrid() {
@@ -664,7 +661,7 @@ function createGrid() {
 
 
 /* =========================================================
-HISTORY
+   HISTORY
 ========================================================= */
 
 function captureMapState() {
@@ -812,7 +809,7 @@ function updateHistoryButtons() {
 
 
 /* =========================================================
-MAP SAVE / LOAD
+   MAP SAVE / LOAD
 ========================================================= */
 
 function serialiseMap() {
@@ -1104,7 +1101,7 @@ async function submitToTeacher() {
 
 
 /* =========================================================
-REFERENCE MAP
+   REFERENCE MAP
 ========================================================= */
 
 async function getSignedReferenceUrl(path) {
@@ -1234,6 +1231,7 @@ referenceButton.addEventListener(
   "pointerup",
   event => {
     event.preventDefault();
+
     endReferencePreview();
   }
 );
@@ -1259,7 +1257,7 @@ referenceButton.addEventListener(
 
 
 /* =========================================================
-TEACHER TOOL PERMISSIONS
+   TEACHER TOOL PERMISSIONS
 ========================================================= */
 
 function applyToolPermissions() {
@@ -1306,7 +1304,7 @@ function applyToolPermissions() {
 
 
 /* =========================================================
-TOOLBAR / FLYOUTS
+   TOOLBAR / FLYOUTS
 ========================================================= */
 
 function wakeToolbar() {
@@ -1513,6 +1511,7 @@ freehandTool.addEventListener(
       !blockWhileDraftExists()
     ) {
       closeFlyouts();
+
       setTool("freehand");
     }
   }
@@ -1627,7 +1626,7 @@ startRoadButton.addEventListener(
 
 
 /* =========================================================
-DRAFT SAFETY
+   DRAFT SAFETY
 ========================================================= */
 
 function getPendingDraft() {
@@ -1636,7 +1635,7 @@ function getPendingDraft() {
       ? shapes.find(
           shape =>
             shape.id ===
-              pendingDraftId &&
+            pendingDraftId &&
             shape.draft
         )
       : null;
@@ -1669,7 +1668,7 @@ function getPendingRoute() {
       ? routes.find(
           item =>
             item.id ===
-              pendingRouteId &&
+            pendingRouteId &&
             item.draft
         )
       : null;
@@ -1731,10 +1730,15 @@ function blockWhileDraftExists() {
 
 function resetInteractionState() {
   pointerActive = false;
+
   startPoint = null;
+
   currentPoints = [];
+
   lastMovePoint = null;
+
   transformAction = null;
+
   interactionBeforeState = null;
 
   temporaryLayer.innerHTML = "";
@@ -1742,7 +1746,7 @@ function resetInteractionState() {
 
 
 /* =========================================================
-SHAPES
+   SHAPES
 ========================================================= */
 
 function getDragBounds(
@@ -2117,22 +2121,28 @@ function getVisualBounds(shape) {
         x: bounds.x,
         y: bounds.y
       },
+
       {
         x:
           bounds.x +
           bounds.width,
+
         y: bounds.y
       },
+
       {
         x:
           bounds.x +
           bounds.width,
+
         y:
           bounds.y +
           bounds.height
       },
+
       {
         x: bounds.x,
+
         y:
           bounds.y +
           bounds.height
@@ -2459,6 +2469,7 @@ function createFreehandDraft() {
       "Draw a larger freehand outline.";
 
     currentPoints = [];
+
     draftOriginState = null;
 
     return;
@@ -2498,7 +2509,7 @@ function createFreehandDraft() {
 
 
 /* =========================================================
-PATHS + ROADS
+   PATHS + ROADS
 ========================================================= */
 
 function renderTemporaryRoute(kind) {
@@ -2656,11 +2667,8 @@ function finishRoute(kind) {
 
   const route = {
     id: nextRouteId++,
-
     kind,
-
     name: "",
-
     draft: true,
 
     colour:
@@ -2694,6 +2702,7 @@ function finishRoute(kind) {
   };
 
   currentPoints = [];
+
   pointerActive = false;
 
   temporaryLayer.innerHTML = "";
@@ -2732,6 +2741,7 @@ function routeMidpoint(points) {
       );
 
     segments.push(length);
+
     total += length;
   }
 
@@ -2793,7 +2803,7 @@ function routeMidpoint(points) {
 
 
 /* =========================================================
-TRANSFORM
+   TRANSFORM
 ========================================================= */
 
 function handleSigns(handle) {
@@ -2843,9 +2853,7 @@ function beginRotation(
 
   transformAction = {
     type: "rotate",
-
     shapeId: shape.id,
-
     centre,
 
     startAngle:
@@ -2902,12 +2910,14 @@ function beginResize(
   const anchor =
     add(
       centre,
+
       add(
         scale(
           basis.u,
           -hx *
           bounds.width / 2
         ),
+
         scale(
           basis.v,
           -hy *
@@ -2918,16 +2928,11 @@ function beginResize(
 
   transformAction = {
     type: "resize",
-
     shapeId: shape.id,
-
     handle,
-
     hx,
     hy,
-
     anchor,
-
     u: basis.u,
     v: basis.v,
 
@@ -2979,6 +2984,7 @@ function resizeSelectedShape(
     width =
       Math.max(
         MIN_SHAPE_SIZE,
+
         action.hx *
         dot(
           delta,
@@ -2993,6 +2999,7 @@ function resizeSelectedShape(
     height =
       Math.max(
         MIN_SHAPE_SIZE,
+
         action.hy *
         dot(
           delta,
@@ -3210,7 +3217,7 @@ function performTransform(point) {
 
 
 /* =========================================================
-POINTER INTERACTION
+   POINTER INTERACTION
 ========================================================= */
 
 canvas.addEventListener(
@@ -3387,6 +3394,7 @@ canvas.addEventListener(
       if (routeTarget) {
         selectedItem = {
           kind: "route",
+
           id:
             Number(
               routeTarget.dataset.routeId
@@ -3416,6 +3424,7 @@ canvas.addEventListener(
       if (shapeTarget) {
         selectedItem = {
           kind: "shape",
+
           id:
             Number(
               shapeTarget.dataset.shapeId
@@ -3612,6 +3621,7 @@ canvas.addEventListener(
     ) {
       renderTemporaryFixedShape(
         currentTool,
+
         getDragBounds(
           currentTool,
           startPoint,
@@ -3685,6 +3695,7 @@ canvas.addEventListener(
       interactionBeforeState = null;
 
       pointerActive = false;
+
       lastMovePoint = null;
 
       renderAll();
@@ -3751,18 +3762,12 @@ canvas.addEventListener(
 
       const shape = {
         id: nextShapeId++,
-
         type: currentTool,
-
         name: "",
         meaning: "",
-
         fill: DEFAULT_SHAPE_FILL,
-
         rotation: 0,
-
         draft: true,
-
         x: bounds.x,
         y: bounds.y,
         width: bounds.width,
@@ -3808,7 +3813,7 @@ window.addEventListener(
 
 
 /* =========================================================
-LANDMARK NAMING
+   LANDMARK NAMING
 ========================================================= */
 
 function openObjectModal() {
@@ -3931,7 +3936,7 @@ discardObjectButton.addEventListener(
 
 
 /* =========================================================
-PATH / ROAD NAMING
+   PATH / ROAD NAMING
 ========================================================= */
 
 function openRouteModal(route) {
@@ -3994,6 +3999,7 @@ saveRouteDetailsButton.addEventListener(
     }
 
     route.name = name;
+
     route.draft = false;
 
     pendingRouteId = null;
@@ -4039,6 +4045,7 @@ discardRouteButton.addEventListener(
     }
 
     pendingRouteId = null;
+
     interactionBeforeState = null;
 
     selectedItem = null;
@@ -4053,7 +4060,7 @@ discardRouteButton.addEventListener(
 
 
 /* =========================================================
-COLOUR PANEL
+   COLOUR PANEL
 ========================================================= */
 
 function showColourPanel() {
@@ -4166,7 +4173,7 @@ fillColour.addEventListener(
 
 
 /* =========================================================
-EDIT / DUPLICATE / DELETE / LAYERS
+   EDIT / DUPLICATE / DELETE / LAYERS
 ========================================================= */
 
 function openEditModal() {
@@ -4213,6 +4220,7 @@ editSelectedButton.addEventListener(
   "click",
   () => {
     closeFlyouts();
+
     openEditModal();
   }
 );
@@ -4528,7 +4536,7 @@ submitButton.addEventListener(
 
 
 /* =========================================================
-NORTH ARROW
+   NORTH ARROW
 ========================================================= */
 
 function renderNorthArrow() {
@@ -4650,7 +4658,7 @@ northIndicator.addEventListener(
 
 
 /* =========================================================
-RENDER SHAPES
+   RENDER SHAPES
 ========================================================= */
 
 function renderShapes() {
@@ -4730,9 +4738,9 @@ function renderShapes() {
       element.setAttribute(
         "transform",
         `rotate(
-        ${shape.rotation || 0}
-        ${centre.x}
-        ${centre.y}
+          ${shape.rotation || 0}
+          ${centre.x}
+          ${centre.y}
         )`
       );
 
@@ -4759,12 +4767,16 @@ function calculateLabelFontSize(
   return Math.round(
     Math.max(
       9,
+
       Math.min(
         22,
+
         height * .32,
+
         width /
         Math.max(
           3,
+
           Math.sqrt(
             Math.max(
               text.length,
@@ -4920,7 +4932,7 @@ function renderWrappedLabel(shape) {
 
 
 /* =========================================================
-RENDER PATHS + ROADS
+   RENDER PATHS + ROADS
 ========================================================= */
 
 function routePolyline(
@@ -5119,7 +5131,7 @@ function renderRoutes() {
 
 
 /* =========================================================
-TRANSFORM OVERLAY
+   TRANSFORM OVERLAY
 ========================================================= */
 
 function renderSelectionOverlay() {
@@ -5155,9 +5167,9 @@ function renderSelectionOverlay() {
   group.setAttribute(
     "transform",
     `rotate(
-    ${shape.rotation || 0}
-    ${centre.x}
-    ${centre.y}
+      ${shape.rotation || 0}
+      ${centre.x}
+      ${centre.y}
     )`
   );
 
@@ -5200,12 +5212,14 @@ function renderSelectionOverlay() {
       bounds.x,
       bounds.y
     ],
+
     [
       "tr",
       bounds.x +
       bounds.width,
       bounds.y
     ],
+
     [
       "br",
       bounds.x +
@@ -5213,18 +5227,21 @@ function renderSelectionOverlay() {
       bounds.y +
       bounds.height
     ],
+
     [
       "bl",
       bounds.x,
       bounds.y +
       bounds.height
     ],
+
     [
       "left",
       bounds.x,
       bounds.y +
       bounds.height / 2
     ],
+
     [
       "right",
       bounds.x +
@@ -5232,12 +5249,14 @@ function renderSelectionOverlay() {
       bounds.y +
       bounds.height / 2
     ],
+
     [
       "top",
       bounds.x +
       bounds.width / 2,
       bounds.y
     ],
+
     [
       "bottom",
       bounds.x +
@@ -5388,7 +5407,6 @@ function renderDoneButton(shape) {
             bounds.height +
             52
         }
-
       : {
           x:
             bounds.x +
@@ -5433,8 +5451,8 @@ function renderDoneButton(shape) {
   group.setAttribute(
     "transform",
     `translate(
-    ${position.x}
-    ${position.y}
+      ${position.x}
+      ${position.y}
     )`
   );
 
@@ -5507,7 +5525,7 @@ function renderDoneButton(shape) {
 
 
 /* =========================================================
-LEGEND
+   LEGEND
 ========================================================= */
 
 function createLegendShapePreview(shape) {
@@ -5780,7 +5798,7 @@ function renderLegend() {
 
 
 /* =========================================================
-BUTTON STATE
+   BUTTON STATE
 ========================================================= */
 
 function updateLayerButtons() {
@@ -5861,7 +5879,7 @@ function renderAll() {
 
 
 /* =========================================================
-TEACHER RED-PEN ANNOTATIONS
+   TEACHER RED-PEN ANNOTATIONS
 ========================================================= */
 
 function renderAnnotations() {
@@ -6025,7 +6043,7 @@ clearAnnotationsButton.addEventListener(
 
 
 /* =========================================================
-STUDENT ENTRY + PROFILE + GROUP PROJECTS
+   STUDENT ENTRY + PROFILE + GROUP PROJECTS
 ========================================================= */
 
 async function ensureAnonymousStudentSession() {
@@ -6277,7 +6295,6 @@ async function loginStudentProfile() {
   }
 
   studentLoginButton.disabled = true;
-
   studentLoginButton.textContent =
     "Opening…";
 
@@ -6367,7 +6384,6 @@ async function loginStudentProfile() {
 
   finally {
     studentLoginButton.disabled = false;
-
     studentLoginButton.textContent =
       "Continue";
   }
@@ -6470,7 +6486,6 @@ function renderStudentProjectHistory() {
       button.innerHTML =
         `
         <div class="student-project-card-head">
-
           <div>
             <strong>
               ${escapeHtml(
@@ -6502,7 +6517,6 @@ function renderStudentProjectHistory() {
               "draft"
             )}
           </span>
-
         </div>
 
         <div class="student-project-members">
@@ -6563,7 +6577,6 @@ async function openTaskFromCode() {
   }
 
   openStudentTaskButton.disabled = true;
-
   openStudentTaskButton.textContent =
     "Checking…";
 
@@ -6787,10 +6800,10 @@ startGroupTaskButton.addEventListener(
             'input[type="checkbox"]:checked:not(:disabled)'
           )
       )
-      .map(
-        input =>
-          input.value
-      );
+        .map(
+          input =>
+            input.value
+        );
 
     try {
       const {
@@ -6929,7 +6942,6 @@ async function loadStudentProject(
 
     allowedTools = {
       ...DEFAULT_ALLOWED_TOOLS,
-
       ...(
         project.allowed_tools ||
         {}
@@ -7062,9 +7074,7 @@ async function returnToStudentProfile() {
   taskIntro.hidden = true;
 
   currentTask = null;
-
   currentSubmission = null;
-
   currentReferenceUrl = "";
 
   referenceOverlay.hidden = true;
@@ -7087,15 +7097,11 @@ switchStudentButton.addEventListener(
   "click",
   async () => {
     currentStudentProfile = null;
-
     currentStudentProjects = [];
-
     currentStudentRoster = [];
 
     studentProfilePage.hidden = true;
-
     studentWorkspace.hidden = true;
-
     teacherDashboard.hidden = true;
 
     startupModal.hidden = false;
@@ -7118,7 +7124,7 @@ switchStudentButton.addEventListener(
 
 
 /* =========================================================
-TEACHER LOGIN
+   TEACHER LOGIN
 ========================================================= */
 
 function openTeacherLogin() {
@@ -7272,7 +7278,7 @@ teacherLoginButton.addEventListener(
 
 
 /* =========================================================
-TEACHER DASHBOARD
+   TEACHER DASHBOARD
 ========================================================= */
 
 function setTeacherSection(section) {
@@ -7330,7 +7336,6 @@ async function openTeacherDashboard() {
     "teacher-dashboard";
 
   studentWorkspace.hidden = true;
-
   studentProfilePage.hidden = true;
 
   teacherDashboard.hidden = false;
@@ -7338,7 +7343,6 @@ async function openTeacherDashboard() {
   startupModal.hidden = true;
 
   teacherReviewToolbar.hidden = true;
-
   teacherFeedbackPanel.hidden = true;
 
   setTeacherSection("tasks");
@@ -7349,7 +7353,6 @@ async function openTeacherDashboard() {
   );
 
   await loadTeacherClasses();
-
   await loadTeacherTasks();
 }
 
@@ -7371,7 +7374,7 @@ teacherSignOutButton.addEventListener(
 
 
 /* =========================================================
-TEACHER CLASSES
+   TEACHER CLASSES
 ========================================================= */
 
 async function loadTeacherClasses() {
@@ -7386,10 +7389,6 @@ async function loadTeacherClasses() {
     await sb
       .from("classes")
       .select("*")
-      .eq(
-        "teacher_id",
-        currentTeacherUser.id
-      )
       .eq(
         "active",
         true
@@ -7464,7 +7463,6 @@ async function loadTeacherClasses() {
     teacherClasses.map(
       item => ({
         ...item,
-
         student_count:
           counts[item.id] ||
           0
@@ -7495,9 +7493,7 @@ async function loadTeacherClasses() {
 
     else {
       selectedTeacherClass = null;
-
       noClassSelected.hidden = false;
-
       classEditor.hidden = true;
     }
   }
@@ -7709,7 +7705,6 @@ async function selectTeacherClass(
     }`;
 
   renderTeacherClassList();
-
   renderClassRoster();
 }
 
@@ -7830,7 +7825,6 @@ saveClassNameButton.addEventListener(
       alert(
         "Enter a class name."
       );
-
       return;
     }
 
@@ -7907,7 +7901,6 @@ archiveClassButton.addEventListener(
     selectedTeacherClass = null;
 
     noClassSelected.hidden = false;
-
     classEditor.hidden = true;
 
     await loadTeacherClasses();
@@ -7927,11 +7920,11 @@ function cleanImportedNames(
         String(
           name ?? ""
         )
-        .replace(
-          /\s+/g,
-          " "
-        )
-        .trim()
+          .replace(
+            /\s+/g,
+            " "
+          )
+          .trim()
     )
     .filter(Boolean)
     .filter(
@@ -8125,23 +8118,21 @@ classListFile.addEventListener(
           names found
         </strong>
 
-        ${
-          pendingClassImportNames
-            .map(
-              (
-                name,
-                index
-              ) =>
-                `${
-                  index + 1
-                }. ${
-                  escapeHtml(
-                    name
-                  )
-                }`
-            )
-            .join("<br>")
-        }
+        ${pendingClassImportNames
+          .map(
+            (
+              name,
+              index
+            ) =>
+              `${
+                index + 1
+              }. ${
+                escapeHtml(
+                  name
+                )
+              }`
+          )
+          .join("<br>")}
         `;
 
       classImportPreview.hidden =
@@ -8465,7 +8456,7 @@ addStudentButton.addEventListener(
 
 
 /* =========================================================
-TEACHER TASKS
+   TEACHER TASKS
 ========================================================= */
 
 async function loadTeacherTasks() {
@@ -8476,10 +8467,6 @@ async function loadTeacherTasks() {
     await sb
       .from("tasks")
       .select("*")
-      .eq(
-        "teacher_id",
-        currentTeacherUser.id
-      )
       .order(
         "created_at",
         {
@@ -8803,7 +8790,6 @@ async function selectTeacherTask(task) {
 
   const tools = {
     ...DEFAULT_ALLOWED_TOOLS,
-
     ...(
       task.allowed_tools ||
       {}
@@ -8908,10 +8894,10 @@ saveTaskSettingsButton.addEventListener(
             'input[type="checkbox"]:checked'
           )
       )
-      .map(
-        input =>
-          input.value
-      );
+        .map(
+          input =>
+            input.value
+        );
 
     const payload = {
       title:
@@ -9061,7 +9047,7 @@ saveTaskSettingsButton.addEventListener(
 
 
 /* =========================================================
-TEACHER REFERENCE MAP
+   TEACHER REFERENCE MAP
 ========================================================= */
 
 teacherReferenceFile.addEventListener(
@@ -9115,7 +9101,6 @@ teacherReferenceFile.addEventListener(
           file,
           {
             upsert: false,
-
             contentType:
               file.type
           }
@@ -9243,7 +9228,7 @@ removeReferenceButton.addEventListener(
 
 
 /* =========================================================
-STUDENT SUBMISSION LIST
+   STUDENT SUBMISSION LIST
 ========================================================= */
 
 async function loadSubmissions() {
@@ -9412,7 +9397,7 @@ refreshSubmissionsButton.addEventListener(
 
 
 /* =========================================================
-TEACHER REVIEW
+   TEACHER REVIEW
 ========================================================= */
 
 async function openSubmissionReview(id) {
@@ -9618,7 +9603,7 @@ saveTeacherFeedbackButton.addEventListener(
 
 
 /* =========================================================
-PNG EXPORT
+   PNG EXPORT
 ========================================================= */
 
 function buildExportSvg() {
@@ -9771,7 +9756,7 @@ downloadButton.addEventListener(
 
 
 /* =========================================================
-UI
+   UI
 ========================================================= */
 
 function updateStudentBadge() {
@@ -9806,7 +9791,7 @@ document.addEventListener(
 
 
 /* =========================================================
-STARTUP
+   STARTUP
 ========================================================= */
 
 async function initialise() {
@@ -9817,9 +9802,7 @@ async function initialise() {
   updateStudentBadge();
 
   studentWorkspace.hidden = true;
-
   studentProfilePage.hidden = true;
-
   teacherDashboard.hidden = true;
 
   startupModal.hidden = false;
