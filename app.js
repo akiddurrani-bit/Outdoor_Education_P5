@@ -1,31 +1,21 @@
 /* =========================================================
-   OUTDOOR EDUCATION MAP MAKER
-   Student + Teacher build
-   ========================================================= */
+OUTDOOR EDUCATION MAP MAKER
+Student + Teacher build
+========================================================= */
 
 const SVG_NS = "http://www.w3.org/2000/svg";
 const HTML_NS = "http://www.w3.org/1999/xhtml";
 
 const CANVAS_WIDTH = 1600;
 const CANVAS_HEIGHT = 675;
-
 const MIN_SHAPE_SIZE = 30;
-
 const DEFAULT_SHAPE_FILL = "#c7d2df";
-
 const LOCAL_SAVE_KEY = "oeMapMakerLocalV9";
-
 const MAX_HISTORY = 60;
 
 
 /* =========================================================
-   SUPABASE CONNECTION
-
-   Paste the two values from:
-   Supabase → Connect → .env.local
-
-   1. NEXT_PUBLIC_SUPABASE_URL
-   2. NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+SUPABASE CONNECTION
 ========================================================= */
 
 const APP_CONFIG = {
@@ -34,11 +24,9 @@ const APP_CONFIG = {
   referenceBucket: "reference-maps"
 };
 
-
 const BACKEND_READY =
   !APP_CONFIG.supabaseUrl.includes("PASTE_") &&
   !APP_CONFIG.supabaseAnonKey.includes("PASTE_");
-
 
 const sb =
   BACKEND_READY
@@ -80,7 +68,7 @@ const $ = id =>
 
 
 /* =========================================================
-   DOM
+DOM
 ========================================================= */
 
 const studentWorkspace = $("studentWorkspace");
@@ -89,6 +77,18 @@ const teacherDashboard = $("teacherDashboard");
 const taskIntro = $("taskIntro");
 const taskTitle = $("taskTitle");
 const taskInstructions = $("taskInstructions");
+const taskMembers = $("taskMembers");
+
+const studentProfilePage = $("studentProfilePage");
+const profileStudentName = $("profileStudentName");
+const profileClassName = $("profileClassName");
+const switchStudentButton = $("switchStudentButton");
+
+const studentTaskCode = $("studentTaskCode");
+const openStudentTaskButton = $("openStudentTaskButton");
+const studentTaskError = $("studentTaskError");
+const refreshStudentProjectsButton = $("refreshStudentProjectsButton");
+const studentProjectsList = $("studentProjectsList");
 
 const cloudStatus = $("cloudStatus");
 const studentBadge = $("studentBadge");
@@ -159,6 +159,7 @@ const duplicateButton = $("duplicateButton");
 const saveNowButton = $("saveNowButton");
 const submitButton = $("submitButton");
 const downloadButton = $("downloadButton");
+const backToProfileButton = $("backToProfileButton");
 const clearButton = $("clearButton");
 
 const referenceButton = $("referenceButton");
@@ -170,14 +171,22 @@ const colourSwatches = $("colourSwatches");
 const fillColour = $("fillColour");
 const closeColourPanel = $("closeColourPanel");
 
+
 const startupModal = $("startupModal");
-const startupTaskCode = $("startupTaskCode");
-const startupName = $("startupName");
-const startupClass = $("startupClass");
-const startupGroup = $("startupGroup");
+const startupClassSelect = $("startupClassSelect");
+const startupStudentSelect = $("startupStudentSelect");
 const startupError = $("startupError");
-const startStudentButton = $("startStudentButton");
+const studentLoginButton = $("studentLoginButton");
 const startupTeacherLink = $("startupTeacherLink");
+
+
+const groupModal = $("groupModal");
+const groupTaskTitle = $("groupTaskTitle");
+const groupMembersList = $("groupMembersList");
+const groupError = $("groupError");
+const cancelGroupButton = $("cancelGroupButton");
+const startGroupTaskButton = $("startGroupTaskButton");
+
 
 const teacherLoginModal = $("teacherLoginModal");
 const teacherEmail = $("teacherEmail");
@@ -186,12 +195,14 @@ const teacherLoginError = $("teacherLoginError");
 const teacherLoginButton = $("teacherLoginButton");
 const cancelTeacherLogin = $("cancelTeacherLogin");
 
+
 const objectModal = $("objectModal");
 const objectNameInput = $("objectNameInput");
 const objectCategorySelect = $("objectCategorySelect");
 const objectError = $("objectError");
 const saveObjectDetailsButton = $("saveObjectDetailsButton");
 const discardObjectButton = $("discardObjectButton");
+
 
 const routeModal = $("routeModal");
 const routeModalLabel = $("routeModalLabel");
@@ -201,6 +212,7 @@ const routeError = $("routeError");
 const saveRouteDetailsButton = $("saveRouteDetailsButton");
 const discardRouteButton = $("discardRouteButton");
 
+
 const editModal = $("editModal");
 const editNameInput = $("editNameInput");
 const editCategoryWrap = $("editCategoryWrap");
@@ -209,11 +221,39 @@ const editError = $("editError");
 const saveEditButton = $("saveEditButton");
 const cancelEditButton = $("cancelEditButton");
 
+
 const createTaskButton = $("createTaskButton");
 const teacherSignOutButton = $("teacherSignOutButton");
 const teacherTasksList = $("teacherTasksList");
 const noTaskSelected = $("noTaskSelected");
 const taskEditor = $("taskEditor");
+
+const teacherTasksTabButton = $("teacherTasksTabButton");
+const teacherClassesTabButton = $("teacherClassesTabButton");
+const teacherTasksPanel = $("teacherTasksPanel");
+const teacherClassesPanel = $("teacherClassesPanel");
+
+const taskAssignedClasses = $("taskAssignedClasses");
+
+const createClassButton = $("createClassButton");
+const teacherClassesList = $("teacherClassesList");
+const noClassSelected = $("noClassSelected");
+const classEditor = $("classEditor");
+
+const teacherClassHeading = $("teacherClassHeading");
+const teacherClassCount = $("teacherClassCount");
+const teacherClassName = $("teacherClassName");
+const saveClassNameButton = $("saveClassNameButton");
+const archiveClassButton = $("archiveClassButton");
+
+const classListFile = $("classListFile");
+const classImportPreview = $("classImportPreview");
+const importClassListButton = $("importClassListButton");
+
+const newStudentName = $("newStudentName");
+const addStudentButton = $("addStudentButton");
+const classRosterList = $("classRosterList");
+
 
 const teacherTaskHeading = $("teacherTaskHeading");
 const teacherTaskCode = $("teacherTaskCode");
@@ -237,6 +277,7 @@ const refreshSubmissionsButton =
 
 const submissionList = $("submissionList");
 
+
 const permissionInputs = {
   move: $("allowMove"),
   shapes: $("allowShapes"),
@@ -249,6 +290,7 @@ const permissionInputs = {
   reference: $("allowReference"),
   download: $("allowDownload")
 };
+
 
 const teacherReviewToolbar =
   $("teacherReviewToolbar");
@@ -276,7 +318,7 @@ const saveTeacherFeedbackButton =
 
 
 /* =========================================================
-   STATE
+STATE
 ========================================================= */
 
 let appMode = "student";
@@ -330,6 +372,11 @@ let studentInfo = {
   group: ""
 };
 
+let currentStudentProfile = null;
+let currentStudentRoster = [];
+let currentStudentProjects = [];
+let pendingTaskLookup = null;
+
 let currentTask = null;
 let currentSubmission = null;
 let currentReferenceUrl = "";
@@ -343,9 +390,16 @@ let teacherTasks = [];
 let selectedTeacherTask = null;
 let reviewSubmission = null;
 
+let teacherLoginReturnView = "startup";
+
+let teacherClasses = [];
+let selectedTeacherClass = null;
+let selectedClassRoster = [];
+let pendingClassImportNames = [];
+
 
 /* =========================================================
-   UTILITIES
+UTILITIES
 ========================================================= */
 
 function deepClone(value) {
@@ -559,7 +613,7 @@ function getCanvasPoint(event) {
 
 
 /* =========================================================
-   PERMANENT GRID
+PERMANENT GRID
 ========================================================= */
 
 function createGrid() {
@@ -610,7 +664,7 @@ function createGrid() {
 
 
 /* =========================================================
-   HISTORY
+HISTORY
 ========================================================= */
 
 function captureMapState() {
@@ -758,7 +812,7 @@ function updateHistoryButtons() {
 
 
 /* =========================================================
-   MAP SAVE / LOAD
+MAP SAVE / LOAD
 ========================================================= */
 
 function serialiseMap() {
@@ -911,13 +965,12 @@ async function saveStudentMap(
 
   if (
     !BACKEND_READY ||
-    !currentSubmission
+    !currentSubmission ||
+    !currentStudentProfile
   ) {
     if (showMessage) {
-      setCloudStatus(
-        "Saved locally",
-        "good"
-      );
+      statusBar.textContent =
+        "Saved on this device.";
     }
 
     return;
@@ -925,46 +978,48 @@ async function saveStudentMap(
 
   try {
     setCloudStatus(
-      "Saving to teacher…",
+      "Saving…",
       "busy"
     );
 
-    const { error } =
-      await sb
-        .from("submissions")
-        .update({
-          map_data:
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_save_project",
+        {
+          p_submission_id:
+            currentSubmission.id,
+
+          p_student_id:
+            currentStudentProfile.student_id,
+
+          p_map_data:
             serialiseMap(),
 
-          student_name:
-            studentInfo.name,
-
-          class_name:
-            studentInfo.className,
-
-          group_name:
-            studentInfo.group,
-
-          updated_at:
-            new Date().toISOString()
-        })
-        .eq(
-          "id",
-          currentSubmission.id
-        );
+          p_submit:
+            false
+        }
+      );
 
     if (error) {
       throw error;
     }
 
+    currentSubmission.status =
+      data ||
+      currentSubmission.status ||
+      "draft";
+
     setCloudStatus(
-      "Saved to teacher",
+      "Saved",
       "good"
     );
 
     if (showMessage) {
       statusBar.textContent =
-        "Saved to your teacher workspace.";
+        "✓ Saved to your project.";
     }
   }
 
@@ -978,7 +1033,7 @@ async function saveStudentMap(
 
     if (showMessage) {
       statusBar.textContent =
-        "Save failed. Your local backup is still kept.";
+        "Save failed. Your work is still kept on this device.";
     }
   }
 }
@@ -987,61 +1042,69 @@ async function saveStudentMap(
 async function submitToTeacher() {
   if (
     !currentSubmission ||
+    !currentStudentProfile ||
     !BACKEND_READY
   ) {
     statusBar.textContent =
-      "Backend is not connected yet.";
+      "This project is not connected yet.";
 
     return;
   }
 
-  await saveStudentMap(false);
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_save_project",
+        {
+          p_submission_id:
+            currentSubmission.id,
 
-  const { error } =
-    await sb
-      .from("submissions")
-      .update({
-        status:
-          "submitted",
+          p_student_id:
+            currentStudentProfile.student_id,
 
-        submitted_at:
-          new Date().toISOString(),
+          p_map_data:
+            serialiseMap(),
 
-        map_data:
-          serialiseMap()
-      })
-      .eq(
-        "id",
-        currentSubmission.id
+          p_submit:
+            true
+        }
       );
 
-  if (error) {
+    if (error) {
+      throw error;
+    }
+
+    currentSubmission.status =
+      data || "submitted";
+
+    setCloudStatus(
+      "Submitted",
+      "good"
+    );
+
+    statusBar.textContent =
+      "✓ Map submitted to your teacher.";
+  }
+
+  catch (error) {
+    console.error(error);
+
     setCloudStatus(
       "Submit failed",
       "bad"
     );
 
     statusBar.textContent =
-      error.message;
-
-    return;
+      "Could not submit the map. Please try again.";
   }
-
-  currentSubmission.status =
-    "submitted";
-
-  setCloudStatus(
-    "Submitted",
-    "good"
-  );
-
-  statusBar.textContent =
-    "Map submitted to your teacher.";
 }
 
 
 /* =========================================================
-   REFERENCE MAP
+REFERENCE MAP
 ========================================================= */
 
 async function getSignedReferenceUrl(path) {
@@ -1171,7 +1234,6 @@ referenceButton.addEventListener(
   "pointerup",
   event => {
     event.preventDefault();
-
     endReferencePreview();
   }
 );
@@ -1197,7 +1259,7 @@ referenceButton.addEventListener(
 
 
 /* =========================================================
-   TEACHER TOOL PERMISSIONS
+TEACHER TOOL PERMISSIONS
 ========================================================= */
 
 function applyToolPermissions() {
@@ -1244,7 +1306,7 @@ function applyToolPermissions() {
 
 
 /* =========================================================
-   TOOLBAR / FLYOUTS
+TOOLBAR / FLYOUTS
 ========================================================= */
 
 function wakeToolbar() {
@@ -1451,7 +1513,6 @@ freehandTool.addEventListener(
       !blockWhileDraftExists()
     ) {
       closeFlyouts();
-
       setTool("freehand");
     }
   }
@@ -1566,7 +1627,7 @@ startRoadButton.addEventListener(
 
 
 /* =========================================================
-   DRAFT SAFETY
+DRAFT SAFETY
 ========================================================= */
 
 function getPendingDraft() {
@@ -1575,7 +1636,7 @@ function getPendingDraft() {
       ? shapes.find(
           shape =>
             shape.id ===
-            pendingDraftId &&
+              pendingDraftId &&
             shape.draft
         )
       : null;
@@ -1608,7 +1669,7 @@ function getPendingRoute() {
       ? routes.find(
           item =>
             item.id ===
-            pendingRouteId &&
+              pendingRouteId &&
             item.draft
         )
       : null;
@@ -1670,15 +1731,10 @@ function blockWhileDraftExists() {
 
 function resetInteractionState() {
   pointerActive = false;
-
   startPoint = null;
-
   currentPoints = [];
-
   lastMovePoint = null;
-
   transformAction = null;
-
   interactionBeforeState = null;
 
   temporaryLayer.innerHTML = "";
@@ -1686,7 +1742,7 @@ function resetInteractionState() {
 
 
 /* =========================================================
-   SHAPES
+SHAPES
 ========================================================= */
 
 function getDragBounds(
@@ -2061,28 +2117,22 @@ function getVisualBounds(shape) {
         x: bounds.x,
         y: bounds.y
       },
-
       {
         x:
           bounds.x +
           bounds.width,
-
         y: bounds.y
       },
-
       {
         x:
           bounds.x +
           bounds.width,
-
         y:
           bounds.y +
           bounds.height
       },
-
       {
         x: bounds.x,
-
         y:
           bounds.y +
           bounds.height
@@ -2409,7 +2459,6 @@ function createFreehandDraft() {
       "Draw a larger freehand outline.";
 
     currentPoints = [];
-
     draftOriginState = null;
 
     return;
@@ -2449,7 +2498,7 @@ function createFreehandDraft() {
 
 
 /* =========================================================
-   PATHS + ROADS
+PATHS + ROADS
 ========================================================= */
 
 function renderTemporaryRoute(kind) {
@@ -2607,8 +2656,11 @@ function finishRoute(kind) {
 
   const route = {
     id: nextRouteId++,
+
     kind,
+
     name: "",
+
     draft: true,
 
     colour:
@@ -2642,7 +2694,6 @@ function finishRoute(kind) {
   };
 
   currentPoints = [];
-
   pointerActive = false;
 
   temporaryLayer.innerHTML = "";
@@ -2681,7 +2732,6 @@ function routeMidpoint(points) {
       );
 
     segments.push(length);
-
     total += length;
   }
 
@@ -2743,7 +2793,7 @@ function routeMidpoint(points) {
 
 
 /* =========================================================
-   TRANSFORM
+TRANSFORM
 ========================================================= */
 
 function handleSigns(handle) {
@@ -2793,7 +2843,9 @@ function beginRotation(
 
   transformAction = {
     type: "rotate",
+
     shapeId: shape.id,
+
     centre,
 
     startAngle:
@@ -2850,14 +2902,12 @@ function beginResize(
   const anchor =
     add(
       centre,
-
       add(
         scale(
           basis.u,
           -hx *
           bounds.width / 2
         ),
-
         scale(
           basis.v,
           -hy *
@@ -2868,11 +2918,16 @@ function beginResize(
 
   transformAction = {
     type: "resize",
+
     shapeId: shape.id,
+
     handle,
+
     hx,
     hy,
+
     anchor,
+
     u: basis.u,
     v: basis.v,
 
@@ -2924,7 +2979,6 @@ function resizeSelectedShape(
     width =
       Math.max(
         MIN_SHAPE_SIZE,
-
         action.hx *
         dot(
           delta,
@@ -2939,7 +2993,6 @@ function resizeSelectedShape(
     height =
       Math.max(
         MIN_SHAPE_SIZE,
-
         action.hy *
         dot(
           delta,
@@ -3157,7 +3210,7 @@ function performTransform(point) {
 
 
 /* =========================================================
-   POINTER INTERACTION
+POINTER INTERACTION
 ========================================================= */
 
 canvas.addEventListener(
@@ -3334,7 +3387,6 @@ canvas.addEventListener(
       if (routeTarget) {
         selectedItem = {
           kind: "route",
-
           id:
             Number(
               routeTarget.dataset.routeId
@@ -3364,7 +3416,6 @@ canvas.addEventListener(
       if (shapeTarget) {
         selectedItem = {
           kind: "shape",
-
           id:
             Number(
               shapeTarget.dataset.shapeId
@@ -3561,7 +3612,6 @@ canvas.addEventListener(
     ) {
       renderTemporaryFixedShape(
         currentTool,
-
         getDragBounds(
           currentTool,
           startPoint,
@@ -3635,7 +3685,6 @@ canvas.addEventListener(
       interactionBeforeState = null;
 
       pointerActive = false;
-
       lastMovePoint = null;
 
       renderAll();
@@ -3702,12 +3751,18 @@ canvas.addEventListener(
 
       const shape = {
         id: nextShapeId++,
+
         type: currentTool,
+
         name: "",
         meaning: "",
+
         fill: DEFAULT_SHAPE_FILL,
+
         rotation: 0,
+
         draft: true,
+
         x: bounds.x,
         y: bounds.y,
         width: bounds.width,
@@ -3753,7 +3808,7 @@ window.addEventListener(
 
 
 /* =========================================================
-   LANDMARK NAMING
+LANDMARK NAMING
 ========================================================= */
 
 function openObjectModal() {
@@ -3876,7 +3931,7 @@ discardObjectButton.addEventListener(
 
 
 /* =========================================================
-   PATH / ROAD NAMING
+PATH / ROAD NAMING
 ========================================================= */
 
 function openRouteModal(route) {
@@ -3939,7 +3994,6 @@ saveRouteDetailsButton.addEventListener(
     }
 
     route.name = name;
-
     route.draft = false;
 
     pendingRouteId = null;
@@ -3985,7 +4039,6 @@ discardRouteButton.addEventListener(
     }
 
     pendingRouteId = null;
-
     interactionBeforeState = null;
 
     selectedItem = null;
@@ -4000,7 +4053,7 @@ discardRouteButton.addEventListener(
 
 
 /* =========================================================
-   COLOUR PANEL
+COLOUR PANEL
 ========================================================= */
 
 function showColourPanel() {
@@ -4113,7 +4166,7 @@ fillColour.addEventListener(
 
 
 /* =========================================================
-   EDIT / DUPLICATE / DELETE / LAYERS
+EDIT / DUPLICATE / DELETE / LAYERS
 ========================================================= */
 
 function openEditModal() {
@@ -4160,7 +4213,6 @@ editSelectedButton.addEventListener(
   "click",
   () => {
     closeFlyouts();
-
     openEditModal();
   }
 );
@@ -4476,7 +4528,7 @@ submitButton.addEventListener(
 
 
 /* =========================================================
-   NORTH ARROW
+NORTH ARROW
 ========================================================= */
 
 function renderNorthArrow() {
@@ -4598,7 +4650,7 @@ northIndicator.addEventListener(
 
 
 /* =========================================================
-   RENDER SHAPES
+RENDER SHAPES
 ========================================================= */
 
 function renderShapes() {
@@ -4678,9 +4730,9 @@ function renderShapes() {
       element.setAttribute(
         "transform",
         `rotate(
-          ${shape.rotation || 0}
-          ${centre.x}
-          ${centre.y}
+        ${shape.rotation || 0}
+        ${centre.x}
+        ${centre.y}
         )`
       );
 
@@ -4707,16 +4759,12 @@ function calculateLabelFontSize(
   return Math.round(
     Math.max(
       9,
-
       Math.min(
         22,
-
         height * .32,
-
         width /
         Math.max(
           3,
-
           Math.sqrt(
             Math.max(
               text.length,
@@ -4872,7 +4920,7 @@ function renderWrappedLabel(shape) {
 
 
 /* =========================================================
-   RENDER PATHS + ROADS
+RENDER PATHS + ROADS
 ========================================================= */
 
 function routePolyline(
@@ -5071,7 +5119,7 @@ function renderRoutes() {
 
 
 /* =========================================================
-   TRANSFORM OVERLAY
+TRANSFORM OVERLAY
 ========================================================= */
 
 function renderSelectionOverlay() {
@@ -5107,9 +5155,9 @@ function renderSelectionOverlay() {
   group.setAttribute(
     "transform",
     `rotate(
-      ${shape.rotation || 0}
-      ${centre.x}
-      ${centre.y}
+    ${shape.rotation || 0}
+    ${centre.x}
+    ${centre.y}
     )`
   );
 
@@ -5152,14 +5200,12 @@ function renderSelectionOverlay() {
       bounds.x,
       bounds.y
     ],
-
     [
       "tr",
       bounds.x +
       bounds.width,
       bounds.y
     ],
-
     [
       "br",
       bounds.x +
@@ -5167,21 +5213,18 @@ function renderSelectionOverlay() {
       bounds.y +
       bounds.height
     ],
-
     [
       "bl",
       bounds.x,
       bounds.y +
       bounds.height
     ],
-
     [
       "left",
       bounds.x,
       bounds.y +
       bounds.height / 2
     ],
-
     [
       "right",
       bounds.x +
@@ -5189,14 +5232,12 @@ function renderSelectionOverlay() {
       bounds.y +
       bounds.height / 2
     ],
-
     [
       "top",
       bounds.x +
       bounds.width / 2,
       bounds.y
     ],
-
     [
       "bottom",
       bounds.x +
@@ -5347,6 +5388,7 @@ function renderDoneButton(shape) {
             bounds.height +
             52
         }
+
       : {
           x:
             bounds.x +
@@ -5391,8 +5433,8 @@ function renderDoneButton(shape) {
   group.setAttribute(
     "transform",
     `translate(
-      ${position.x}
-      ${position.y}
+    ${position.x}
+    ${position.y}
     )`
   );
 
@@ -5465,7 +5507,7 @@ function renderDoneButton(shape) {
 
 
 /* =========================================================
-   LEGEND
+LEGEND
 ========================================================= */
 
 function createLegendShapePreview(shape) {
@@ -5738,7 +5780,7 @@ function renderLegend() {
 
 
 /* =========================================================
-   BUTTON STATE
+BUTTON STATE
 ========================================================= */
 
 function updateLayerButtons() {
@@ -5819,7 +5861,7 @@ function renderAll() {
 
 
 /* =========================================================
-   TEACHER RED-PEN ANNOTATIONS
+TEACHER RED-PEN ANNOTATIONS
 ========================================================= */
 
 function renderAnnotations() {
@@ -5983,7 +6025,7 @@ clearAnnotationsButton.addEventListener(
 
 
 /* =========================================================
-   STUDENT ENTRY
+STUDENT ENTRY + PROFILE + GROUP PROJECTS
 ========================================================= */
 
 async function ensureAnonymousStudentSession() {
@@ -6028,78 +6070,744 @@ async function ensureAnonymousStudentSession() {
 }
 
 
-async function startStudentSession() {
+async function prepareStudentLogin() {
+  startupError.hidden = true;
+
+  startupClassSelect.innerHTML =
+    `<option value="">Loading classes…</option>`;
+
+  startupStudentSelect.innerHTML =
+    `<option value="">Select your class first</option>`;
+
+  startupStudentSelect.disabled = true;
+
+  if (!BACKEND_READY) {
+    startupClassSelect.innerHTML =
+      `<option value="">Backend not configured</option>`;
+
+    studentLoginButton.disabled = true;
+
+    startupError.textContent =
+      "Student profiles need the connected class database.";
+
+    startupError.hidden = false;
+
+    return;
+  }
+
+  studentLoginButton.disabled = false;
+
+  try {
+    await ensureAnonymousStudentSession();
+
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_list_classes"
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const classes =
+      Array.isArray(data)
+        ? data
+        : [];
+
+    startupClassSelect.innerHTML =
+      `<option value="">Select your class</option>`;
+
+    classes.forEach(
+      item => {
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          item.id;
+
+        option.textContent =
+          item.class_name;
+
+        startupClassSelect.appendChild(
+          option
+        );
+      }
+    );
+
+    if (!classes.length) {
+      startupClassSelect.innerHTML =
+        `<option value="">No classes available</option>`;
+
+      studentLoginButton.disabled = true;
+    }
+  }
+
+  catch (error) {
+    console.error(error);
+
+    startupError.textContent =
+      error.message ||
+      "Could not load classes.";
+
+    startupError.hidden = false;
+
+    startupClassSelect.innerHTML =
+      `<option value="">Could not load classes</option>`;
+  }
+}
+
+
+async function loadStudentRoster(
+  classId
+) {
+  currentStudentRoster = [];
+
+  startupStudentSelect.innerHTML =
+    `<option value="">Loading names…</option>`;
+
+  startupStudentSelect.disabled =
+    true;
+
+  if (!classId) {
+    startupStudentSelect.innerHTML =
+      `<option value="">Select your class first</option>`;
+
+    return;
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_list_roster",
+        {
+          p_class_id:
+            classId
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    currentStudentRoster =
+      Array.isArray(data)
+        ? data
+        : [];
+
+    startupStudentSelect.innerHTML =
+      `<option value="">Select your name</option>`;
+
+    currentStudentRoster.forEach(
+      student => {
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          student.id;
+
+        option.textContent =
+          student.student_name;
+
+        startupStudentSelect.appendChild(
+          option
+        );
+      }
+    );
+
+    startupStudentSelect.disabled =
+      !currentStudentRoster.length;
+  }
+
+  catch (error) {
+    console.error(error);
+
+    startupStudentSelect.innerHTML =
+      `<option value="">Could not load names</option>`;
+
+    startupError.textContent =
+      error.message ||
+      "Could not load the class list.";
+
+    startupError.hidden = false;
+  }
+}
+
+
+startupClassSelect.addEventListener(
+  "change",
+  async () => {
+    startupError.hidden = true;
+
+    await loadStudentRoster(
+      startupClassSelect.value
+    );
+  }
+);
+
+
+async function loginStudentProfile() {
+  startupError.hidden = true;
+
+  const classId =
+    startupClassSelect.value;
+
+  const studentId =
+    startupStudentSelect.value;
+
+  if (
+    !classId ||
+    !studentId
+  ) {
+    startupError.textContent =
+      "Please select your class and your name.";
+
+    startupError.hidden = false;
+
+    return;
+  }
+
+  studentLoginButton.disabled = true;
+
+  studentLoginButton.textContent =
+    "Opening…";
+
+  try {
+    await ensureAnonymousStudentSession();
+
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_select_profile",
+        {
+          p_student_id:
+            studentId
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    const profile =
+      Array.isArray(data)
+        ? data[0]
+        : data;
+
+    if (!profile) {
+      throw new Error(
+        "Student profile was not found."
+      );
+    }
+
+    currentStudentProfile =
+      profile;
+
+    studentInfo = {
+      name:
+        profile.student_name,
+
+      className:
+        profile.class_name,
+
+      group:
+        ""
+    };
+
+    profileStudentName.textContent =
+      profile.student_name;
+
+    profileClassName.textContent =
+      profile.class_name;
+
+    studentBadge.textContent =
+      `${profile.student_name} · ${profile.class_name}`;
+
+    startupModal.hidden = true;
+
+    studentWorkspace.hidden = true;
+
+    teacherDashboard.hidden = true;
+
+    studentProfilePage.hidden = false;
+
+    document.body.classList.remove(
+      "modal-open"
+    );
+
+    await loadStudentProjectHistory();
+
+    studentTaskCode.value = "";
+
+    studentTaskError.hidden = true;
+
+    studentTaskCode.focus();
+  }
+
+  catch (error) {
+    console.error(error);
+
+    startupError.textContent =
+      error.message ||
+      "Could not open your profile.";
+
+    startupError.hidden = false;
+  }
+
+  finally {
+    studentLoginButton.disabled = false;
+
+    studentLoginButton.textContent =
+      "Continue";
+  }
+}
+
+
+studentLoginButton.addEventListener(
+  "click",
+  loginStudentProfile
+);
+
+
+async function loadStudentProjectHistory() {
+  if (!currentStudentProfile) {
+    return;
+  }
+
+  studentProjectsList.innerHTML =
+    `<p class="helper-text">Loading projects…</p>`;
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_project_history",
+        {
+          p_student_id:
+            currentStudentProfile.student_id
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    currentStudentProjects =
+      Array.isArray(data)
+        ? data
+        : [];
+
+    renderStudentProjectHistory();
+  }
+
+  catch (error) {
+    console.error(error);
+
+    studentProjectsList.innerHTML =
+      `
+      <p class="helper-text">
+        ${escapeHtml(
+          error.message ||
+          "Could not load projects."
+        )}
+      </p>
+      `;
+  }
+}
+
+
+function renderStudentProjectHistory() {
+  studentProjectsList.innerHTML = "";
+
+  if (!currentStudentProjects.length) {
+    studentProjectsList.innerHTML =
+      `
+      <p class="helper-text">
+        No projects yet. Enter a task code to start.
+      </p>
+      `;
+
+    return;
+  }
+
+  currentStudentProjects.forEach(
+    project => {
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type = "button";
+
+      button.className =
+        "student-project-card";
+
+      const members =
+        Array.isArray(
+          project.group_members
+        )
+          ? project.group_members
+              .map(
+                member =>
+                  member.student_name
+              )
+              .filter(Boolean)
+          : [];
+
+      button.innerHTML =
+        `
+        <div class="student-project-card-head">
+
+          <div>
+            <strong>
+              ${escapeHtml(
+                project.task_title ||
+                "Mapping Activity"
+              )}
+            </strong>
+
+            <div class="student-project-meta">
+              Last edited
+              ${
+                project.updated_at
+                  ? new Date(
+                      project.updated_at
+                    ).toLocaleString()
+                  : "—"
+              }
+            </div>
+          </div>
+
+          <span class="student-project-status ${
+            project.status ===
+            "submitted"
+              ? "submitted"
+              : ""
+          }">
+            ${escapeHtml(
+              project.status ||
+              "draft"
+            )}
+          </span>
+
+        </div>
+
+        <div class="student-project-members">
+          ${
+            members.length > 1
+              ? `Group: ${
+                  escapeHtml(
+                    members.join(" · ")
+                  )
+                }`
+              : "Individual project"
+          }
+        </div>
+        `;
+
+      button.addEventListener(
+        "click",
+        () =>
+          loadStudentProject(
+            project.submission_id
+          )
+      );
+
+      studentProjectsList.appendChild(
+        button
+      );
+    }
+  );
+}
+
+
+refreshStudentProjectsButton.addEventListener(
+  "click",
+  loadStudentProjectHistory
+);
+
+
+async function openTaskFromCode() {
+  if (!currentStudentProfile) {
+    return;
+  }
+
   const code =
-    startupTaskCode
+    studentTaskCode
       .value
       .trim()
       .toUpperCase();
 
-  const name =
-    startupName
-      .value
-      .trim();
+  studentTaskError.hidden = true;
 
-  const className =
-    startupClass
-      .value
-      .trim();
+  if (!code) {
+    studentTaskError.textContent =
+      "Enter the task code from your teacher.";
 
-  const group =
-    startupGroup
-      .value
-      .trim();
-
-  startupError.hidden = true;
-
-  if (
-    !name ||
-    !className
-  ) {
-    startupError.textContent =
-      "Please enter your name and class.";
-
-    startupError.hidden = false;
+    studentTaskError.hidden = false;
 
     return;
   }
 
-  if (
-    BACKEND_READY &&
-    !code
-  ) {
-    startupError.textContent =
-      "Please enter the task code from your teacher.";
+  openStudentTaskButton.disabled = true;
 
-    startupError.hidden = false;
-
-    return;
-  }
-
-  startStudentButton.disabled = true;
-
-  startStudentButton.textContent =
-    "Opening…";
+  openStudentTaskButton.textContent =
+    "Checking…";
 
   try {
-    studentInfo = {
-      name,
-      className,
-      group
-    };
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_get_task_by_code",
+        {
+          p_code:
+            code,
 
-    if (BACKEND_READY) {
-      const user =
-        await ensureAnonymousStudentSession();
+          p_student_id:
+            currentStudentProfile.student_id
+        }
+      );
 
+    if (error) {
+      throw error;
+    }
+
+    const task =
+      Array.isArray(data)
+        ? data[0]
+        : data;
+
+    if (!task) {
+      throw new Error(
+        "Task code not found for your class."
+      );
+    }
+
+    if (
+      task.existing_submission_id
+    ) {
+      await loadStudentProject(
+        task.existing_submission_id
+      );
+
+      return;
+    }
+
+    pendingTaskLookup =
+      task;
+
+    await showGroupSelection();
+  }
+
+  catch (error) {
+    console.error(error);
+
+    studentTaskError.textContent =
+      error.message ||
+      "Could not open this task.";
+
+    studentTaskError.hidden = false;
+  }
+
+  finally {
+    openStudentTaskButton.disabled =
+      false;
+
+    openStudentTaskButton.textContent =
+      "Continue";
+  }
+}
+
+
+openStudentTaskButton.addEventListener(
+  "click",
+  openTaskFromCode
+);
+
+
+studentTaskCode.addEventListener(
+  "keydown",
+  event => {
+    if (event.key === "Enter") {
+      openTaskFromCode();
+    }
+  }
+);
+
+
+async function showGroupSelection() {
+  if (
+    !pendingTaskLookup ||
+    !currentStudentProfile
+  ) {
+    return;
+  }
+
+  if (
+    !currentStudentRoster.length
+  ) {
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_list_roster",
+        {
+          p_class_id:
+            currentStudentProfile.class_id
+        }
+      );
+
+    if (error) {
+      throw error;
+    }
+
+    currentStudentRoster =
+      data || [];
+  }
+
+  groupTaskTitle.textContent =
+    pendingTaskLookup.title ||
+    "Who are you working with?";
+
+  groupMembersList.innerHTML = "";
+
+  currentStudentRoster.forEach(
+    student => {
+      const isCurrent =
+        student.id ===
+        currentStudentProfile.student_id;
+
+      const label =
+        document.createElement(
+          "label"
+        );
+
+      label.className =
+        "group-member-option" +
+        (
+          isCurrent
+            ? " current-student"
+            : ""
+        );
+
+      label.innerHTML =
+        `
+        <input
+          type="checkbox"
+          value="${escapeHtml(
+            student.id
+          )}"
+          ${
+            isCurrent
+              ? "checked disabled"
+              : ""
+          }
+        >
+
+        <span>
+          ${escapeHtml(
+            student.student_name
+          )}
+          ${
+            isCurrent
+              ? "<strong> · You</strong>"
+              : ""
+          }
+        </span>
+        `;
+
+      groupMembersList.appendChild(
+        label
+      );
+    }
+  );
+
+  groupError.hidden = true;
+
+  groupModal.hidden = false;
+
+  document.body.classList.add(
+    "modal-open"
+  );
+}
+
+
+cancelGroupButton.addEventListener(
+  "click",
+  () => {
+    groupModal.hidden = true;
+
+    pendingTaskLookup = null;
+
+    document.body.classList.remove(
+      "modal-open"
+    );
+  }
+);
+
+
+startGroupTaskButton.addEventListener(
+  "click",
+  async () => {
+    if (
+      !pendingTaskLookup ||
+      !currentStudentProfile
+    ) {
+      return;
+    }
+
+    groupError.hidden = true;
+
+    startGroupTaskButton.disabled =
+      true;
+
+    startGroupTaskButton.textContent =
+      "Starting…";
+
+    const selectedMembers =
+      Array.from(
+        groupMembersList
+          .querySelectorAll(
+            'input[type="checkbox"]:checked:not(:disabled)'
+          )
+      )
+      .map(
+        input =>
+          input.value
+      );
+
+    try {
       const {
         data,
         error
       } =
         await sb.rpc(
-          "get_task_by_code",
+          "student_start_group_project",
           {
-            p_code: code
+            p_task_code:
+              pendingTaskLookup.task_code,
+
+            p_student_id:
+              currentStudentProfile.student_id,
+
+            p_member_ids:
+              selectedMembers
           }
         );
 
@@ -6107,133 +6815,155 @@ async function startStudentSession() {
         throw error;
       }
 
-      const task =
-        Array.isArray(data)
-          ? data[0]
-          : data;
+      const submissionId =
+        data;
 
-      if (!task) {
-        throw new Error(
-          "Task code not found."
-        );
-      }
+      groupModal.hidden = true;
 
-      currentTask = task;
+      document.body.classList.remove(
+        "modal-open"
+      );
 
-      allowedTools = {
-        ...DEFAULT_ALLOWED_TOOLS,
-        ...(
-          task.allowed_tools ||
-          {}
-        )
-      };
+      pendingTaskLookup = null;
 
-      const existing =
-        await sb
-          .from("submissions")
-          .select("*")
-          .eq(
-            "task_id",
-            task.id
-          )
-          .eq(
-            "student_uid",
-            user.id
-          )
-          .maybeSingle();
-
-      if (existing.error) {
-        throw existing.error;
-      }
-
-      if (existing.data) {
-        currentSubmission =
-          existing.data;
-
-        if (
-          existing.data.map_data
-        ) {
-          loadMapData(
-            existing.data.map_data
-          );
-        }
-      }
-
-      else {
-        const inserted =
-          await sb
-            .from("submissions")
-            .insert({
-              task_id:
-                task.id,
-
-              teacher_id:
-                task.teacher_id,
-
-              student_uid:
-                user.id,
-
-              student_name:
-                name,
-
-              class_name:
-                className,
-
-              group_name:
-                group,
-
-              map_data:
-                serialiseMap(),
-
-              status:
-                "draft"
-            })
-            .select()
-            .single();
-
-        if (inserted.error) {
-          throw inserted.error;
-        }
-
-        currentSubmission =
-          inserted.data;
-      }
-
-      setCloudStatus(
-        "Connected to teacher",
-        "good"
+      await loadStudentProject(
+        submissionId
       );
     }
 
-    else {
-      currentTask = {
-        id: "demo",
+    catch (error) {
+      console.error(error);
 
-        title:
-          "Abstract Mapping",
+      groupError.textContent =
+        error.message ||
+        "Could not start the group project.";
 
-        instructions:
-          "Create an abstract map that shows relative size and position. Paths and roads should be named.",
+      groupError.hidden = false;
+    }
 
-        reference_path:
-          null,
+    finally {
+      startGroupTaskButton.disabled =
+        false;
 
-        allowed_tools: {
-          ...DEFAULT_ALLOWED_TOOLS
+      startGroupTaskButton.textContent =
+        "Start Activity";
+    }
+  }
+);
+
+
+async function loadStudentProject(
+  submissionId
+) {
+  if (
+    !currentStudentProfile ||
+    !submissionId
+  ) {
+    return;
+  }
+
+  try {
+    const {
+      data,
+      error
+    } =
+      await sb.rpc(
+        "student_load_project",
+        {
+          p_submission_id:
+            submissionId,
+
+          p_student_id:
+            currentStudentProfile.student_id
         }
-      };
+      );
 
-      currentSubmission = null;
+    if (error) {
+      throw error;
+    }
 
-      allowedTools = {
-        ...DEFAULT_ALLOWED_TOOLS
-      };
+    const project =
+      Array.isArray(data)
+        ? data[0]
+        : data;
 
-      setCloudStatus(
-        "Demo / local mode",
-        "busy"
+    if (!project) {
+      throw new Error(
+        "This project could not be opened."
       );
     }
+
+    currentTask = {
+      id:
+        project.task_id,
+
+      title:
+        project.task_title,
+
+      task_code:
+        project.task_code,
+
+      instructions:
+        project.instructions,
+
+      reference_path:
+        project.reference_path,
+
+      allowed_tools:
+        project.allowed_tools
+    };
+
+    currentSubmission = {
+      id:
+        project.submission_id,
+
+      status:
+        project.status,
+
+      updated_at:
+        project.updated_at,
+
+      submitted_at:
+        project.submitted_at
+    };
+
+    allowedTools = {
+      ...DEFAULT_ALLOWED_TOOLS,
+
+      ...(
+        project.allowed_tools ||
+        {}
+      )
+    };
+
+    const members =
+      Array.isArray(
+        project.group_members
+      )
+        ? project.group_members
+        : [];
+
+    studentInfo = {
+      name:
+        currentStudentProfile.student_name,
+
+      className:
+        currentStudentProfile.class_name,
+
+      group:
+        members
+          .map(
+            member =>
+              member.student_name
+          )
+          .filter(Boolean)
+          .join(", ")
+    };
+
+    loadMapData(
+      project.map_data ||
+      {}
+    );
 
     taskTitle.textContent =
       currentTask.title ||
@@ -6243,22 +6973,22 @@ async function startStudentSession() {
       currentTask.instructions ||
       "";
 
+    const memberNames =
+      members
+        .map(
+          member =>
+            member.student_name
+        )
+        .filter(Boolean);
+
+    taskMembers.textContent =
+      memberNames.length > 1
+        ? `Group: ${memberNames.join(" · ")}`
+        : "Individual project";
+
     taskIntro.hidden = false;
 
-    studentBadge.textContent =
-      `${name} · ${className}${
-        group
-          ? ` · Group ${group}`
-          : ""
-      }`;
-
-    startupModal.hidden = true;
-
-    document.body.classList.remove(
-      "modal-open"
-    );
-
-    appMode = "student";
+    studentProfilePage.hidden = true;
 
     teacherDashboard.hidden = true;
 
@@ -6270,45 +7000,125 @@ async function startStudentSession() {
 
     teacherFeedbackPanel.hidden = true;
 
+    appMode = "student";
+
+    setCloudStatus(
+      "Saved project",
+      "good"
+    );
+
     await loadCurrentTaskReference();
 
     setTool("select");
 
     renderAll();
+
+    statusBar.textContent =
+      project.status ===
+      "submitted"
+        ? "This project has been submitted. You can continue editing and resubmit if needed."
+        : "Project opened. Your work saves automatically.";
   }
 
   catch (error) {
     console.error(error);
 
-    startupError.textContent =
+    studentTaskError.textContent =
       error.message ||
-      "Could not open the task.";
+      "Could not load the project.";
 
-    startupError.hidden = false;
+    studentTaskError.hidden = false;
 
-    setCloudStatus(
-      "Not connected",
-      "bad"
-    );
-  }
+    studentProfilePage.hidden = false;
 
-  finally {
-    startStudentButton.disabled = false;
-
-    startStudentButton.textContent =
-      "Open Task";
+    studentWorkspace.hidden = true;
   }
 }
 
 
-startStudentButton.addEventListener(
+async function returnToStudentProfile() {
+  if (!currentStudentProfile) {
+    window.location.reload();
+    return;
+  }
+
+  if (
+    appMode ===
+    "student"
+  ) {
+    await saveStudentMap(false);
+  }
+
+  closeFlyouts();
+
+  hideColourPanel();
+
+  studentWorkspace.hidden = true;
+
+  teacherDashboard.hidden = true;
+
+  studentProfilePage.hidden = false;
+
+  taskIntro.hidden = true;
+
+  currentTask = null;
+
+  currentSubmission = null;
+
+  currentReferenceUrl = "";
+
+  referenceOverlay.hidden = true;
+
+  await loadStudentProjectHistory();
+
+  studentTaskCode.value = "";
+
+  studentTaskError.hidden = true;
+}
+
+
+backToProfileButton.addEventListener(
   "click",
-  startStudentSession
+  returnToStudentProfile
+);
+
+
+switchStudentButton.addEventListener(
+  "click",
+  async () => {
+    currentStudentProfile = null;
+
+    currentStudentProjects = [];
+
+    currentStudentRoster = [];
+
+    studentProfilePage.hidden = true;
+
+    studentWorkspace.hidden = true;
+
+    teacherDashboard.hidden = true;
+
+    startupModal.hidden = false;
+
+    document.body.classList.add(
+      "modal-open"
+    );
+
+    startupClassSelect.value = "";
+
+    startupStudentSelect.innerHTML =
+      `<option value="">Select your class first</option>`;
+
+    startupStudentSelect.disabled =
+      true;
+
+    await prepareStudentLogin();
+  }
 );
 
 
 /* =========================================================
-   TEACHER LOGIN
+TEACHER LOGIN
 ========================================================= */
 
 function openTeacherLogin() {
@@ -6319,6 +7129,13 @@ function openTeacherLogin() {
 
     return;
   }
+
+  teacherLoginReturnView =
+    !studentWorkspace.hidden
+      ? "workspace"
+      : !studentProfilePage.hidden
+        ? "profile"
+        : "startup";
 
   startupModal.hidden = true;
 
@@ -6351,7 +7168,18 @@ cancelTeacherLogin.addEventListener(
   () => {
     teacherLoginModal.hidden = true;
 
-    startupModal.hidden = false;
+    if (
+      teacherLoginReturnView ===
+      "startup"
+    ) {
+      startupModal.hidden = false;
+    }
+
+    else {
+      document.body.classList.remove(
+        "modal-open"
+      );
+    }
   }
 );
 
@@ -6444,14 +7272,66 @@ teacherLoginButton.addEventListener(
 
 
 /* =========================================================
-   TEACHER DASHBOARD
+TEACHER DASHBOARD
 ========================================================= */
+
+function setTeacherSection(section) {
+  const showTasks =
+    section === "tasks";
+
+  teacherTasksPanel.hidden =
+    !showTasks;
+
+  teacherClassesPanel.hidden =
+    showTasks;
+
+  teacherTasksTabButton.classList.toggle(
+    "active",
+    showTasks
+  );
+
+  teacherClassesTabButton.classList.toggle(
+    "active",
+    !showTasks
+  );
+
+  teacherTasksTabButton.setAttribute(
+    "aria-selected",
+    showTasks
+      ? "true"
+      : "false"
+  );
+
+  teacherClassesTabButton.setAttribute(
+    "aria-selected",
+    !showTasks
+      ? "true"
+      : "false"
+  );
+}
+
+
+teacherTasksTabButton.addEventListener(
+  "click",
+  () =>
+    setTeacherSection("tasks")
+);
+
+
+teacherClassesTabButton.addEventListener(
+  "click",
+  () =>
+    setTeacherSection("classes")
+);
+
 
 async function openTeacherDashboard() {
   appMode =
     "teacher-dashboard";
 
   studentWorkspace.hidden = true;
+
+  studentProfilePage.hidden = true;
 
   teacherDashboard.hidden = false;
 
@@ -6461,10 +7341,14 @@ async function openTeacherDashboard() {
 
   teacherFeedbackPanel.hidden = true;
 
+  setTeacherSection("tasks");
+
   setCloudStatus(
     "Teacher mode",
     "good"
   );
+
+  await loadTeacherClasses();
 
   await loadTeacherTasks();
 }
@@ -6481,22 +7365,1108 @@ teacherSignOutButton.addEventListener(
 
     currentTeacherUser = null;
 
-    teacherDashboard.hidden = true;
-
-    studentWorkspace.hidden = false;
-
-    startupModal.hidden = false;
-
-    document.body.classList.add(
-      "modal-open"
-    );
-
-    setCloudStatus(
-      "Local mode"
-    );
+    window.location.reload();
   }
 );
 
+
+/* =========================================================
+TEACHER CLASSES
+========================================================= */
+
+async function loadTeacherClasses() {
+  if (!currentTeacherUser) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("classes")
+      .select("*")
+      .eq(
+        "teacher_id",
+        currentTeacherUser.id
+      )
+      .eq(
+        "active",
+        true
+      )
+      .order(
+        "class_name",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  teacherClasses =
+    data || [];
+
+  const classIds =
+    teacherClasses.map(
+      item =>
+        item.id
+    );
+
+  const counts = {};
+
+  if (classIds.length) {
+    const studentsResult =
+      await sb
+        .from("students")
+        .select(
+          "id,class_id"
+        )
+        .in(
+          "class_id",
+          classIds
+        )
+        .eq(
+          "active",
+          true
+        );
+
+    if (studentsResult.error) {
+      alert(
+        studentsResult.error.message
+      );
+    }
+
+    else {
+      (
+        studentsResult.data ||
+        []
+      ).forEach(
+        student => {
+          counts[
+            student.class_id
+          ] =
+            (
+              counts[
+                student.class_id
+              ] ||
+              0
+            ) +
+            1;
+        }
+      );
+    }
+  }
+
+  teacherClasses =
+    teacherClasses.map(
+      item => ({
+        ...item,
+
+        student_count:
+          counts[item.id] ||
+          0
+      })
+    );
+
+  renderTeacherClassList();
+
+  if (selectedTeacherTask) {
+    await loadTaskClassAssignments(
+      selectedTeacherTask.id
+    );
+  }
+
+  if (selectedTeacherClass) {
+    const refreshed =
+      teacherClasses.find(
+        item =>
+          item.id ===
+          selectedTeacherClass.id
+      );
+
+    if (refreshed) {
+      await selectTeacherClass(
+        refreshed
+      );
+    }
+
+    else {
+      selectedTeacherClass = null;
+
+      noClassSelected.hidden = false;
+
+      classEditor.hidden = true;
+    }
+  }
+}
+
+
+function renderTeacherClassList() {
+  teacherClassesList.innerHTML = "";
+
+  if (!teacherClasses.length) {
+    teacherClassesList.innerHTML =
+      `
+      <p class="helper-text">
+        No classes yet.
+      </p>
+      `;
+
+    return;
+  }
+
+  teacherClasses.forEach(
+    item => {
+      const button =
+        document.createElement(
+          "button"
+        );
+
+      button.type = "button";
+
+      button.className =
+        "teacher-task-item" +
+        (
+          selectedTeacherClass?.id ===
+          item.id
+            ? " active"
+            : ""
+        );
+
+      button.innerHTML =
+        `
+        <strong>
+          ${escapeHtml(
+            item.class_name
+          )}
+        </strong>
+
+        <span>
+          ${
+            Number(
+              item.student_count
+            ) ||
+            0
+          }
+          students
+        </span>
+        `;
+
+      button.addEventListener(
+        "click",
+        () =>
+          selectTeacherClass(
+            item
+          )
+      );
+
+      teacherClassesList.appendChild(
+        button
+      );
+    }
+  );
+}
+
+
+createClassButton.addEventListener(
+  "click",
+  async () => {
+    const name =
+      prompt(
+        "Class name",
+        ""
+      )?.trim();
+
+    if (!name) {
+      return;
+    }
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("classes")
+        .insert({
+          teacher_id:
+            currentTeacherUser.id,
+
+          class_name:
+            name,
+
+          active:
+            true
+        })
+        .select()
+        .single();
+
+    if (error) {
+      alert(
+        error.code ===
+        "23505"
+          ? "A class with this name already exists."
+          : error.message
+      );
+
+      return;
+    }
+
+    await loadTeacherClasses();
+
+    const created =
+      teacherClasses.find(
+        item =>
+          item.id ===
+          data.id
+      );
+
+    if (created) {
+      await selectTeacherClass(
+        created
+      );
+    }
+  }
+);
+
+
+async function selectTeacherClass(
+  classItem
+) {
+  selectedTeacherClass =
+    classItem;
+
+  noClassSelected.hidden =
+    true;
+
+  classEditor.hidden =
+    false;
+
+  teacherClassHeading.textContent =
+    classItem.class_name;
+
+  teacherClassName.value =
+    classItem.class_name;
+
+  pendingClassImportNames = [];
+
+  classListFile.value = "";
+
+  classImportPreview.hidden =
+    true;
+
+  classImportPreview.innerHTML =
+    "";
+
+  importClassListButton.disabled =
+    true;
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("students")
+      .select("*")
+      .eq(
+        "class_id",
+        classItem.id
+      )
+      .eq(
+        "active",
+        true
+      )
+      .order(
+        "register_no",
+        {
+          ascending: true,
+          nullsFirst: false
+        }
+      )
+      .order(
+        "student_name",
+        {
+          ascending: true
+        }
+      );
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  selectedClassRoster =
+    data || [];
+
+  teacherClassCount.textContent =
+    `${selectedClassRoster.length} ${
+      selectedClassRoster.length ===
+      1
+        ? "student"
+        : "students"
+    }`;
+
+  renderTeacherClassList();
+
+  renderClassRoster();
+}
+
+
+function renderClassRoster() {
+  classRosterList.innerHTML = "";
+
+  if (!selectedClassRoster.length) {
+    classRosterList.innerHTML =
+      `
+      <p class="helper-text">
+        No students yet. Upload a class list or add a student.
+      </p>
+      `;
+
+    return;
+  }
+
+  selectedClassRoster.forEach(
+    (
+      student,
+      index
+    ) => {
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "class-roster-row";
+
+      row.innerHTML =
+        `
+        <span class="roster-number">
+          ${
+            student.register_no ??
+            index + 1
+          }
+        </span>
+
+        <span class="roster-name">
+          ${escapeHtml(
+            student.student_name
+          )}
+        </span>
+        `;
+
+      const remove =
+        document.createElement(
+          "button"
+        );
+
+      remove.type = "button";
+
+      remove.className =
+        "roster-remove";
+
+      remove.textContent =
+        "Remove";
+
+      remove.addEventListener(
+        "click",
+        async () => {
+          if (
+            !confirm(
+              `Remove ${student.student_name} from the active class list?`
+            )
+          ) {
+            return;
+          }
+
+          const {
+            error
+          } =
+            await sb
+              .from("students")
+              .update({
+                active:
+                  false
+              })
+              .eq(
+                "id",
+                student.id
+              );
+
+          if (error) {
+            alert(error.message);
+            return;
+          }
+
+          await loadTeacherClasses();
+        }
+      );
+
+      row.appendChild(remove);
+
+      classRosterList.appendChild(
+        row
+      );
+    }
+  );
+}
+
+
+saveClassNameButton.addEventListener(
+  "click",
+  async () => {
+    if (!selectedTeacherClass) {
+      return;
+    }
+
+    const name =
+      teacherClassName
+        .value
+        .trim();
+
+    if (!name) {
+      alert(
+        "Enter a class name."
+      );
+
+      return;
+    }
+
+    const {
+      data,
+      error
+    } =
+      await sb
+        .from("classes")
+        .update({
+          class_name:
+            name
+        })
+        .eq(
+          "id",
+          selectedTeacherClass.id
+        )
+        .select()
+        .single();
+
+    if (error) {
+      alert(
+        error.code ===
+        "23505"
+          ? "A class with this name already exists."
+          : error.message
+      );
+
+      return;
+    }
+
+    selectedTeacherClass =
+      data;
+
+    await loadTeacherClasses();
+  }
+);
+
+
+archiveClassButton.addEventListener(
+  "click",
+  async () => {
+    if (!selectedTeacherClass) {
+      return;
+    }
+
+    if (
+      !confirm(
+        `Archive ${selectedTeacherClass.class_name}? Students will no longer see it on the login screen.`
+      )
+    ) {
+      return;
+    }
+
+    const {
+      error
+    } =
+      await sb
+        .from("classes")
+        .update({
+          active:
+            false
+        })
+        .eq(
+          "id",
+          selectedTeacherClass.id
+        );
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    selectedTeacherClass = null;
+
+    noClassSelected.hidden = false;
+
+    classEditor.hidden = true;
+
+    await loadTeacherClasses();
+  }
+);
+
+
+function cleanImportedNames(
+  names
+) {
+  const seen =
+    new Set();
+
+  return names
+    .map(
+      name =>
+        String(
+          name ?? ""
+        )
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim()
+    )
+    .filter(Boolean)
+    .filter(
+      name => {
+        const key =
+          name.toLocaleLowerCase();
+
+        if (
+          seen.has(key)
+        ) {
+          return false;
+        }
+
+        seen.add(key);
+
+        return true;
+      }
+    );
+}
+
+
+async function parseClassListFile(
+  file
+) {
+  if (
+    !window.XLSX
+  ) {
+    throw new Error(
+      "The spreadsheet reader did not load. Refresh the page and try again."
+    );
+  }
+
+  const buffer =
+    await file.arrayBuffer();
+
+  const workbook =
+    window.XLSX.read(
+      buffer,
+      {
+        type:
+          "array"
+      }
+    );
+
+  const firstSheet =
+    workbook.Sheets[
+      workbook.SheetNames[0]
+    ];
+
+  const rows =
+    window.XLSX.utils
+      .sheet_to_json(
+        firstSheet,
+        {
+          header:
+            1,
+
+          raw:
+            false,
+
+          defval:
+            ""
+        }
+      );
+
+  if (!rows.length) {
+    return [];
+  }
+
+  const firstRow =
+    rows[0].map(
+      value =>
+        String(value)
+          .trim()
+    );
+
+  let nameColumn =
+    firstRow.findIndex(
+      value =>
+        /^(student\s*)?(full\s*)?name$/i
+          .test(value)
+    );
+
+  let startRow = 0;
+
+  if (
+    nameColumn >= 0
+  ) {
+    startRow = 1;
+  }
+
+  else {
+    const widest =
+      Math.max(
+        ...rows.map(
+          row =>
+            row.length
+        ),
+        1
+      );
+
+    const counts =
+      Array.from(
+        {
+          length:
+            widest
+        },
+        () =>
+          0
+      );
+
+    rows.forEach(
+      row => {
+        for (
+          let index = 0;
+          index < widest;
+          index++
+        ) {
+          if (
+            String(
+              row[index] ?? ""
+            ).trim()
+          ) {
+            counts[index] +=
+              1;
+          }
+        }
+      }
+    );
+
+    nameColumn =
+      counts.indexOf(
+        Math.max(
+          ...counts
+        )
+      );
+  }
+
+  return cleanImportedNames(
+    rows
+      .slice(
+        startRow
+      )
+      .map(
+        row =>
+          row[
+            nameColumn
+          ]
+      )
+  );
+}
+
+
+classListFile.addEventListener(
+  "change",
+  async () => {
+    const file =
+      classListFile
+        .files?.[0];
+
+    pendingClassImportNames = [];
+
+    classImportPreview.hidden =
+      true;
+
+    importClassListButton.disabled =
+      true;
+
+    if (!file) {
+      return;
+    }
+
+    try {
+      pendingClassImportNames =
+        await parseClassListFile(
+          file
+        );
+
+      if (
+        !pendingClassImportNames.length
+      ) {
+        throw new Error(
+          "No student names were found in this file."
+        );
+      }
+
+      classImportPreview.innerHTML =
+        `
+        <strong>
+          ${pendingClassImportNames.length}
+          names found
+        </strong>
+
+        ${
+          pendingClassImportNames
+            .map(
+              (
+                name,
+                index
+              ) =>
+                `${
+                  index + 1
+                }. ${
+                  escapeHtml(
+                    name
+                  )
+                }`
+            )
+            .join("<br>")
+        }
+        `;
+
+      classImportPreview.hidden =
+        false;
+
+      importClassListButton.disabled =
+        false;
+    }
+
+    catch (error) {
+      console.error(error);
+
+      alert(
+        error.message ||
+        "Could not read the class list."
+      );
+
+      classListFile.value = "";
+    }
+  }
+);
+
+
+importClassListButton.addEventListener(
+  "click",
+  async () => {
+    if (
+      !selectedTeacherClass ||
+      !pendingClassImportNames.length
+    ) {
+      return;
+    }
+
+    importClassListButton.disabled =
+      true;
+
+    importClassListButton.textContent =
+      "Importing…";
+
+    try {
+      const allExistingResult =
+        await sb
+          .from("students")
+          .select(
+            "id,student_name,register_no,active"
+          )
+          .eq(
+            "class_id",
+            selectedTeacherClass.id
+          );
+
+      if (
+        allExistingResult.error
+      ) {
+        throw allExistingResult.error;
+      }
+
+      const allExisting =
+        allExistingResult.data ||
+        [];
+
+      const byName =
+        new Map(
+          allExisting.map(
+            student => [
+              student.student_name
+                .trim()
+                .toLocaleLowerCase(),
+
+              student
+            ]
+          )
+        );
+
+      let nextRegister =
+        Math.max(
+          0,
+          ...allExisting.map(
+            student =>
+              Number(
+                student.register_no
+              ) ||
+              0
+          )
+        ) +
+        1;
+
+      const toInsert = [];
+      const toReactivate = [];
+
+      pendingClassImportNames.forEach(
+        name => {
+          const key =
+            name.toLocaleLowerCase();
+
+          const existing =
+            byName.get(key);
+
+          if (existing) {
+            if (!existing.active) {
+              toReactivate.push(
+                existing.id
+              );
+            }
+
+            return;
+          }
+
+          toInsert.push({
+            class_id:
+              selectedTeacherClass.id,
+
+            register_no:
+              nextRegister++,
+
+            student_name:
+              name,
+
+            active:
+              true
+          });
+        }
+      );
+
+      if (toInsert.length) {
+        const insertResult =
+          await sb
+            .from("students")
+            .insert(
+              toInsert
+            );
+
+        if (
+          insertResult.error
+        ) {
+          throw insertResult.error;
+        }
+      }
+
+      if (toReactivate.length) {
+        const reactivateResult =
+          await sb
+            .from("students")
+            .update({
+              active:
+                true
+            })
+            .in(
+              "id",
+              toReactivate
+            );
+
+        if (
+          reactivateResult.error
+        ) {
+          throw reactivateResult.error;
+        }
+      }
+
+      pendingClassImportNames = [];
+
+      classListFile.value = "";
+
+      classImportPreview.hidden =
+        true;
+
+      importClassListButton.textContent =
+        "✓ Imported";
+
+      await loadTeacherClasses();
+
+      setTimeout(
+        () => {
+          importClassListButton.textContent =
+            "Import Students";
+
+          importClassListButton.disabled =
+            true;
+        },
+        1200
+      );
+    }
+
+    catch (error) {
+      console.error(error);
+
+      alert(
+        error.message ||
+        "Could not import the class list."
+      );
+
+      importClassListButton.textContent =
+        "Import Students";
+
+      importClassListButton.disabled =
+        false;
+    }
+  }
+);
+
+
+addStudentButton.addEventListener(
+  "click",
+  async () => {
+    if (!selectedTeacherClass) {
+      return;
+    }
+
+    const name =
+      newStudentName
+        .value
+        .replace(
+          /\s+/g,
+          " "
+        )
+        .trim();
+
+    if (!name) {
+      return;
+    }
+
+    const existingResult =
+      await sb
+        .from("students")
+        .select("*")
+        .eq(
+          "class_id",
+          selectedTeacherClass.id
+        )
+        .eq(
+          "student_name",
+          name
+        )
+        .maybeSingle();
+
+    if (
+      existingResult.error
+    ) {
+      alert(
+        existingResult.error.message
+      );
+
+      return;
+    }
+
+    if (existingResult.data) {
+      if (
+        existingResult.data.active
+      ) {
+        alert(
+          "That student is already in this class."
+        );
+
+        return;
+      }
+
+      const {
+        error
+      } =
+        await sb
+          .from("students")
+          .update({
+            active:
+              true
+          })
+          .eq(
+            "id",
+            existingResult.data.id
+          );
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+    }
+
+    else {
+      const maxRegister =
+        Math.max(
+          0,
+          ...selectedClassRoster.map(
+            student =>
+              Number(
+                student.register_no
+              ) ||
+              0
+          )
+        );
+
+      const {
+        error
+      } =
+        await sb
+          .from("students")
+          .insert({
+            class_id:
+              selectedTeacherClass.id,
+
+            register_no:
+              maxRegister +
+              1,
+
+            student_name:
+              name,
+
+            active:
+              true
+          });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+    }
+
+    newStudentName.value = "";
+
+    await loadTeacherClasses();
+  }
+);
+
+
+/* =========================================================
+TEACHER TASKS
+========================================================= */
 
 async function loadTeacherTasks() {
   const {
@@ -6701,6 +8671,117 @@ createTaskButton.addEventListener(
 );
 
 
+async function loadTaskClassAssignments(
+  taskId
+) {
+  if (
+    !taskId
+  ) {
+    return;
+  }
+
+  const {
+    data,
+    error
+  } =
+    await sb
+      .from("task_classes")
+      .select(
+        "class_id"
+      )
+      .eq(
+        "task_id",
+        taskId
+      );
+
+  if (error) {
+    taskAssignedClasses.innerHTML =
+      `
+      <p class="helper-text">
+        ${escapeHtml(
+          error.message
+        )}
+      </p>
+      `;
+
+    return;
+  }
+
+  const assigned =
+    new Set(
+      (
+        data ||
+        []
+      ).map(
+        item =>
+          item.class_id
+      )
+    );
+
+  renderTaskClassAssignments(
+    assigned
+  );
+}
+
+
+function renderTaskClassAssignments(
+  assigned =
+    new Set()
+) {
+  taskAssignedClasses.innerHTML = "";
+
+  if (!teacherClasses.length) {
+    taskAssignedClasses.innerHTML =
+      `
+      <p class="helper-text">
+        No active classes yet. Open the Classes tab to create one.
+      </p>
+      `;
+
+    return;
+  }
+
+  teacherClasses.forEach(
+    classItem => {
+      const label =
+        document.createElement(
+          "label"
+        );
+
+      label.className =
+        "class-checkbox-option";
+
+      label.innerHTML =
+        `
+        <input
+          type="checkbox"
+          value="${escapeHtml(
+            classItem.id
+          )}"
+          ${
+            assigned.has(
+              classItem.id
+            )
+              ? "checked"
+              : ""
+          }
+        >
+
+        <span>
+          ${escapeHtml(
+            classItem.class_name
+          )}
+        </span>
+        `;
+
+      taskAssignedClasses.appendChild(
+        label
+      );
+    }
+  );
+}
+
+
 async function selectTeacherTask(task) {
   selectedTeacherTask = task;
 
@@ -6722,6 +8803,7 @@ async function selectTeacherTask(task) {
 
   const tools = {
     ...DEFAULT_ALLOWED_TOOLS,
+
     ...(
       task.allowed_tools ||
       {}
@@ -6744,6 +8826,10 @@ async function selectTeacherTask(task) {
           );
       }
     );
+
+  await loadTaskClassAssignments(
+    task.id
+  );
 
   teacherReferencePreview.hidden =
     true;
@@ -6815,6 +8901,18 @@ saveTaskSettingsButton.addEventListener(
         }
       );
 
+    const selectedClassIds =
+      Array.from(
+        taskAssignedClasses
+          .querySelectorAll(
+            'input[type="checkbox"]:checked'
+          )
+      )
+      .map(
+        input =>
+          input.value
+      );
+
     const payload = {
       title:
         teacherTaskTitle
@@ -6848,6 +8946,49 @@ saveTaskSettingsButton.addEventListener(
 
       if (error) {
         throw error;
+      }
+
+      const deleteAssignments =
+        await sb
+          .from("task_classes")
+          .delete()
+          .eq(
+            "task_id",
+            selectedTeacherTask.id
+          );
+
+      if (
+        deleteAssignments.error
+      ) {
+        throw deleteAssignments.error;
+      }
+
+      if (
+        selectedClassIds.length
+      ) {
+        const assignmentRows =
+          selectedClassIds.map(
+            classId => ({
+              task_id:
+                selectedTeacherTask.id,
+
+              class_id:
+                classId
+            })
+          );
+
+        const insertAssignments =
+          await sb
+            .from("task_classes")
+            .insert(
+              assignmentRows
+            );
+
+        if (
+          insertAssignments.error
+        ) {
+          throw insertAssignments.error;
+        }
       }
 
       selectedTeacherTask =
@@ -6920,7 +9061,7 @@ saveTaskSettingsButton.addEventListener(
 
 
 /* =========================================================
-   TEACHER REFERENCE MAP
+TEACHER REFERENCE MAP
 ========================================================= */
 
 teacherReferenceFile.addEventListener(
@@ -6974,6 +9115,7 @@ teacherReferenceFile.addEventListener(
           file,
           {
             upsert: false,
+
             contentType:
               file.type
           }
@@ -7101,7 +9243,7 @@ removeReferenceButton.addEventListener(
 
 
 /* =========================================================
-   STUDENT SUBMISSION LIST
+STUDENT SUBMISSION LIST
 ========================================================= */
 
 async function loadSubmissions() {
@@ -7199,7 +9341,7 @@ function renderSubmissionList(items) {
 
             ${
               submission.group_name
-                ? ` · Group ${
+                ? ` · ${
                     escapeHtml(
                       submission.group_name
                     )
@@ -7270,7 +9412,7 @@ refreshSubmissionsButton.addEventListener(
 
 
 /* =========================================================
-   TEACHER REVIEW
+TEACHER REVIEW
 ========================================================= */
 
 async function openSubmissionReview(id) {
@@ -7348,11 +9490,9 @@ async function openSubmissionReview(id) {
     "";
 
   reviewStudentName.textContent =
-    `${data.student_name} · ${data.class_name}${
-      data.group_name
-        ? ` · Group ${data.group_name}`
-        : ""
-    }`;
+    data.group_name
+      ? `${data.class_name} · ${data.group_name}`
+      : `${data.student_name} · ${data.class_name}`;
 
   appMode =
     "teacher-review";
@@ -7375,6 +9515,8 @@ async function openSubmissionReview(id) {
 
   taskInstructions.textContent =
     "Teacher review copy — red ink and comments are stored separately from the student's map.";
+
+  taskMembers.textContent = "";
 
   studentBadge.textContent =
     "Teacher Review";
@@ -7476,7 +9618,7 @@ saveTeacherFeedbackButton.addEventListener(
 
 
 /* =========================================================
-   PNG EXPORT
+PNG EXPORT
 ========================================================= */
 
 function buildExportSvg() {
@@ -7629,7 +9771,7 @@ downloadButton.addEventListener(
 
 
 /* =========================================================
-   UI
+UI
 ========================================================= */
 
 function updateStudentBadge() {
@@ -7664,15 +9806,23 @@ document.addEventListener(
 
 
 /* =========================================================
-   STARTUP
+STARTUP
 ========================================================= */
 
-function initialise() {
+async function initialise() {
   createGrid();
 
   renderAll();
 
   updateStudentBadge();
+
+  studentWorkspace.hidden = true;
+
+  studentProfilePage.hidden = true;
+
+  teacherDashboard.hidden = true;
+
+  startupModal.hidden = false;
 
   document.body.classList.add(
     "modal-open"
@@ -7680,23 +9830,24 @@ function initialise() {
 
   if (!BACKEND_READY) {
     setCloudStatus(
-      "Demo / local mode",
-      "busy"
+      "Offline",
+      "bad"
     );
 
-    startupTaskCode.placeholder =
-      "Backend not configured — demo mode";
+    startupError.textContent =
+      "The class database is not connected.";
+
+    startupError.hidden = false;
+
+    return;
   }
 
-  else {
-    setCloudStatus(
-      "Backend connected",
-      "good"
-    );
+  setCloudStatus(
+    "Ready",
+    "good"
+  );
 
-    startupTaskCode.placeholder =
-      "Enter teacher task code";
-  }
+  await prepareStudentLogin();
 }
 
 

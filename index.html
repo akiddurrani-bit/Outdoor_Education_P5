@@ -1,1933 +1,1468 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-  <title>Outdoor Education Map Maker</title>
-
-  <link
-    rel="stylesheet"
-    href="style.css"
-  >
-
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Outdoor Education Map Maker</title>
+<link
+rel="stylesheet"
+href="style.css"
+>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 </head>
-
-
 <body>
-
-  <header class="app-header">
-
-    <div>
-
-      <div class="eyebrow">
-        OE FIELD JOURNAL
-      </div>
-
-      <h1>
-        Outdoor Education Map Maker
-      </h1>
-
-      <p>
-        Create a map with a legend using abstract symbols to show
-        the relative sizes and positions of key landmarks.
-      </p>
-
-    </div>
-
-
-    <div
-      class="header-actions"
-      aria-label="Choose user mode"
-    >
-
-      <!--
-        These are still used internally by app.js,
-        but are hidden from the student-facing interface.
-      -->
-
-      <div
-        id="cloudStatus"
-        class="cloud-status"
-      >
-        Local mode
-      </div>
-
-      <div
-        id="studentBadge"
-        class="student-badge"
-      >
-        Student
-      </div>
-
-
-      <button
-        class="mode-button"
-        type="button"
-        onclick="window.location.reload()"
-      >
-        Student
-      </button>
-
-
-      <button
-        id="teacherPortalButton"
-        class="mode-button"
-        type="button"
-      >
-        Teacher
-      </button>
-
-    </div>
-
-  </header>
-
-
-
-  <div
-    class="journal-strip"
-    aria-hidden="true"
-  >
-
-    <span>
-      OBSERVE
-    </span>
-
-    <i></i>
-
-    <span>
-      ESTIMATE
-    </span>
-
-    <i></i>
-
-    <span>
-      REPRESENT
-    </span>
-
-    <i></i>
-
-    <span>
-      REFLECT
-    </span>
-
-  </div>
-
-
-
-  <main
-    id="studentWorkspace"
-    class="page-container"
-  >
-
-    <section
-      id="taskIntro"
-      class="task-intro"
-      hidden
-    >
-
-      <div>
-
-        <div class="mini-label">
-          CURRENT TASK
-        </div>
-
-        <h2 id="taskTitle">
-          Abstract Mapping
-        </h2>
-
-      </div>
-
-      <p id="taskInstructions"></p>
-
-    </section>
-
-
-
-    <section
-      id="canvasWrap"
-      class="canvas-wrap"
-    >
-
-      <svg
-        id="drawingCanvas"
-        viewBox="0 0 1600 675"
-        preserveAspectRatio="none"
-        xmlns="http://www.w3.org/2000/svg"
-        aria-label="Student abstract map drawing area"
-      >
-
-        <rect
-          id="canvasBackground"
-          x="0"
-          y="0"
-          width="1600"
-          height="675"
-          class="canvas-background"
-        ></rect>
-
-        <g id="gridLayer"></g>
-
-        <g id="shapeLayer"></g>
-
-        <g id="routeLayer"></g>
-
-        <g id="annotationLayer"></g>
-
-        <g id="selectionLayer"></g>
-
-        <g id="temporaryLayer"></g>
-
-      </svg>
-
-
-
-      <img
-        id="referenceOverlay"
-        class="reference-overlay"
-        alt="Reference map overlay"
-        draggable="false"
-        hidden
-      >
-
-
-
-      <div
-        id="statusBar"
-        class="floating-status"
-        aria-live="polite"
-      >
-        Choose a tool and start creating your map.
-      </div>
-
-
-
-      <button
-        type="button"
-        id="northIndicator"
-        class="north-indicator"
-        aria-label="Drag to rotate North arrow"
-        title="Drag to rotate North"
-      >
-
-        <div
-          id="northArrowInner"
-          class="north-arrow-inner"
-        >
-
-          <strong>
-            N
-          </strong>
-
-          <span>
-            ↑
-          </span>
-
-        </div>
-
-      </button>
-
-
-
-      <nav
-        id="floatingToolbar"
-        class="floating-toolbar"
-        aria-label="Map tools"
-      >
-
-
-        <button
-          type="button"
-          id="selectTool"
-          class="toolbar-button active"
-          aria-label="Select and move"
-        >
-
-          <span class="toolbar-icon">
-            ☝
-          </span>
-
-          <span class="toolbar-tooltip">
-            Select / Move
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="shapeMenuButton"
-          class="toolbar-button"
-          aria-label="Shapes"
-        >
-
-          <span class="toolbar-icon">
-            ◇
-          </span>
-
-          <span class="toolbar-tooltip">
-            Shapes
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="freehandTool"
-          class="toolbar-button"
-          aria-label="Freehand landmark"
-        >
-
-          <span class="toolbar-icon">
-            ✎
-          </span>
-
-          <span class="toolbar-tooltip">
-            Freehand Landmark
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="pathMenuButton"
-          class="toolbar-button"
-          aria-label="Draw path"
-        >
-
-          <span class="toolbar-icon">
-            ┄
-          </span>
-
-          <span class="toolbar-tooltip">
-            Path
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="roadMenuButton"
-          class="toolbar-button"
-          aria-label="Draw road"
-        >
-
-          <span class="toolbar-icon">
-            ═
-          </span>
-
-          <span class="toolbar-tooltip">
-            Road
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="transformTool"
-          class="toolbar-button"
-          aria-label="Rotate and resize"
-        >
-
-          <span class="toolbar-icon">
-            ⤢
-          </span>
-
-          <span class="toolbar-tooltip">
-            Rotate / Resize
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="colourMenuButton"
-          class="toolbar-button"
-          aria-label="Colour selected landmark"
-        >
-
-          <span class="toolbar-icon">
-            🎨
-          </span>
-
-          <span class="toolbar-tooltip">
-            Colour
-          </span>
-
-        </button>
-
-
-
-        <div class="toolbar-divider"></div>
-
-
-
-        <button
-          type="button"
-          id="sendBackwardToolbarButton"
-          class="toolbar-button"
-          aria-label="Send selected landmark backward"
-          disabled
-        >
-
-          <span class="toolbar-icon layer-icon">
-            ⇩
-          </span>
-
-          <span class="toolbar-tooltip">
-            Send Backward
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="bringForwardToolbarButton"
-          class="toolbar-button"
-          aria-label="Bring selected landmark forward"
-          disabled
-        >
-
-          <span class="toolbar-icon layer-icon">
-            ⇧
-          </span>
-
-          <span class="toolbar-tooltip">
-            Bring Forward
-          </span>
-
-        </button>
-
-
-
-        <div class="toolbar-divider"></div>
-
-
-
-        <button
-          type="button"
-          id="undoButton"
-          class="toolbar-button"
-          aria-label="Undo"
-        >
-
-          <span class="toolbar-icon">
-            ↶
-          </span>
-
-          <span class="toolbar-tooltip">
-            Undo
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="redoButton"
-          class="toolbar-button"
-          aria-label="Redo"
-        >
-
-          <span class="toolbar-icon">
-            ↷
-          </span>
-
-          <span class="toolbar-tooltip">
-            Redo
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="deleteButton"
-          class="toolbar-button"
-          aria-label="Delete selected"
-        >
-
-          <span class="toolbar-icon">
-            ⌫
-          </span>
-
-          <span class="toolbar-tooltip">
-            Delete
-          </span>
-
-        </button>
-
-
-
-        <button
-          type="button"
-          id="moreMenuButton"
-          class="toolbar-button"
-          aria-label="More options"
-        >
-
-          <span class="toolbar-icon">
-            •••
-          </span>
-
-          <span class="toolbar-tooltip">
-            More
-          </span>
-
-        </button>
-
-      </nav>
-
-
-
-      <aside
-        id="shapeFlyout"
-        class="tool-flyout"
-        hidden
-      >
-
-        <div class="flyout-heading">
-
-          <div>
-
-            <strong>
-              Landmark Shapes
-            </strong>
-
-            <span>
-              Choose an abstract symbol
-            </span>
-
-          </div>
-
-          <button
-            type="button"
-            class="flyout-close"
-            data-close-flyouts
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <div class="shape-grid">
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="rectangle"
-          >
-            <span>▭</span>
-            Rectangle
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="square"
-          >
-            <span>□</span>
-            Square
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="circle"
-          >
-            <span>○</span>
-            Circle
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="oval"
-          >
-            <span>⬭</span>
-            Oval
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="triangle"
-          >
-            <span>△</span>
-            Triangle
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="semicircle"
-          >
-            <span>◒</span>
-            Semicircle
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="diamond"
-          >
-            <span>◇</span>
-            Diamond
-          </button>
-
-
-          <button
-            type="button"
-            class="shape-choice"
-            data-shape-tool="hexagon"
-          >
-            <span>⬡</span>
-            Hexagon
-          </button>
-
-        </div>
-
-      </aside>
-
-
-
-      <aside
-        id="pathFlyout"
-        class="tool-flyout compact-flyout"
-        hidden
-      >
-
-        <div class="flyout-heading">
-
-          <div>
-
-            <strong>
-              Draw Path
-            </strong>
-
-            <span>
-              Dashed route for walkways or trails
-            </span>
-
-          </div>
-
-          <button
-            type="button"
-            class="flyout-close"
-            data-close-flyouts
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <label for="pathColour">
-          Path colour
-        </label>
-
-        <input
-          type="color"
-          id="pathColour"
-          value="#3f75a8"
-        >
-
-
-        <label for="pathWidth">
-          Thickness
-        </label>
-
-        <select id="pathWidth">
-          <option value="3">
-            Thin
-          </option>
-
-          <option
-            value="5"
-            selected
-          >
-            Medium
-          </option>
-
-          <option value="8">
-            Thick
-          </option>
-        </select>
-
-
-        <button
-          type="button"
-          id="startPathButton"
-          class="primary-flyout-button"
-        >
-          Start Drawing Path
-        </button>
-
-      </aside>
-
-
-
-      <aside
-        id="roadFlyout"
-        class="tool-flyout compact-flyout"
-        hidden
-      >
-
-        <div class="flyout-heading">
-
-          <div>
-
-            <strong>
-              Draw Road
-            </strong>
-
-            <span>
-              Solid double-edged line
-            </span>
-
-          </div>
-
-          <button
-            type="button"
-            class="flyout-close"
-            data-close-flyouts
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <label for="roadColour">
-          Road colour
-        </label>
-
-        <input
-          type="color"
-          id="roadColour"
-          value="#d8d3c6"
-        >
-
-
-        <label for="roadWidth">
-          Road width
-        </label>
-
-        <select id="roadWidth">
-
-          <option value="10">
-            Narrow
-          </option>
-
-          <option
-            value="16"
-            selected
-          >
-            Medium
-          </option>
-
-          <option value="24">
-            Wide
-          </option>
-
-        </select>
-
-
-        <button
-          type="button"
-          id="startRoadButton"
-          class="primary-flyout-button"
-        >
-          Start Drawing Road
-        </button>
-
-      </aside>
-
-
-
-      <aside
-        id="moreFlyout"
-        class="tool-flyout more-flyout"
-        hidden
-      >
-
-        <div class="flyout-heading">
-
-          <div>
-
-            <strong>
-              More
-            </strong>
-
-            <span>
-              Map actions
-            </span>
-
-          </div>
-
-          <button
-            type="button"
-            class="flyout-close"
-            data-close-flyouts
-          >
-            ×
-          </button>
-
-        </div>
-
-
-        <button
-          type="button"
-          id="editSelectedButton"
-          class="secondary-flyout-button full-flyout-button"
-        >
-          Edit selected name / type
-        </button>
-
-
-        <button
-          type="button"
-          id="duplicateButton"
-          class="secondary-flyout-button full-flyout-button"
-        >
-          Duplicate landmark
-        </button>
-
-
-        <button
-          type="button"
-          id="saveNowButton"
-          class="secondary-flyout-button full-flyout-button"
-        >
-          Save now
-        </button>
-
-
-        <button
-          type="button"
-          id="submitButton"
-          class="primary-flyout-button"
-        >
-          Submit to teacher
-        </button>
-
-
-        <button
-          type="button"
-          id="downloadButton"
-          class="secondary-flyout-button full-flyout-button"
-        >
-          Download PNG
-        </button>
-
-
-        <button
-          type="button"
-          id="clearButton"
-          class="danger-flyout-button"
-        >
-          Clear Entire Map
-        </button>
-
-      </aside>
-
-
-
-      <div class="canvas-actions">
-
-        <button
-          type="button"
-          id="referenceButton"
-          class="canvas-action-button"
-          aria-label="Press and hold to show reference map"
-        >
-
-          <span>
-            🗺
-          </span>
-
-          <strong>
-            Reference Map
-          </strong>
-
-        </button>
-
-      </div>
-
-
-
-      <div
-        id="teacherReviewToolbar"
-        class="teacher-review-toolbar"
-        hidden
-      >
-
-        <button
-          id="annotationPenButton"
-          class="review-tool active"
-          type="button"
-        >
-          ✍ Red Pen
-        </button>
-
-
-        <button
-          id="clearAnnotationsButton"
-          class="review-tool"
-          type="button"
-        >
-          Clear Ink
-        </button>
-
-
-        <button
-          id="backToDashboardButton"
-          class="review-tool"
-          type="button"
-        >
-          ← Dashboard
-        </button>
-
-      </div>
-
-    </section>
-
-
-
-    <section
-      id="teacherFeedbackPanel"
-      class="teacher-feedback-panel"
-      hidden
-    >
-
-      <div>
-
-        <div class="mini-label">
-          TEACHER REVIEW
-        </div>
-
-        <h2 id="reviewStudentName">
-          Student Map
-        </h2>
-
-      </div>
-
-
-      <label for="teacherFeedbackText">
-        Written feedback
-      </label>
-
-      <textarea
-        id="teacherFeedbackText"
-        rows="4"
-        placeholder="Write feedback for the student..."
-      ></textarea>
-
-
-      <button
-        id="saveTeacherFeedbackButton"
-        class="primary-button"
-        type="button"
-      >
-        Save feedback + ink
-      </button>
-
-    </section>
-
-
-
-    <section class="legend-section">
-
-      <div class="section-heading">
-
-        <div>
-
-          <h2>
-            Legend
-          </h2>
-
-          <p>
-            Updates automatically as the map is built.
-          </p>
-
-        </div>
-
-      </div>
-
-
-      <div
-        id="legendList"
-        class="legend-grid"
-      >
-
-        <p class="empty-legend">
-          Your map symbols will appear here automatically.
-        </p>
-
-      </div>
-
-    </section>
-
-
-
-    <section class="learning-reminder">
-
-      <strong>
-        Field note:
-      </strong>
-
-      represent what matters, not every detail.
-
-      Compare the
-      <strong>
-        relative size
-      </strong>
-
-      and
-
-      <strong>
-        relative position
-      </strong>
-
-      of landmarks, paths and roads.
-
-    </section>
-
-  </main>
-
-
-
-  <section
-    id="teacherDashboard"
-    class="teacher-dashboard"
-    hidden
-  >
-
-    <div class="teacher-dashboard-head">
-
-      <div>
-
-        <div class="eyebrow">
-          TEACHER WORKSPACE
-        </div>
-
-        <h1>
-          OE Map Tasks
-        </h1>
-
-        <p>
-          Create a task, choose what students can use,
-          manage the reference map and review every submission.
-        </p>
-
-      </div>
-
-
-      <div class="teacher-head-actions">
-
-        <button
-          id="createTaskButton"
-          class="primary-button"
-          type="button"
-        >
-          + New Task
-        </button>
-
-        <button
-          id="teacherSignOutButton"
-          class="quiet-button"
-          type="button"
-        >
-          Sign Out
-        </button>
-
-      </div>
-
-    </div>
-
-
-
-    <div class="teacher-layout">
-
-      <aside class="teacher-task-sidebar">
-
-        <h3>
-          Your Tasks
-        </h3>
-
-        <div
-          id="teacherTasksList"
-          class="teacher-task-list"
-        ></div>
-
-      </aside>
-
-
-
-      <section class="teacher-editor-card">
-
-        <div
-          id="noTaskSelected"
-          class="empty-teacher-state"
-        >
-
-          <h2>
-            Select or create a task
-          </h2>
-
-          <p>
-            Your task settings and submissions will appear here.
-          </p>
-
-        </div>
-
-
-
-        <div
-          id="taskEditor"
-          hidden
-        >
-
-          <div class="teacher-section-head">
-
-            <div>
-
-              <div class="mini-label">
-                TASK SETTINGS
-              </div>
-
-              <h2 id="teacherTaskHeading">
-                Task
-              </h2>
-
-            </div>
-
-
-            <div class="task-code-pill">
-
-              Code:
-
-              <strong id="teacherTaskCode">
-                ------
-              </strong>
-
-            </div>
-
-          </div>
-
-
-
-          <label for="teacherTaskTitle">
-            Task title
-          </label>
-
-          <input
-            id="teacherTaskTitle"
-            type="text"
-            maxlength="80"
-          >
-
-
-
-          <label for="teacherTaskInstructions">
-            Student instructions
-          </label>
-
-          <textarea
-            id="teacherTaskInstructions"
-            rows="4"
-          ></textarea>
-
-
-
-          <h3>
-            Student tools
-          </h3>
-
-          <p class="helper-text">
-            Switch off anything you do not need for this lesson.
-            The grid stays on permanently.
-          </p>
-
-
-          <div class="permission-grid">
-
-            <label>
-              <input
-                id="allowMove"
-                type="checkbox"
-              >
-              Select / move
-            </label>
-
-
-            <label>
-              <input
-                id="allowShapes"
-                type="checkbox"
-              >
-              Fixed shapes
-            </label>
-
-
-            <label>
-              <input
-                id="allowFreehand"
-                type="checkbox"
-              >
-              Freehand landmarks
-            </label>
-
-
-            <label>
-              <input
-                id="allowPath"
-                type="checkbox"
-              >
-              Paths
-            </label>
-
-
-            <label>
-              <input
-                id="allowRoad"
-                type="checkbox"
-              >
-              Roads
-            </label>
-
-
-            <label>
-              <input
-                id="allowColour"
-                type="checkbox"
-              >
-              Colour changes
-            </label>
-
-
-            <label>
-              <input
-                id="allowTransform"
-                type="checkbox"
-              >
-              Re-open rotate / resize
-            </label>
-
-
-            <label>
-              <input
-                id="allowLayers"
-                type="checkbox"
-              >
-              Bring forward / send backward
-            </label>
-
-
-            <label>
-              <input
-                id="allowReference"
-                type="checkbox"
-              >
-              Reference map
-            </label>
-
-
-            <label>
-              <input
-                id="allowDownload"
-                type="checkbox"
-              >
-              PNG download
-            </label>
-
-          </div>
-
-
-          <button
-            id="saveTaskSettingsButton"
-            class="primary-button"
-            type="button"
-          >
-            Save Task Settings
-          </button>
-
-
-
-          <div class="reference-manager">
-
-            <div>
-
-              <h3>
-                Reference map
-              </h3>
-
-              <p class="helper-text">
-                Students only see it while pressing and holding
-                the Reference Map button.
-              </p>
-
-            </div>
-
-
-            <div class="reference-manager-actions">
-
-              <input
-                id="teacherReferenceFile"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-              >
-
-              <button
-                id="removeReferenceButton"
-                class="danger-outline-button"
-                type="button"
-              >
-                Remove Reference
-              </button>
-
-            </div>
-
-
-            <img
-              id="teacherReferencePreview"
-              class="teacher-reference-preview"
-              alt="Current reference map"
-              hidden
-            >
-
-          </div>
-
-
-
-          <div class="submission-section">
-
-            <div class="teacher-section-head">
-
-              <div>
-
-                <div class="mini-label">
-                  SUBMISSIONS
-                </div>
-
-                <h3>
-                  Student Maps
-                </h3>
-
-              </div>
-
-
-              <button
-                id="refreshSubmissionsButton"
-                class="quiet-button"
-                type="button"
-              >
-                Refresh
-              </button>
-
-            </div>
-
-
-            <div
-              id="submissionList"
-              class="submission-list"
-            ></div>
-
-          </div>
-
-        </div>
-
-      </section>
-
-    </div>
-
-  </section>
-
-
-
-  <!--
-    Colour panel lives outside the canvas so the browser colour
-    picker cannot be clipped by the canvas.
-  -->
-
-  <div
-    id="colourPanel"
-    class="colour-panel"
-    hidden
-  >
-
-    <div class="colour-panel-head">
-
-      <div>
-
-        <strong>
-          Landmark Colour
-        </strong>
-
-        <span>
-          Choose a preset or open the full colour picker
-        </span>
-
-      </div>
-
-      <button
-        id="closeColourPanel"
-        type="button"
-      >
-        ×
-      </button>
-
-    </div>
-
-
-    <div
-      id="colourSwatches"
-      class="colour-swatches"
-    >
-
-      <button
-        data-colour="#c7d2df"
-        style="--swatch:#c7d2df"
-      ></button>
-
-      <button
-        data-colour="#d7c8aa"
-        style="--swatch:#d7c8aa"
-      ></button>
-
-      <button
-        data-colour="#b9c7a3"
-        style="--swatch:#b9c7a3"
-      ></button>
-
-      <button
-        data-colour="#a9c8c1"
-        style="--swatch:#a9c8c1"
-      ></button>
-
-      <button
-        data-colour="#d6b6a7"
-        style="--swatch:#d6b6a7"
-      ></button>
-
-      <button
-        data-colour="#c3b5cf"
-        style="--swatch:#c3b5cf"
-      ></button>
-
-      <button
-        data-colour="#dadada"
-        style="--swatch:#dadada"
-      ></button>
-
-      <button
-        data-colour="#f0d995"
-        style="--swatch:#f0d995"
-      ></button>
-
-    </div>
-
-
-    <label for="fillColour">
-      Full colour picker
-    </label>
-
-    <input
-      type="color"
-      id="fillColour"
-      value="#c7d2df"
-    >
-
-  </div>
-
-
-
-  <div
-    id="startupModal"
-    class="modal-overlay"
-  >
-
-    <div class="object-modal">
-
-      <div class="modal-step-label">
-        STUDENT ENTRY
-      </div>
-
-      <h2>
-        Open your mapping task
-      </h2>
-
-      <p class="modal-description">
-        Enter the task code given by your teacher and your group details.
-      </p>
-
-
-      <label for="startupTaskCode">
-        Task code
-      </label>
-
-      <input
-        type="text"
-        id="startupTaskCode"
-        maxlength="8"
-        placeholder="e.g. OE4A23"
-        autocomplete="off"
-      >
-
-
-      <label for="startupName">
-        Name
-      </label>
-
-      <input
-        type="text"
-        id="startupName"
-        autocomplete="off"
-      >
-
-
-      <label for="startupClass">
-        Class
-      </label>
-
-      <input
-        type="text"
-        id="startupClass"
-        placeholder="e.g. 5A"
-        autocomplete="off"
-      >
-
-
-      <label for="startupGroup">
-        Group
-      </label>
-
-      <input
-        type="text"
-        id="startupGroup"
-        placeholder="e.g. 3"
-        autocomplete="off"
-      >
-
-
-      <div
-        id="startupError"
-        class="modal-error"
-        hidden
-      ></div>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="startStudentButton"
-          class="modal-primary-button"
-          type="button"
-        >
-          Open Task
-        </button>
-
-      </div>
-
-
-      <button
-        id="startupTeacherLink"
-        class="text-link-button"
-        type="button"
-      >
-        Teacher? Open Teacher Portal
-      </button>
-
-    </div>
-
-  </div>
-
-
-
-  <div
-    id="teacherLoginModal"
-    class="modal-overlay"
-    hidden
-  >
-
-    <div class="object-modal">
-
-      <div class="modal-step-label">
-        TEACHER PORTAL
-      </div>
-
-      <h2>
-        Teacher sign in
-      </h2>
-
-      <p class="modal-description">
-        Sign in to access teacher tools.
-      </p>
-
-
-      <label for="teacherEmail">
-        Email
-      </label>
-
-      <input
-        id="teacherEmail"
-        type="email"
-        autocomplete="username"
-      >
-
-
-      <label for="teacherPassword">
-        Password
-      </label>
-
-      <input
-        id="teacherPassword"
-        type="password"
-        autocomplete="current-password"
-      >
-
-
-      <div
-        id="teacherLoginError"
-        class="modal-error"
-        hidden
-      ></div>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="cancelTeacherLogin"
-          class="modal-secondary-button"
-          type="button"
-        >
-          Cancel
-        </button>
-
-        <button
-          id="teacherLoginButton"
-          class="modal-primary-button"
-          type="button"
-        >
-          Sign In
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <div
-    id="objectModal"
-    class="modal-overlay"
-    hidden
-  >
-
-    <div class="object-modal">
-
-      <div class="modal-step-label">
-        LANDMARK READY
-      </div>
-
-      <h2>
-        Name this landmark
-      </h2>
-
-      <p class="modal-description">
-        Use a short name that will also appear in the legend.
-      </p>
-
-
-      <label for="objectNameInput">
-        Landmark / object name
-      </label>
-
-      <input
-        type="text"
-        id="objectNameInput"
-        placeholder="e.g. Sports Hall"
-        maxlength="50"
-        autocomplete="off"
-      >
-
-
-      <label for="objectCategorySelect">
-        What does it represent?
-      </label>
-
-      <select id="objectCategorySelect">
-
-        <option>
-          Building
-        </option>
-
-        <option>
-          Open Space
-        </option>
-
-        <option>
-          Facility
-        </option>
-
-        <option>
-          Landmark
-        </option>
-
-        <option>
-          Vegetation
-        </option>
-
-        <option>
-          Water Feature
-        </option>
-
-        <option>
-          Other
-        </option>
-
-      </select>
-
-
-      <div
-        id="objectError"
-        class="modal-error"
-        hidden
-      >
-        Please enter a name.
-      </div>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="discardObjectButton"
-          class="modal-secondary-button"
-          type="button"
-        >
-          Discard
-        </button>
-
-        <button
-          id="saveObjectDetailsButton"
-          class="modal-primary-button"
-          type="button"
-        >
-          Add to Map
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <div
-    id="routeModal"
-    class="modal-overlay"
-    hidden
-  >
-
-    <div class="object-modal">
-
-      <div
-        id="routeModalLabel"
-        class="modal-step-label"
-      >
-        PATH READY
-      </div>
-
-      <h2 id="routeModalTitle">
-        Name this path
-      </h2>
-
-      <p class="modal-description">
-        The name will be written directly on the line and added to the legend.
-      </p>
-
-
-      <label for="routeNameInput">
-        Name
-      </label>
-
-      <input
-        type="text"
-        id="routeNameInput"
-        placeholder="e.g. Covered Walkway"
-        maxlength="50"
-        autocomplete="off"
-      >
-
-
-      <div
-        id="routeError"
-        class="modal-error"
-        hidden
-      >
-        Please enter a name.
-      </div>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="discardRouteButton"
-          class="modal-secondary-button"
-          type="button"
-        >
-          Discard
-        </button>
-
-        <button
-          id="saveRouteDetailsButton"
-          class="modal-primary-button"
-          type="button"
-        >
-          Add to Map
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <div
-    id="editModal"
-    class="modal-overlay"
-    hidden
-  >
-
-    <div class="object-modal">
-
-      <div class="modal-step-label">
-        EDIT LABEL
-      </div>
-
-      <h2>
-        Edit selected item
-      </h2>
-
-
-      <label for="editNameInput">
-        Name
-      </label>
-
-      <input
-        id="editNameInput"
-        type="text"
-        maxlength="50"
-      >
-
-
-      <div id="editCategoryWrap">
-
-        <label for="editCategorySelect">
-          Category
-        </label>
-
-        <select id="editCategorySelect">
-
-          <option>
-            Building
-          </option>
-
-          <option>
-            Open Space
-          </option>
-
-          <option>
-            Facility
-          </option>
-
-          <option>
-            Landmark
-          </option>
-
-          <option>
-            Vegetation
-          </option>
-
-          <option>
-            Water Feature
-          </option>
-
-          <option>
-            Other
-          </option>
-
-        </select>
-
-      </div>
-
-
-      <div
-        id="editError"
-        class="modal-error"
-        hidden
-      >
-        Please enter a name.
-      </div>
-
-
-      <div class="modal-actions">
-
-        <button
-          id="cancelEditButton"
-          class="modal-secondary-button"
-          type="button"
-        >
-          Cancel
-        </button>
-
-        <button
-          id="saveEditButton"
-          class="modal-primary-button"
-          type="button"
-        >
-          Save
-        </button>
-
-      </div>
-
-    </div>
-
-  </div>
-
-
-
-  <script src="app.js"></script>
+<header class="app-header">
+<div>
+<div class="eyebrow">
+OE FIELD JOURNAL
+</div>
+<h1>
+Outdoor Education Map Maker
+</h1>
+<p>
+Create a map with a legend using abstract symbols to show
+the relative sizes and positions of key landmarks.
+</p>
+</div>
+<div
+class="header-actions"
+aria-label="Choose user mode"
+>
+<!--
+These are still used internally by app.js,
+but are hidden from the student-facing interface.
+-->
+<div
+id="cloudStatus"
+class="cloud-status"
+>
+Local mode
+</div>
+<div
+id="studentBadge"
+class="student-badge"
+>
+Student
+</div>
+<button
+class="mode-button"
+type="button"
+onclick="window.location.reload()"
+>
+Student
+</button>
+<button
+id="teacherPortalButton"
+class="mode-button"
+type="button"
+>
+Teacher
+</button>
+</div>
+</header>
+
+<div
+class="journal-strip"
+aria-hidden="true"
+>
+<span>OBSERVE</span>
+<i></i>
+<span>ESTIMATE</span>
+<i></i>
+<span>REPRESENT</span>
+<i></i>
+<span>REFLECT</span>
+</div>
+
+<main
+id="studentWorkspace"
+class="page-container"
+>
+<section
+id="taskIntro"
+class="task-intro"
+hidden
+>
+<div>
+<div class="mini-label">
+CURRENT TASK
+</div>
+<h2 id="taskTitle">
+Abstract Mapping
+</h2>
+</div>
+<div class="task-copy">
+<p id="taskInstructions"></p>
+<p id="taskMembers" class="task-members"></p>
+</div>
+</section>
+
+<section
+id="canvasWrap"
+class="canvas-wrap"
+>
+<svg
+id="drawingCanvas"
+viewBox="0 0 1600 675"
+preserveAspectRatio="none"
+xmlns="http://www.w3.org/2000/svg"
+aria-label="Student abstract map drawing area"
+>
+<rect
+id="canvasBackground"
+x="0"
+y="0"
+width="1600"
+height="675"
+class="canvas-background"
+></rect>
+<g id="gridLayer"></g>
+<g id="shapeLayer"></g>
+<g id="routeLayer"></g>
+<g id="annotationLayer"></g>
+<g id="selectionLayer"></g>
+<g id="temporaryLayer"></g>
+</svg>
+
+<img
+id="referenceOverlay"
+class="reference-overlay"
+alt="Reference map overlay"
+draggable="false"
+hidden
+>
+
+<div
+id="statusBar"
+class="floating-status"
+aria-live="polite"
+>
+Choose a tool and start creating your map.
+</div>
+
+<button
+type="button"
+id="northIndicator"
+class="north-indicator"
+aria-label="Drag to rotate North arrow"
+title="Drag to rotate North"
+>
+<div
+id="northArrowInner"
+class="north-arrow-inner"
+>
+<strong>N</strong>
+<span>↑</span>
+</div>
+</button>
+
+<nav
+id="floatingToolbar"
+class="floating-toolbar"
+aria-label="Map tools"
+>
+<button
+type="button"
+id="selectTool"
+class="toolbar-button active"
+aria-label="Select and move"
+>
+<span class="toolbar-icon">☝</span>
+<span class="toolbar-tooltip">Select / Move</span>
+</button>
+
+<button
+type="button"
+id="shapeMenuButton"
+class="toolbar-button"
+aria-label="Shapes"
+>
+<span class="toolbar-icon">◇</span>
+<span class="toolbar-tooltip">Shapes</span>
+</button>
+
+<button
+type="button"
+id="freehandTool"
+class="toolbar-button"
+aria-label="Freehand landmark"
+>
+<span class="toolbar-icon">✎</span>
+<span class="toolbar-tooltip">Freehand Landmark</span>
+</button>
+
+<button
+type="button"
+id="pathMenuButton"
+class="toolbar-button"
+aria-label="Draw path"
+>
+<span class="toolbar-icon">┄</span>
+<span class="toolbar-tooltip">Path</span>
+</button>
+
+<button
+type="button"
+id="roadMenuButton"
+class="toolbar-button"
+aria-label="Draw road"
+>
+<span class="toolbar-icon">═</span>
+<span class="toolbar-tooltip">Road</span>
+</button>
+
+<button
+type="button"
+id="transformTool"
+class="toolbar-button"
+aria-label="Rotate and resize"
+>
+<span class="toolbar-icon">⤢</span>
+<span class="toolbar-tooltip">Rotate / Resize</span>
+</button>
+
+<button
+type="button"
+id="colourMenuButton"
+class="toolbar-button"
+aria-label="Colour selected landmark"
+>
+<span class="toolbar-icon">🎨</span>
+<span class="toolbar-tooltip">Colour</span>
+</button>
+
+<div class="toolbar-divider"></div>
+
+<button
+type="button"
+id="sendBackwardToolbarButton"
+class="toolbar-button"
+aria-label="Send selected landmark backward"
+disabled
+>
+<span class="toolbar-icon layer-icon">⇩</span>
+<span class="toolbar-tooltip">Send Backward</span>
+</button>
+
+<button
+type="button"
+id="bringForwardToolbarButton"
+class="toolbar-button"
+aria-label="Bring selected landmark forward"
+disabled
+>
+<span class="toolbar-icon layer-icon">⇧</span>
+<span class="toolbar-tooltip">Bring Forward</span>
+</button>
+
+<div class="toolbar-divider"></div>
+
+<button
+type="button"
+id="undoButton"
+class="toolbar-button"
+aria-label="Undo"
+>
+<span class="toolbar-icon">↶</span>
+<span class="toolbar-tooltip">Undo</span>
+</button>
+
+<button
+type="button"
+id="redoButton"
+class="toolbar-button"
+aria-label="Redo"
+>
+<span class="toolbar-icon">↷</span>
+<span class="toolbar-tooltip">Redo</span>
+</button>
+
+<button
+type="button"
+id="deleteButton"
+class="toolbar-button"
+aria-label="Delete selected"
+>
+<span class="toolbar-icon">⌫</span>
+<span class="toolbar-tooltip">Delete</span>
+</button>
+
+<button
+type="button"
+id="moreMenuButton"
+class="toolbar-button"
+aria-label="More options"
+>
+<span class="toolbar-icon">•••</span>
+<span class="toolbar-tooltip">More</span>
+</button>
+</nav>
+
+<aside
+id="shapeFlyout"
+class="tool-flyout"
+hidden
+>
+<div class="flyout-heading">
+<div>
+<strong>Landmark Shapes</strong>
+<span>Choose an abstract symbol</span>
+</div>
+<button
+type="button"
+class="flyout-close"
+data-close-flyouts
+>
+×
+</button>
+</div>
+
+<div class="shape-grid">
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="rectangle"
+>
+<span>▭</span>
+Rectangle
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="square"
+>
+<span>□</span>
+Square
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="circle"
+>
+<span>○</span>
+Circle
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="oval"
+>
+<span>⬭</span>
+Oval
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="triangle"
+>
+<span>△</span>
+Triangle
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="semicircle"
+>
+<span>◒</span>
+Semicircle
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="diamond"
+>
+<span>◇</span>
+Diamond
+</button>
+
+<button
+type="button"
+class="shape-choice"
+data-shape-tool="hexagon"
+>
+<span>⬡</span>
+Hexagon
+</button>
+</div>
+</aside>
+
+<aside
+id="pathFlyout"
+class="tool-flyout compact-flyout"
+hidden
+>
+<div class="flyout-heading">
+<div>
+<strong>Draw Path</strong>
+<span>Dashed route for walkways or trails</span>
+</div>
+<button
+type="button"
+class="flyout-close"
+data-close-flyouts
+>
+×
+</button>
+</div>
+
+<label for="pathColour">
+Path colour
+</label>
+<input
+type="color"
+id="pathColour"
+value="#3f75a8"
+>
+
+<label for="pathWidth">
+Thickness
+</label>
+
+<select id="pathWidth">
+<option value="3">
+Thin
+</option>
+<option
+value="5"
+selected
+>
+Medium
+</option>
+<option value="8">
+Thick
+</option>
+</select>
+
+<button
+type="button"
+id="startPathButton"
+class="primary-flyout-button"
+>
+Start Drawing Path
+</button>
+</aside>
+
+<aside
+id="roadFlyout"
+class="tool-flyout compact-flyout"
+hidden
+>
+<div class="flyout-heading">
+<div>
+<strong>Draw Road</strong>
+<span>Solid double-edged line</span>
+</div>
+
+<button
+type="button"
+class="flyout-close"
+data-close-flyouts
+>
+×
+</button>
+</div>
+
+<label for="roadColour">
+Road colour
+</label>
+
+<input
+type="color"
+id="roadColour"
+value="#d8d3c6"
+>
+
+<label for="roadWidth">
+Road width
+</label>
+
+<select id="roadWidth">
+<option value="10">
+Narrow
+</option>
+
+<option
+value="16"
+selected
+>
+Medium
+</option>
+
+<option value="24">
+Wide
+</option>
+</select>
+
+<button
+type="button"
+id="startRoadButton"
+class="primary-flyout-button"
+>
+Start Drawing Road
+</button>
+</aside>
+
+<aside
+id="moreFlyout"
+class="tool-flyout more-flyout"
+hidden
+>
+<div class="flyout-heading">
+<div>
+<strong>More</strong>
+<span>Map actions</span>
+</div>
+
+<button
+type="button"
+class="flyout-close"
+data-close-flyouts
+>
+×
+</button>
+</div>
+
+<button
+type="button"
+id="editSelectedButton"
+class="secondary-flyout-button full-flyout-button"
+>
+Edit selected name / type
+</button>
+
+<button
+type="button"
+id="duplicateButton"
+class="secondary-flyout-button full-flyout-button"
+>
+Duplicate landmark
+</button>
+
+<button
+type="button"
+id="saveNowButton"
+class="secondary-flyout-button full-flyout-button"
+>
+Save now
+</button>
+
+<button
+type="button"
+id="submitButton"
+class="primary-flyout-button"
+>
+Submit to teacher
+</button>
+
+<button
+type="button"
+id="downloadButton"
+class="secondary-flyout-button full-flyout-button"
+>
+Download PNG
+</button>
+
+<button
+type="button"
+id="backToProfileButton"
+class="secondary-flyout-button full-flyout-button"
+>
+← My Projects
+</button>
+
+<button
+type="button"
+id="clearButton"
+class="danger-flyout-button"
+>
+Clear Entire Map
+</button>
+</aside>
+
+<div class="canvas-actions">
+<button
+type="button"
+id="referenceButton"
+class="canvas-action-button"
+aria-label="Press and hold to show reference map"
+>
+<span>🗺</span>
+<strong>Reference Map</strong>
+</button>
+</div>
+
+<div
+id="teacherReviewToolbar"
+class="teacher-review-toolbar"
+hidden
+>
+<button
+id="annotationPenButton"
+class="review-tool active"
+type="button"
+>
+✍ Red Pen
+</button>
+
+<button
+id="clearAnnotationsButton"
+class="review-tool"
+type="button"
+>
+Clear Ink
+</button>
+
+<button
+id="backToDashboardButton"
+class="review-tool"
+type="button"
+>
+← Dashboard
+</button>
+</div>
+</section>
+
+<section
+id="teacherFeedbackPanel"
+class="teacher-feedback-panel"
+hidden
+>
+<div>
+<div class="mini-label">
+TEACHER REVIEW
+</div>
+<h2 id="reviewStudentName">
+Student Map
+</h2>
+</div>
+
+<label for="teacherFeedbackText">
+Written feedback
+</label>
+
+<textarea
+id="teacherFeedbackText"
+rows="4"
+placeholder="Write feedback for the student..."
+></textarea>
+
+<button
+id="saveTeacherFeedbackButton"
+class="primary-button"
+type="button"
+>
+Save feedback + ink
+</button>
+</section>
+
+<section class="legend-section">
+<div class="section-heading">
+<div>
+<h2>
+Legend
+</h2>
+<p>
+Updates automatically as the map is built.
+</p>
+</div>
+</div>
+
+<div
+id="legendList"
+class="legend-grid"
+>
+<p class="empty-legend">
+Your map symbols will appear here automatically.
+</p>
+</div>
+</section>
+
+<section class="learning-reminder">
+<strong>Field note:</strong>
+represent what matters, not every detail.
+Compare the
+<strong>relative size</strong>
+and
+<strong>relative position</strong>
+of landmarks, paths and roads.
+</section>
+</main>
+
+<section id="studentProfilePage" class="student-profile-page" hidden>
+<div class="student-profile-shell">
+
+<div class="profile-hero">
+<div>
+<div class="eyebrow">MY OE PROFILE</div>
+<h1 id="profileStudentName">Student</h1>
+<p id="profileClassName">Class</p>
+</div>
+
+<button id="switchStudentButton" class="quiet-button" type="button">
+Switch Student
+</button>
+</div>
+
+<div class="profile-grid">
+
+<section class="profile-card profile-start-card">
+<div class="mini-label">START AN ACTIVITY</div>
+<h2>Enter your task code</h2>
+<p>Your teacher will give you the code for today's activity.</p>
+
+<div class="task-code-entry">
+<input
+id="studentTaskCode"
+type="text"
+maxlength="8"
+placeholder="Task code"
+autocomplete="off"
+>
+
+<button id="openStudentTaskButton" class="primary-button" type="button">
+Continue
+</button>
+</div>
+
+<div id="studentTaskError" class="modal-error" hidden></div>
+</section>
+
+<section class="profile-card profile-history-card">
+<div class="profile-section-head">
+<div>
+<div class="mini-label">MY PROJECTS</div>
+<h2>Past & current work</h2>
+</div>
+
+<button id="refreshStudentProjectsButton" class="quiet-button" type="button">
+Refresh
+</button>
+</div>
+
+<div id="studentProjectsList" class="student-projects-list">
+<p class="helper-text">No projects yet.</p>
+</div>
+</section>
+
+</div>
+</div>
+</section>
+
+<section id="teacherDashboard" class="teacher-dashboard" hidden>
+
+<div class="teacher-dashboard-head">
+<div>
+<div class="eyebrow">TEACHER WORKSPACE</div>
+<h1>Outdoor Education Map Maker</h1>
+<p>Manage classes, create tasks and review student work.</p>
+</div>
+
+<div class="teacher-head-actions">
+<button id="teacherSignOutButton" class="quiet-button" type="button">
+Sign Out
+</button>
+</div>
+</div>
+
+<div class="teacher-tabs" role="tablist" aria-label="Teacher workspace sections">
+<button
+id="teacherTasksTabButton"
+class="teacher-tab-button active"
+type="button"
+aria-selected="true"
+>
+Tasks
+</button>
+
+<button
+id="teacherClassesTabButton"
+class="teacher-tab-button"
+type="button"
+aria-selected="false"
+>
+Classes
+</button>
+</div>
+
+<section id="teacherTasksPanel">
+
+<div class="teacher-panel-actions">
+<div>
+<div class="mini-label">TASKS</div>
+<h2>Mapping Activities</h2>
+</div>
+
+<button id="createTaskButton" class="primary-button" type="button">
++ New Task
+</button>
+</div>
+
+<div class="teacher-layout">
+
+<aside class="teacher-task-sidebar">
+<h3>Your Tasks</h3>
+<div id="teacherTasksList" class="teacher-task-list"></div>
+</aside>
+
+<section class="teacher-editor-card">
+
+<div id="noTaskSelected" class="empty-teacher-state">
+<h2>Select or create a task</h2>
+<p>Your task settings and submissions will appear here.</p>
+</div>
+
+<div id="taskEditor" hidden>
+
+<div class="teacher-section-head">
+<div>
+<div class="mini-label">TASK SETTINGS</div>
+<h2 id="teacherTaskHeading">Task</h2>
+</div>
+
+<div class="task-code-pill">
+Code:
+<strong id="teacherTaskCode">------</strong>
+</div>
+</div>
+
+<label for="teacherTaskTitle">Task title</label>
+<input id="teacherTaskTitle" type="text" maxlength="80">
+
+<label for="teacherTaskInstructions">Student instructions</label>
+<textarea id="teacherTaskInstructions" rows="4"></textarea>
+
+<div class="task-class-assignment">
+<h3>Assigned classes</h3>
+<p class="helper-text">
+Only students from selected classes can open this task code.
+</p>
+
+<div id="taskAssignedClasses" class="class-checkbox-grid">
+<p class="helper-text">Create a class first.</p>
+</div>
+</div>
+
+<h3>Student tools</h3>
+
+<p class="helper-text">
+Switch off anything you do not need for this lesson. The grid stays on permanently.
+</p>
+
+<div class="permission-grid">
+<label><input id="allowMove" type="checkbox"> Select / move</label>
+<label><input id="allowShapes" type="checkbox"> Fixed shapes</label>
+<label><input id="allowFreehand" type="checkbox"> Freehand landmarks</label>
+<label><input id="allowPath" type="checkbox"> Paths</label>
+<label><input id="allowRoad" type="checkbox"> Roads</label>
+<label><input id="allowColour" type="checkbox"> Colour changes</label>
+<label><input id="allowTransform" type="checkbox"> Re-open rotate / resize</label>
+<label><input id="allowLayers" type="checkbox"> Bring forward / send backward</label>
+<label><input id="allowReference" type="checkbox"> Reference map</label>
+<label><input id="allowDownload" type="checkbox"> PNG download</label>
+</div>
+
+<button id="saveTaskSettingsButton" class="primary-button" type="button">
+Save Task Settings
+</button>
+
+<div class="reference-manager">
+<div>
+<h3>Reference map</h3>
+
+<p class="helper-text">
+Students only see it while pressing and holding the Reference Map button.
+</p>
+</div>
+
+<div class="reference-manager-actions">
+<input
+id="teacherReferenceFile"
+type="file"
+accept="image/png,image/jpeg,image/webp"
+>
+
+<button id="removeReferenceButton" class="danger-outline-button" type="button">
+Remove Reference
+</button>
+</div>
+
+<img
+id="teacherReferencePreview"
+class="teacher-reference-preview"
+alt="Current reference map"
+hidden
+>
+</div>
+
+<div class="submission-section">
+<div class="teacher-section-head">
+<div>
+<div class="mini-label">SUBMISSIONS</div>
+<h3>Student Maps</h3>
+</div>
+
+<button id="refreshSubmissionsButton" class="quiet-button" type="button">
+Refresh
+</button>
+</div>
+
+<div id="submissionList" class="submission-list"></div>
+</div>
+
+</div>
+</section>
+</div>
+</section>
+
+<section id="teacherClassesPanel" hidden>
+
+<div class="teacher-panel-actions">
+<div>
+<div class="mini-label">CLASSES</div>
+<h2>Class Lists</h2>
+
+<p class="helper-text">
+Create a class once, then upload its student list. Students will select their class and name when they enter.
+</p>
+</div>
+
+<button id="createClassButton" class="primary-button" type="button">
++ New Class
+</button>
+</div>
+
+<div class="teacher-layout">
+
+<aside class="teacher-task-sidebar">
+<h3>Your Classes</h3>
+<div id="teacherClassesList" class="teacher-task-list"></div>
+</aside>
+
+<section class="teacher-editor-card">
+
+<div id="noClassSelected" class="empty-teacher-state">
+<h2>Select or create a class</h2>
+<p>TG1 and future class lists will appear here.</p>
+</div>
+
+<div id="classEditor" hidden>
+
+<div class="teacher-section-head">
+<div>
+<div class="mini-label">CLASS ROSTER</div>
+<h2 id="teacherClassHeading">Class</h2>
+</div>
+
+<div id="teacherClassCount" class="task-code-pill">0 students</div>
+</div>
+
+<label for="teacherClassName">Class name</label>
+
+<div class="inline-form-row">
+<input id="teacherClassName" type="text" maxlength="40">
+
+<button id="saveClassNameButton" class="quiet-button" type="button">
+Save Name
+</button>
+
+<button id="archiveClassButton" class="danger-outline-button" type="button">
+Archive Class
+</button>
+</div>
+
+<div class="class-import-card">
+<div>
+<h3>Upload class list</h3>
+
+<p class="helper-text">
+Upload an Excel or CSV file. Use one student name per row, or a column headed “Name”.
+</p>
+</div>
+
+<input
+id="classListFile"
+type="file"
+accept=".xlsx,.xls,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+>
+
+<div id="classImportPreview" class="class-import-preview" hidden></div>
+
+<button id="importClassListButton" class="primary-button" type="button" disabled>
+Import Students
+</button>
+</div>
+
+<div class="manual-student-card">
+<h3>Add one student</h3>
+
+<div class="inline-form-row">
+<input
+id="newStudentName"
+type="text"
+placeholder="Student name"
+autocomplete="off"
+>
+
+<button id="addStudentButton" class="quiet-button" type="button">
+Add Student
+</button>
+</div>
+</div>
+
+<div class="teacher-section-head roster-head">
+<div>
+<div class="mini-label">STUDENTS</div>
+<h3>Roster</h3>
+</div>
+</div>
+
+<div id="classRosterList" class="class-roster-list"></div>
+
+</div>
+</section>
+</div>
+</section>
+
+</section>
+
+<div
+id="colourPanel"
+class="colour-panel"
+hidden
+>
+
+<div class="colour-panel-head">
+<div>
+<strong>Landmark Colour</strong>
+<span>Choose a preset or open the full colour picker</span>
+</div>
+
+<button
+id="closeColourPanel"
+type="button"
+>
+×
+</button>
+</div>
+
+<div
+id="colourSwatches"
+class="colour-swatches"
+>
+
+<button
+data-colour="#c7d2df"
+style="--swatch:#c7d2df"
+></button>
+
+<button
+data-colour="#d7c8aa"
+style="--swatch:#d7c8aa"
+></button>
+
+<button
+data-colour="#b9c7a3"
+style="--swatch:#b9c7a3"
+></button>
+
+<button
+data-colour="#a9c8c1"
+style="--swatch:#a9c8c1"
+></button>
+
+<button
+data-colour="#d6b6a7"
+style="--swatch:#d6b6a7"
+></button>
+
+<button
+data-colour="#c3b5cf"
+style="--swatch:#c3b5cf"
+></button>
+
+<button
+data-colour="#dadada"
+style="--swatch:#dadada"
+></button>
+
+<button
+data-colour="#f0d995"
+style="--swatch:#f0d995"
+></button>
+
+</div>
+
+<label for="fillColour">
+Full colour picker
+</label>
+
+<input
+type="color"
+id="fillColour"
+value="#c7d2df"
+>
+</div>
+
+<div id="startupModal" class="modal-overlay">
+
+<div class="object-modal student-login-modal">
+
+<div class="modal-step-label">STUDENT LOGIN</div>
+
+<h2>Find your profile</h2>
+
+<p class="modal-description">
+Select your class, then choose your name.
+</p>
+
+<label for="startupClassSelect">Class</label>
+
+<select id="startupClassSelect">
+<option value="">Loading classes…</option>
+</select>
+
+<label for="startupStudentSelect">Name</label>
+
+<select id="startupStudentSelect" disabled>
+<option value="">Select your class first</option>
+</select>
+
+<div id="startupError" class="modal-error" hidden></div>
+
+<div class="modal-actions">
+<button id="studentLoginButton" class="modal-primary-button" type="button">
+Continue
+</button>
+</div>
+
+<button id="startupTeacherLink" class="text-link-button" type="button">
+Teacher? Open Teacher Portal
+</button>
+
+</div>
+</div>
+
+<div id="groupModal" class="modal-overlay" hidden>
+
+<div class="object-modal group-modal-card">
+
+<div class="modal-step-label">GROUP MEMBERS</div>
+
+<h2 id="groupTaskTitle">Who are you working with?</h2>
+
+<p class="modal-description">
+Your own name is included automatically. Select anyone else working on this same map.
+</p>
+
+<div id="groupMembersList" class="group-members-list"></div>
+
+<div id="groupError" class="modal-error" hidden></div>
+
+<div class="modal-actions">
+
+<button id="cancelGroupButton" class="modal-secondary-button" type="button">
+Cancel
+</button>
+
+<button id="startGroupTaskButton" class="modal-primary-button" type="button">
+Start Activity
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="teacherLoginModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div class="modal-step-label">
+TEACHER PORTAL
+</div>
+
+<h2>
+Teacher sign in
+</h2>
+
+<p class="modal-description">
+Sign in to access teacher tools.
+</p>
+
+<label for="teacherEmail">
+Email
+</label>
+
+<input
+id="teacherEmail"
+type="email"
+autocomplete="username"
+>
+
+<label for="teacherPassword">
+Password
+</label>
+
+<input
+id="teacherPassword"
+type="password"
+autocomplete="current-password"
+>
+
+<div
+id="teacherLoginError"
+class="modal-error"
+hidden
+></div>
+
+<div class="modal-actions">
+
+<button
+id="cancelTeacherLogin"
+class="modal-secondary-button"
+type="button"
+>
+Cancel
+</button>
+
+<button
+id="teacherLoginButton"
+class="modal-primary-button"
+type="button"
+>
+Sign In
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="objectModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div class="modal-step-label">
+LANDMARK READY
+</div>
+
+<h2>
+Name this landmark
+</h2>
+
+<p class="modal-description">
+Use a short name that will also appear in the legend.
+</p>
+
+<label for="objectNameInput">
+Landmark / object name
+</label>
+
+<input
+type="text"
+id="objectNameInput"
+placeholder="e.g. Sports Hall"
+maxlength="50"
+autocomplete="off"
+>
+
+<label for="objectCategorySelect">
+What does it represent?
+</label>
+
+<select id="objectCategorySelect">
+<option>Building</option>
+<option>Open Space</option>
+<option>Facility</option>
+<option>Landmark</option>
+<option>Vegetation</option>
+<option>Water Feature</option>
+<option>Other</option>
+</select>
+
+<div
+id="objectError"
+class="modal-error"
+hidden
+>
+Please enter a name.
+</div>
+
+<div class="modal-actions">
+
+<button
+id="discardObjectButton"
+class="modal-secondary-button"
+type="button"
+>
+Discard
+</button>
+
+<button
+id="saveObjectDetailsButton"
+class="modal-primary-button"
+type="button"
+>
+Add to Map
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="routeModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div
+id="routeModalLabel"
+class="modal-step-label"
+>
+PATH READY
+</div>
+
+<h2 id="routeModalTitle">
+Name this path
+</h2>
+
+<p class="modal-description">
+The name will be written directly on the line and added to the legend.
+</p>
+
+<label for="routeNameInput">
+Name
+</label>
+
+<input
+type="text"
+id="routeNameInput"
+placeholder="e.g. Covered Walkway"
+maxlength="50"
+autocomplete="off"
+>
+
+<div
+id="routeError"
+class="modal-error"
+hidden
+>
+Please enter a name.
+</div>
+
+<div class="modal-actions">
+
+<button
+id="discardRouteButton"
+class="modal-secondary-button"
+type="button"
+>
+Discard
+</button>
+
+<button
+id="saveRouteDetailsButton"
+class="modal-primary-button"
+type="button"
+>
+Add to Map
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="editModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div class="modal-step-label">
+EDIT LABEL
+</div>
+
+<h2>
+Edit selected item
+</h2>
+
+<label for="editNameInput">
+Name
+</label>
+
+<input
+id="editNameInput"
+type="text"
+maxlength="50"
+>
+
+<div id="editCategoryWrap">
+
+<label for="editCategorySelect">
+Category
+</label>
+
+<select id="editCategorySelect">
+<option>Building</option>
+<option>Open Space</option>
+<option>Facility</option>
+<option>Landmark</option>
+<option>Vegetation</option>
+<option>Water Feature</option>
+<option>Other</option>
+</select>
+
+</div>
+
+<div
+id="editError"
+class="modal-error"
+hidden
+>
+Please enter a name.
+</div>
+
+<div class="modal-actions">
+
+<button
+id="cancelEditButton"
+class="modal-secondary-button"
+type="button"
+>
+Cancel
+</button>
+
+<button
+id="saveEditButton"
+class="modal-primary-button"
+type="button"
+>
+Save
+</button>
+
+</div>
+</div>
+</div>
+
+<script src="app.js"></script>
 
 </body>
-
 </html>
