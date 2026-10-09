@@ -10089,3 +10089,378 @@ async function initialise() {
 
 
 initialise();
+
+
+/* =========================================================
+   TEACHER DELETE SUBMISSION / PROGRESS
+========================================================= */
+
+/*
+  This replaces the existing submission-list renderer with
+  a version that gives teachers two controls:
+
+  1. Review
+  2. Delete submission/progress
+*/
+
+renderSubmissionList = function(items) {
+  submissionList.innerHTML = "";
+
+  if (!items.length) {
+    submissionList.innerHTML =
+      `
+      <p class="helper-text">
+        No student saves yet.
+      </p>
+      `;
+
+    return;
+  }
+
+  items.forEach(
+    submission => {
+      const row =
+        document.createElement(
+          "div"
+        );
+
+      row.className =
+        "submission-row";
+
+
+      row.innerHTML =
+        `
+        <div class="submission-name">
+
+          <strong>
+            ${escapeHtml(
+              submission.student_name
+            )}
+          </strong>
+
+          <span>
+            ${escapeHtml(
+              submission.class_name
+            )}
+
+            ${
+              submission.group_name
+                ? ` · ${
+                    escapeHtml(
+                      submission.group_name
+                    )
+                  }`
+                : ""
+            }
+          </span>
+
+        </div>
+
+
+        <div class="submission-meta">
+
+          ${
+            new Date(
+              submission.updated_at
+            )
+              .toLocaleString()
+          }
+
+        </div>
+
+
+        <div
+          class="status-pill ${
+            submission.status ===
+            "submitted"
+              ? "submitted"
+              : ""
+          }"
+        >
+
+          ${escapeHtml(
+            submission.status ||
+            "draft"
+          )}
+
+        </div>
+        `;
+
+
+      /* -----------------------------------------
+         ACTION BUTTONS
+      ----------------------------------------- */
+
+      const actions =
+        document.createElement(
+          "div"
+        );
+
+      actions.style.display =
+        "flex";
+
+      actions.style.flexDirection =
+        "column";
+
+      actions.style.gap =
+        "6px";
+
+      actions.style.width =
+        "100%";
+
+
+      /* REVIEW */
+
+      const reviewButton =
+        document.createElement(
+          "button"
+        );
+
+      reviewButton.type =
+        "button";
+
+      reviewButton.className =
+        "quiet-button";
+
+      reviewButton.textContent =
+        "Review";
+
+      reviewButton.addEventListener(
+        "click",
+        () => {
+          openSubmissionReview(
+            submission.id
+          );
+        }
+      );
+
+
+      /* DELETE SUBMISSION / PROGRESS */
+
+      const deleteProgressButton =
+        document.createElement(
+          "button"
+        );
+
+      deleteProgressButton.type =
+        "button";
+
+      deleteProgressButton.className =
+        "danger-outline-button";
+
+      deleteProgressButton.textContent =
+        "Delete submission/progress";
+
+      deleteProgressButton.style.width =
+        "100%";
+
+      deleteProgressButton.style.whiteSpace =
+        "normal";
+
+      deleteProgressButton.style.fontSize =
+        "10px";
+
+      deleteProgressButton.style.lineHeight =
+        "1.2";
+
+
+      deleteProgressButton.addEventListener(
+        "click",
+        () => {
+          deleteStudentSubmissionProgress(
+            submission,
+            deleteProgressButton
+          );
+        }
+      );
+
+
+      actions.append(
+        reviewButton,
+        deleteProgressButton
+      );
+
+
+      row.appendChild(
+        actions
+      );
+
+
+      submissionList.appendChild(
+        row
+      );
+    }
+  );
+};
+
+
+/* =========================================================
+   DELETE ONE STUDENT / GROUP SUBMISSION
+========================================================= */
+
+async function deleteStudentSubmissionProgress(
+  submission,
+  button
+) {
+  if (
+    appMode !== "teacher-dashboard" ||
+    !currentTeacherUser ||
+    !selectedTeacherTask ||
+    !submission ||
+    !submission.id
+  ) {
+    return;
+  }
+
+
+  const isGroup =
+    Boolean(
+      submission.group_name
+    );
+
+
+  const displayName =
+    isGroup
+      ? `${submission.class_name} · ${submission.group_name}`
+      : (
+          submission.student_name ||
+          "this student"
+        );
+
+
+  const warning =
+    isGroup
+      ? (
+          `Delete submission/progress for ${displayName}?\n\n` +
+          "This is a shared group project. " +
+          "The saved map will be deleted for every student in this group.\n\n" +
+          "Teacher feedback and red-pen annotations attached to this submission will also be deleted.\n\n" +
+          "The students can enter the task code again and start a new project.\n\n" +
+          "This cannot be undone."
+        )
+      : (
+          `Delete submission/progress for ${displayName}?\n\n` +
+          "The student's saved map will be permanently deleted.\n\n" +
+          "Teacher feedback and red-pen annotations attached to this submission will also be deleted.\n\n" +
+          "The student can enter the task code again and start a new project.\n\n" +
+          "This cannot be undone."
+        );
+
+
+  const confirmed =
+    confirm(
+      warning
+    );
+
+
+  if (!confirmed) {
+    return;
+  }
+
+
+  button.disabled =
+    true;
+
+  button.textContent =
+    "Deleting…";
+
+
+  try {
+
+    /* -----------------------------------------
+       1. DELETE TEACHER REVIEW / RED INK
+    ----------------------------------------- */
+
+    const reviewDelete =
+      await sb
+        .from(
+          "submission_reviews"
+        )
+        .delete()
+        .eq(
+          "submission_id",
+          submission.id
+        );
+
+
+    if (
+      reviewDelete.error
+    ) {
+      throw reviewDelete.error;
+    }
+
+
+    /* -----------------------------------------
+       2. DELETE GROUP MEMBER LINKS
+    ----------------------------------------- */
+
+    const memberDelete =
+      await sb
+        .from(
+          "submission_members"
+        )
+        .delete()
+        .eq(
+          "submission_id",
+          submission.id
+        );
+
+
+    if (
+      memberDelete.error
+    ) {
+      throw memberDelete.error;
+    }
+
+
+    /* -----------------------------------------
+       3. DELETE THE ACTUAL SUBMISSION
+    ----------------------------------------- */
+
+    const submissionDelete =
+      await sb
+        .from(
+          "submissions"
+        )
+        .delete()
+        .eq(
+          "id",
+          submission.id
+        );
+
+
+    if (
+      submissionDelete.error
+    ) {
+      throw submissionDelete.error;
+    }
+
+
+    /* -----------------------------------------
+       4. REFRESH TEACHER SUBMISSION LIST
+    ----------------------------------------- */
+
+    await loadSubmissions();
+
+  }
+
+  catch (error) {
+
+    console.error(
+      error
+    );
+
+
+    alert(
+      error.message ||
+      "Could not delete this submission/progress."
+    );
+
+
+    button.disabled =
+      false;
+
+    button.textContent =
+      "Delete submission/progress";
+  }
+}
