@@ -3,11 +3,7 @@
 
 <head>
   <meta charset="UTF-8">
-
-  <meta
-    name="viewport"
-    content="width=device-width, initial-scale=1.0"
-  >
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <title>Outdoor Education Map Maker</title>
 
@@ -42,7 +38,15 @@
     </div>
 
 
-    <div class="header-actions">
+    <div
+      class="header-actions"
+      aria-label="Choose user mode"
+    >
+
+      <!--
+        These are still used internally by app.js,
+        but are hidden from the student-facing interface.
+      -->
 
       <div
         id="cloudStatus"
@@ -58,12 +62,22 @@
         Student
       </div>
 
+
+      <button
+        class="mode-button"
+        type="button"
+        onclick="window.location.reload()"
+      >
+        Student
+      </button>
+
+
       <button
         id="teacherPortalButton"
-        class="quiet-button"
+        class="mode-button"
         type="button"
       >
-        Teacher Portal
+        Teacher
       </button>
 
     </div>
@@ -108,7 +122,6 @@
     class="page-container"
   >
 
-
     <section
       id="taskIntro"
       class="task-intro"
@@ -127,7 +140,6 @@
 
       </div>
 
-
       <p id="taskInstructions"></p>
 
     </section>
@@ -138,7 +150,6 @@
       id="canvasWrap"
       class="canvas-wrap"
     >
-
 
       <svg
         id="drawingCanvas"
@@ -156,7 +167,6 @@
           height="675"
           class="canvas-background"
         ></rect>
-
 
         <g id="gridLayer"></g>
 
@@ -507,7 +517,6 @@
 
           </div>
 
-
           <button
             type="button"
             class="flyout-close"
@@ -526,10 +535,7 @@
             class="shape-choice"
             data-shape-tool="rectangle"
           >
-            <span>
-              ▭
-            </span>
-
+            <span>▭</span>
             Rectangle
           </button>
 
@@ -539,10 +545,7 @@
             class="shape-choice"
             data-shape-tool="square"
           >
-            <span>
-              □
-            </span>
-
+            <span>□</span>
             Square
           </button>
 
@@ -552,10 +555,7 @@
             class="shape-choice"
             data-shape-tool="circle"
           >
-            <span>
-              ○
-            </span>
-
+            <span>○</span>
             Circle
           </button>
 
@@ -565,10 +565,7 @@
             class="shape-choice"
             data-shape-tool="oval"
           >
-            <span>
-              ⬭
-            </span>
-
+            <span>⬭</span>
             Oval
           </button>
 
@@ -578,10 +575,7 @@
             class="shape-choice"
             data-shape-tool="triangle"
           >
-            <span>
-              △
-            </span>
-
+            <span>△</span>
             Triangle
           </button>
 
@@ -591,10 +585,7 @@
             class="shape-choice"
             data-shape-tool="semicircle"
           >
-            <span>
-              ◒
-            </span>
-
+            <span>◒</span>
             Semicircle
           </button>
 
@@ -604,10 +595,7 @@
             class="shape-choice"
             data-shape-tool="diamond"
           >
-            <span>
-              ◇
-            </span>
-
+            <span>◇</span>
             Diamond
           </button>
 
@@ -617,10 +605,7 @@
             class="shape-choice"
             data-shape-tool="hexagon"
           >
-            <span>
-              ⬡
-            </span>
-
+            <span>⬡</span>
             Hexagon
           </button>
 
@@ -650,7 +635,6 @@
 
           </div>
 
-
           <button
             type="button"
             class="flyout-close"
@@ -666,7 +650,6 @@
           Path colour
         </label>
 
-
         <input
           type="color"
           id="pathColour"
@@ -678,9 +661,7 @@
           Thickness
         </label>
 
-
         <select id="pathWidth">
-
           <option value="3">
             Thin
           </option>
@@ -695,7 +676,6 @@
           <option value="8">
             Thick
           </option>
-
         </select>
 
 
@@ -731,7 +711,6 @@
 
           </div>
 
-
           <button
             type="button"
             class="flyout-close"
@@ -747,7 +726,6 @@
           Road colour
         </label>
 
-
         <input
           type="color"
           id="roadColour"
@@ -758,7 +736,6 @@
         <label for="roadWidth">
           Road width
         </label>
-
 
         <select id="roadWidth">
 
@@ -811,7 +788,6 @@
             </span>
 
           </div>
-
 
           <button
             type="button"
@@ -961,19 +937,15 @@
       </div>
 
 
-      <div>
+      <label for="teacherFeedbackText">
+        Written feedback
+      </label>
 
-        <label for="teacherFeedbackText">
-          Written feedback
-        </label>
-
-        <textarea
-          id="teacherFeedbackText"
-          rows="4"
-          placeholder="Write feedback for the student..."
-        ></textarea>
-
-      </div>
+      <textarea
+        id="teacherFeedbackText"
+        rows="4"
+        placeholder="Write feedback for the student..."
+      ></textarea>
 
 
       <button
@@ -1028,8 +1000,9 @@
         Field note:
       </strong>
 
-      represent what matters, not every detail. Compare the
+      represent what matters, not every detail.
 
+      Compare the
       <strong>
         relative size
       </strong>
@@ -1083,7 +1056,6 @@
         >
           + New Task
         </button>
-
 
         <button
           id="teacherSignOutButton"
@@ -1180,6 +1152,7 @@
           >
 
 
+
           <label for="teacherTaskInstructions">
             Student instructions
           </label>
@@ -1201,7 +1174,6 @@
           </p>
 
 
-
           <div class="permission-grid">
 
             <label>
@@ -1209,7 +1181,6 @@
                 id="allowMove"
                 type="checkbox"
               >
-
               Select / move
             </label>
 
@@ -1219,7 +1190,6 @@
                 id="allowShapes"
                 type="checkbox"
               >
-
               Fixed shapes
             </label>
 
@@ -1229,7 +1199,6 @@
                 id="allowFreehand"
                 type="checkbox"
               >
-
               Freehand landmarks
             </label>
 
@@ -1239,7 +1208,6 @@
                 id="allowPath"
                 type="checkbox"
               >
-
               Paths
             </label>
 
@@ -1249,7 +1217,6 @@
                 id="allowRoad"
                 type="checkbox"
               >
-
               Roads
             </label>
 
@@ -1259,7 +1226,6 @@
                 id="allowColour"
                 type="checkbox"
               >
-
               Colour changes
             </label>
 
@@ -1269,7 +1235,6 @@
                 id="allowTransform"
                 type="checkbox"
               >
-
               Re-open rotate / resize
             </label>
 
@@ -1279,7 +1244,6 @@
                 id="allowLayers"
                 type="checkbox"
               >
-
               Bring forward / send backward
             </label>
 
@@ -1289,7 +1253,6 @@
                 id="allowReference"
                 type="checkbox"
               >
-
               Reference map
             </label>
 
@@ -1299,12 +1262,10 @@
                 id="allowDownload"
                 type="checkbox"
               >
-
               PNG download
             </label>
 
           </div>
-
 
 
           <button
@@ -1340,7 +1301,6 @@
                 type="file"
                 accept="image/png,image/jpeg,image/webp"
               >
-
 
               <button
                 id="removeReferenceButton"
@@ -1409,6 +1369,11 @@
 
 
 
+  <!--
+    Colour panel lives outside the canvas so the browser colour
+    picker cannot be clipped by the canvas.
+  -->
+
   <div
     id="colourPanel"
     class="colour-panel"
@@ -1429,7 +1394,6 @@
 
       </div>
 
-
       <button
         id="closeColourPanel"
         type="button"
@@ -1438,7 +1402,6 @@
       </button>
 
     </div>
-
 
 
     <div
@@ -1489,11 +1452,9 @@
     </div>
 
 
-
     <label for="fillColour">
       Full colour picker
     </label>
-
 
     <input
       type="color"
@@ -1624,7 +1585,7 @@
       </h2>
 
       <p class="modal-description">
-        Use the teacher account created in Supabase Authentication.
+        Sign in to access teacher tools.
       </p>
 
 
@@ -1666,7 +1627,6 @@
         >
           Cancel
         </button>
-
 
         <button
           id="teacherLoginButton"
@@ -1722,7 +1682,6 @@
         What does it represent?
       </label>
 
-
       <select id="objectCategorySelect">
 
         <option>
@@ -1775,7 +1734,6 @@
           Discard
         </button>
 
-
         <button
           id="saveObjectDetailsButton"
           class="modal-primary-button"
@@ -1812,8 +1770,7 @@
       </h2>
 
       <p class="modal-description">
-        The name will be written directly on the line
-        and added to the legend.
+        The name will be written directly on the line and added to the legend.
       </p>
 
 
@@ -1848,7 +1805,6 @@
         >
           Discard
         </button>
-
 
         <button
           id="saveRouteDetailsButton"
@@ -1899,7 +1855,6 @@
         <label for="editCategorySelect">
           Category
         </label>
-
 
         <select id="editCategorySelect">
 
@@ -1954,7 +1909,6 @@
         >
           Cancel
         </button>
-
 
         <button
           id="saveEditButton"

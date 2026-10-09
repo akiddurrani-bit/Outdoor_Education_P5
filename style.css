@@ -11,16 +11,13 @@
   --red:#b95a4c;
 }
 
-
 * {
   box-sizing:border-box;
 }
 
-
 [hidden] {
   display:none !important;
 }
-
 
 html,
 body {
@@ -28,10 +25,8 @@ body {
   min-height:100%;
 }
 
-
 body {
   font-family:Inter, Arial, sans-serif;
-
   color:var(--ink);
 
   background:
@@ -49,11 +44,9 @@ body {
     );
 }
 
-
 body.modal-open {
   overflow:hidden;
 }
-
 
 button,
 input,
@@ -62,35 +55,28 @@ textarea {
   font:inherit;
 }
 
-
 button {
   color:inherit;
 }
 
 
 
-/* =====================================================
+/* =========================================================
    HEADER
-===================================================== */
+========================================================= */
 
 .app-header {
   display:flex;
-
   justify-content:space-between;
-
   align-items:center;
-
   gap:24px;
 
   padding:14px 24px 12px;
 
-  background:
-    rgba(251,250,246,.96);
+  background:rgba(251,250,246,.96);
 
-  border-bottom:
-    1px solid var(--line);
+  border-bottom:1px solid var(--line);
 }
-
 
 .app-header h1,
 .teacher-dashboard-head h1 {
@@ -101,7 +87,6 @@ button {
   letter-spacing:-.4px;
 }
 
-
 .app-header p,
 .teacher-dashboard-head p {
   margin:0;
@@ -110,7 +95,6 @@ button {
 
   font-size:13px;
 }
-
 
 .eyebrow,
 .mini-label {
@@ -138,13 +122,26 @@ button {
 }
 
 
+/*
+  app.js still uses these elements internally.
+
+  They are deliberately hidden from pupils so technical
+  language such as "Backend connected" or "Connected to teacher"
+  never appears in the student-facing header.
+*/
+
+#cloudStatus,
+#studentBadge {
+  display:none !important;
+}
+
+
 .student-badge,
 .cloud-status,
 .task-code-pill {
   padding:8px 11px;
 
-  border:
-    1px solid var(--line);
+  border:1px solid var(--line);
 
   border-radius:999px;
 
@@ -162,7 +159,6 @@ button {
   font-weight:600;
 }
 
-
 .cloud-status.good {
   color:#2f6b4a;
 
@@ -171,7 +167,6 @@ button {
   background:#f2faf4;
 }
 
-
 .cloud-status.busy {
   color:#765c22;
 
@@ -179,7 +174,6 @@ button {
 
   background:#fffaf0;
 }
-
 
 .cloud-status.bad {
   color:#8d3f35;
@@ -191,9 +185,52 @@ button {
 
 
 
-/* =====================================================
-   JOURNAL STRIP
-===================================================== */
+/* Student / Teacher choices */
+
+.mode-button {
+  min-width:92px;
+
+  padding:9px 16px;
+
+  border:1px solid #c8c7c0;
+
+  border-radius:999px;
+
+  background:#fffdf8;
+
+  color:var(--ink);
+
+  font-weight:800;
+
+  cursor:pointer;
+
+  transition:
+    background .15s ease,
+    border-color .15s ease,
+    transform .15s ease;
+}
+
+.mode-button:hover {
+  background:#f0f4ef;
+
+  border-color:var(--forest);
+}
+
+.mode-button:active {
+  transform:translateY(1px);
+}
+
+.mode-button:focus-visible {
+  outline:3px solid rgba(79,103,89,.18);
+
+  outline-offset:2px;
+}
+
+
+
+/* =========================================================
+   FIELD JOURNAL STRIP
+========================================================= */
 
 .journal-strip {
   display:flex;
@@ -217,21 +254,19 @@ button {
   letter-spacing:1.3px;
 }
 
-
 .journal-strip i {
   width:34px;
 
   height:1px;
 
-  background:
-    rgba(255,255,255,.35);
+  background:rgba(255,255,255,.35);
 }
 
 
 
-/* =====================================================
-   PAGE
-===================================================== */
+/* =========================================================
+   MAIN PAGE
+========================================================= */
 
 .page-container,
 .teacher-dashboard {
@@ -249,11 +284,9 @@ button {
 .learning-reminder,
 .teacher-editor-card,
 .teacher-task-sidebar {
-  background:
-    rgba(251,250,246,.94);
+  background:rgba(251,250,246,.94);
 
-  border:
-    1px solid var(--line);
+  border:1px solid var(--line);
 
   border-radius:12px;
 }
@@ -295,30 +328,26 @@ button {
 
 
 
-/* =====================================================
-   CANVAS
-===================================================== */
+/* =========================================================
+   MAP CANVAS
+========================================================= */
 
 .canvas-wrap {
   position:relative;
 
   width:100%;
 
-  aspect-ratio:
-    1600 / 675;
+  aspect-ratio:1600 / 675;
 
   overflow:hidden;
 
   background:#fff;
 
-  border:
-    3px solid #343936;
+  border:3px solid #343936;
 
   border-radius:14px;
 
-  box-shadow:
-    0 5px 20px
-    rgba(43,48,45,.08);
+  box-shadow:0 5px 20px rgba(43,48,45,.08);
 }
 
 
@@ -352,9 +381,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    REFERENCE MAP
-===================================================== */
+========================================================= */
 
 .reference-overlay {
   position:absolute;
@@ -378,9 +407,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    STATUS
-===================================================== */
+========================================================= */
 
 .floating-status {
   position:absolute;
@@ -391,22 +420,17 @@ button {
 
   left:86px;
 
-  max-width:
-    calc(100% - 420px);
+  max-width:calc(100% - 420px);
 
   padding:8px 13px;
 
-  border:
-    1px solid
-    rgba(46,53,49,.15);
+  border:1px solid rgba(46,53,49,.15);
 
   border-radius:9px;
 
-  background:
-    rgba(255,253,248,.91);
+  background:rgba(255,253,248,.91);
 
-  backdrop-filter:
-    blur(5px);
+  backdrop-filter:blur(5px);
 
   font-size:13px;
 
@@ -415,9 +439,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    NORTH
-===================================================== */
+========================================================= */
 
 .north-indicator {
   position:absolute;
@@ -440,14 +464,11 @@ button {
 
   justify-content:center;
 
-  border:
-    1px solid
-    rgba(0,0,0,.15);
+  border:1px solid rgba(0,0,0,.15);
 
   border-radius:10px;
 
-  background:
-    rgba(255,253,248,.9);
+  background:rgba(255,253,248,.9);
 
   cursor:grab;
 
@@ -479,9 +500,9 @@ button {
 
 
 
-/* =====================================================
-   TOOLBAR
-===================================================== */
+/* =========================================================
+   FLOATING TOOLBAR
+========================================================= */
 
 .floating-toolbar {
   position:absolute;
@@ -508,23 +529,17 @@ button {
 
   padding:6px;
 
-  border:
-    1px solid
-    rgba(0,0,0,.2);
+  border:1px solid rgba(0,0,0,.2);
 
   border-radius:12px;
 
-  background:
-    rgba(35,42,39,.95);
+  background:rgba(35,42,39,.95);
 
-  box-shadow:
-    0 5px 18px
-    rgba(0,0,0,.2);
+  box-shadow:0 5px 18px rgba(0,0,0,.2);
 
   opacity:.4;
 
-  transition:
-    opacity .15s ease;
+  transition:opacity .15s ease;
 }
 
 
@@ -543,8 +558,7 @@ button {
 
   height:auto;
 
-  flex:
-    1 1 40px;
+  flex:1 1 40px;
 
   min-height:27px;
 
@@ -556,8 +570,7 @@ button {
 
   justify-content:center;
 
-  border:
-    1px solid transparent;
+  border:1px solid transparent;
 
   border-radius:8px;
 
@@ -570,8 +583,7 @@ button {
 
 
 .toolbar-button:hover {
-  background:
-    rgba(255,255,255,.14);
+  background:rgba(255,255,255,.14);
 }
 
 
@@ -580,8 +592,7 @@ button {
 
   background:#fffdf8;
 
-  border-color:
-    rgba(255,255,255,.8);
+  border-color:rgba(255,255,255,.8);
 }
 
 
@@ -611,11 +622,9 @@ button {
 
   height:1px;
 
-  flex:
-    0 0 1px;
+  flex:0 0 1px;
 
-  background:
-    rgba(255,255,255,.22);
+  background:rgba(255,255,255,.22);
 
   margin:1px 0;
 }
@@ -628,8 +637,7 @@ button {
 
   top:50%;
 
-  transform:
-    translateY(-50%);
+  transform:translateY(-50%);
 
   display:none;
 
@@ -639,8 +647,7 @@ button {
 
   border-radius:6px;
 
-  background:
-    rgba(28,34,31,.97);
+  background:rgba(28,34,31,.97);
 
   color:white;
 
@@ -650,16 +657,15 @@ button {
 }
 
 
-.toolbar-button:hover
-.toolbar-tooltip {
+.toolbar-button:hover .toolbar-tooltip {
   display:block;
 }
 
 
 
-/* =====================================================
-   FLYOUTS
-===================================================== */
+/* =========================================================
+   TOOL FLYOUTS
+========================================================= */
 
 .tool-flyout {
   position:absolute;
@@ -670,28 +676,21 @@ button {
 
   top:50%;
 
-  transform:
-    translateY(-50%);
+  transform:translateY(-50%);
 
   width:310px;
 
   padding:15px;
 
-  border:
-    1px solid
-    rgba(0,0,0,.16);
+  border:1px solid rgba(0,0,0,.16);
 
   border-radius:12px;
 
-  background:
-    rgba(255,253,248,.98);
+  background:rgba(255,253,248,.98);
 
-  backdrop-filter:
-    blur(8px);
+  backdrop-filter:blur(8px);
 
-  box-shadow:
-    0 10px 28px
-    rgba(0,0,0,.2);
+  box-shadow:0 10px 28px rgba(0,0,0,.2);
 }
 
 
@@ -703,8 +702,7 @@ button {
 .more-flyout {
   width:290px;
 
-  max-height:
-    calc(100% - 24px);
+  max-height:calc(100% - 24px);
 
   overflow:auto;
 }
@@ -767,15 +765,14 @@ button {
 
 
 
-/* =====================================================
-   SHAPES
-===================================================== */
+/* =========================================================
+   SHAPE CHOICES
+========================================================= */
 
 .shape-grid {
   display:grid;
 
-  grid-template-columns:
-    1fr 1fr;
+  grid-template-columns:1fr 1fr;
 
   gap:7px;
 }
@@ -794,8 +791,7 @@ button {
 
   gap:3px;
 
-  border:
-    1px solid #c9c8c1;
+  border:1px solid #c9c8c1;
 
   border-radius:8px;
 
@@ -820,9 +816,9 @@ button {
 
 
 
-/* =====================================================
-   FORMS
-===================================================== */
+/* =========================================================
+   INPUTS
+========================================================= */
 
 .tool-flyout label,
 .colour-panel label,
@@ -845,8 +841,7 @@ button {
 .teacher-feedback-panel textarea {
   width:100%;
 
-  border:
-    1px solid #aaa9a2;
+  border:1px solid #aaa9a2;
 
   border-radius:8px;
 
@@ -866,15 +861,14 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    BUTTONS
-===================================================== */
+========================================================= */
 
 .primary-flyout-button,
 .primary-button,
 .modal-primary-button {
-  border:
-    1px solid var(--forest-dark);
+  border:1px solid var(--forest-dark);
 
   background:var(--forest);
 
@@ -902,8 +896,7 @@ button {
 .modal-secondary-button,
 .review-tool,
 .danger-outline-button {
-  border:
-    1px solid #c8c7c0;
+  border:1px solid #c8c7c0;
 
   background:#fffdf8;
 
@@ -927,8 +920,7 @@ button {
 
   margin-top:8px;
 
-  border:
-    1px solid #d9aaa2;
+  border:1px solid #d9aaa2;
 
   background:#fff4f1;
 
@@ -945,9 +937,9 @@ button {
 
 
 
-/* =====================================================
-   REFERENCE BUTTON
-===================================================== */
+/* =========================================================
+   CANVAS ACTIONS
+========================================================= */
 
 .canvas-actions {
   position:absolute;
@@ -971,14 +963,11 @@ button {
 
   padding:8px 12px;
 
-  border:
-    1px solid
-    rgba(0,0,0,.15);
+  border:1px solid rgba(0,0,0,.15);
 
   border-radius:10px;
 
-  background:
-    rgba(255,253,248,.91);
+  background:rgba(255,253,248,.91);
 
   cursor:pointer;
 
@@ -996,9 +985,9 @@ button {
 
 
 
-/* =====================================================
-   MAP SHAPES
-===================================================== */
+/* =========================================================
+   MAP OBJECTS
+========================================================= */
 
 .map-shape {
   stroke:#3b3d3a;
@@ -1060,9 +1049,9 @@ button {
 
 
 
-/* =====================================================
-   PATHS + ROADS
-===================================================== */
+/* =========================================================
+   ROUTES
+========================================================= */
 
 .route-hit {
   fill:none;
@@ -1082,8 +1071,7 @@ button {
 
   stroke-linejoin:round;
 
-  stroke-dasharray:
-    16 10;
+  stroke-dasharray:16 10;
 
   pointer-events:none;
 }
@@ -1107,9 +1095,7 @@ button {
 
 
 .route-label {
-  font-family:
-    Arial,
-    sans-serif;
+  font-family:Arial,sans-serif;
 
   font-weight:800;
 
@@ -1140,9 +1126,9 @@ button {
 
 
 
-/* =====================================================
-   RESIZE / ROTATE
-===================================================== */
+/* =========================================================
+   TRANSFORMS
+========================================================= */
 
 .transform-box {
   fill:none;
@@ -1151,8 +1137,7 @@ button {
 
   stroke-width:3;
 
-  stroke-dasharray:
-    9 6;
+  stroke-dasharray:9 6;
 
   pointer-events:none;
 }
@@ -1247,9 +1232,9 @@ button {
 
 
 
-/* =====================================================
-   TEACHER ANNOTATION
-===================================================== */
+/* =========================================================
+   TEACHER INK
+========================================================= */
 
 .teacher-ink {
   fill:none;
@@ -1281,14 +1266,11 @@ button {
 
   padding:7px;
 
-  border:
-    1px solid
-    rgba(0,0,0,.15);
+  border:1px solid rgba(0,0,0,.15);
 
   border-radius:10px;
 
-  background:
-    rgba(255,253,248,.95);
+  background:rgba(255,253,248,.95);
 }
 
 
@@ -1304,9 +1286,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    LEGEND
-===================================================== */
+========================================================= */
 
 .legend-section {
   margin-top:10px;
@@ -1357,8 +1339,7 @@ button {
 
   padding:8px 9px;
 
-  border:
-    1px solid #e1ded4;
+  border:1px solid #e1ded4;
 
   border-radius:8px;
 
@@ -1371,8 +1352,7 @@ button {
 
   height:24px;
 
-  flex:
-    0 0 31px;
+  flex:0 0 31px;
 
   overflow:visible;
 }
@@ -1417,8 +1397,7 @@ button {
 
   padding:11px 14px;
 
-  border-left:
-    5px solid var(--forest);
+  border-left:5px solid var(--forest);
 
   font-size:13px;
 
@@ -1427,13 +1406,9 @@ button {
 
 
 
-/* =====================================================
-   COLOUR PANEL
-
-   This panel is outside the canvas so the browser colour
-   selector / magnified picker cannot be clipped behind
-   the drawing space.
-===================================================== */
+/* =========================================================
+   COLOUR PICKER
+========================================================= */
 
 .colour-panel {
   position:fixed;
@@ -1444,8 +1419,7 @@ button {
 
   top:50%;
 
-  transform:
-    translateY(-50%);
+  transform:translateY(-50%);
 
   width:330px;
 
@@ -1453,22 +1427,18 @@ button {
 
   background:#fffdf8;
 
-  border:
-    1px solid #bebbb0;
+  border:1px solid #bebbb0;
 
   border-radius:13px;
 
-  box-shadow:
-    0 18px 48px
-    rgba(0,0,0,.28);
+  box-shadow:0 18px 48px rgba(0,0,0,.28);
 }
 
 
 .colour-swatches {
   display:grid;
 
-  grid-template-columns:
-    repeat(4,1fr);
+  grid-template-columns:repeat(4,1fr);
 
   gap:8px;
 
@@ -1479,11 +1449,9 @@ button {
 .colour-swatches button {
   height:42px;
 
-  border:
-    2px solid white;
+  border:2px solid white;
 
-  outline:
-    1px solid #aaa79e;
+  outline:1px solid #aaa79e;
 
   border-radius:8px;
 
@@ -1500,8 +1468,7 @@ button {
 
   padding:4px;
 
-  border:
-    1px solid #aaa79e;
+  border:1px solid #aaa79e;
 
   border-radius:8px;
 
@@ -1512,9 +1479,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    MODALS
-===================================================== */
+========================================================= */
 
 .modal-overlay {
   position:fixed;
@@ -1531,14 +1498,12 @@ button {
 
   padding:20px;
 
-  background:
-    rgba(28,34,31,.62);
+  background:rgba(28,34,31,.62);
 }
 
 
 .object-modal {
-  width:
-    min(520px,100%);
+  width:min(520px,100%);
 
   padding:27px;
 
@@ -1546,9 +1511,7 @@ button {
 
   background:#fffdf8;
 
-  box-shadow:
-    0 18px 48px
-    rgba(0,0,0,.3);
+  box-shadow:0 18px 48px rgba(0,0,0,.3);
 }
 
 
@@ -1596,8 +1559,7 @@ button {
 
   padding:9px 11px;
 
-  border:
-    1.5px solid #8f918b;
+  border:1.5px solid #8f918b;
 
   border-radius:8px;
 
@@ -1609,9 +1571,7 @@ button {
 
 .object-modal input:focus,
 .object-modal select:focus {
-  outline:
-    3px solid
-    rgba(79,103,89,.18);
+  outline:3px solid rgba(79,103,89,.18);
 
   border-color:var(--forest);
 }
@@ -1665,9 +1625,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    TEACHER DASHBOARD
-===================================================== */
+========================================================= */
 
 .teacher-dashboard {
   padding-top:18px;
@@ -1690,8 +1650,7 @@ button {
 .teacher-layout {
   display:grid;
 
-  grid-template-columns:
-    280px minmax(0,1fr);
+  grid-template-columns:280px minmax(0,1fr);
 
   gap:14px;
 }
@@ -1720,8 +1679,7 @@ button {
 .teacher-task-item {
   text-align:left;
 
-  border:
-    1px solid #d4d1c7;
+  border:1px solid #d4d1c7;
 
   background:#fffdf8;
 
@@ -1780,7 +1738,10 @@ button {
   display:grid;
 
   grid-template-columns:
-    repeat(2,minmax(0,1fr));
+    repeat(
+      2,
+      minmax(0,1fr)
+    );
 
   gap:8px;
 
@@ -1793,8 +1754,7 @@ button {
 
   padding:9px;
 
-  border:
-    1px solid #ddd9cf;
+  border:1px solid #ddd9cf;
 
   border-radius:8px;
 
@@ -1824,8 +1784,7 @@ button {
 
   padding-top:18px;
 
-  border-top:
-    1px solid var(--line);
+  border-top:1px solid var(--line);
 }
 
 
@@ -1850,13 +1809,11 @@ button {
 .teacher-reference-preview {
   display:block;
 
-  width:
-    min(640px,100%);
+  width:min(640px,100%);
 
   margin-top:12px;
 
-  border:
-    1px solid var(--line);
+  border:1px solid var(--line);
 
   border-radius:9px;
 
@@ -1890,8 +1847,7 @@ button {
 
   padding:9px 10px;
 
-  border:
-    1px solid #ddd9cf;
+  border:1px solid #ddd9cf;
 
   border-radius:8px;
 
@@ -1965,9 +1921,9 @@ button {
 
 
 
-/* =====================================================
+/* =========================================================
    RESPONSIVE
-===================================================== */
+========================================================= */
 
 @media (max-height:800px) {
 
@@ -1994,6 +1950,7 @@ button {
   }
 
 }
+
 
 
 @media (max-width:1000px) {
@@ -2041,8 +1998,7 @@ button {
 
 
   .submission-row {
-    grid-template-columns:
-      1fr 90px;
+    grid-template-columns:1fr 90px;
   }
 
 
@@ -2053,11 +2009,24 @@ button {
 }
 
 
+
 @media (max-width:700px) {
 
   .app-header,
   .teacher-dashboard-head {
     flex-direction:column;
+  }
+
+
+  .header-actions {
+    width:100%;
+
+    justify-content:flex-start;
+  }
+
+
+  .mode-button {
+    flex:1;
   }
 
 
@@ -2102,11 +2071,10 @@ button {
   .tool-flyout {
     left:63px;
 
-    width:
-      min(
-        280px,
-        calc(100% - 72px)
-      );
+    width:min(
+      280px,
+      calc(100% - 72px)
+    );
   }
 
 
