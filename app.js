@@ -10100,7 +10100,7 @@ initialise();
   a version that gives teachers two controls:
 
   1. Review
-  2. Delete submission/progress
+  2. Delete
 */
 
 renderSubmissionList = function(items) {
@@ -10235,7 +10235,7 @@ renderSubmissionList = function(items) {
       );
 
 
-      /* DELETE SUBMISSION / PROGRESS */
+      /* DELETE */
 
       const deleteProgressButton =
         document.createElement(
@@ -10249,19 +10249,7 @@ renderSubmissionList = function(items) {
         "danger-outline-button";
 
       deleteProgressButton.textContent =
-        "Delete submission/progress";
-
-      deleteProgressButton.style.width =
-        "100%";
-
-      deleteProgressButton.style.whiteSpace =
-        "normal";
-
-      deleteProgressButton.style.fontSize =
-        "10px";
-
-      deleteProgressButton.style.lineHeight =
-        "1.2";
+        "Delete";
 
 
       deleteProgressButton.addEventListener(
@@ -10461,6 +10449,6 @@ async function deleteStudentSubmissionProgress(
       false;
 
     button.textContent =
-      "Delete submission/progress";
+      "Delete";
   }
 }
