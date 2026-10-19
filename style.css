@@ -10,17 +10,21 @@
 --blue:#50779b;
 --red:#b95a4c;
 }
+
 * {
 box-sizing:border-box;
 }
+
 [hidden] {
 display:none !important;
 }
+
 html,
 body {
 margin:0;
 min-height:100%;
 }
+
 body {
 font-family:Inter, Arial, sans-serif;
 color:var(--ink);
@@ -37,22 +41,27 @@ linear-gradient(
 #ece8de
 );
 }
+
 body.modal-open {
 overflow:hidden;
 }
+
 button,
 input,
 select,
 textarea {
 font:inherit;
 }
+
 button {
 color:inherit;
 }
 
+
 /* =========================================================
 HEADER
 ========================================================= */
+
 .app-header {
 display:flex;
 justify-content:space-between;
@@ -62,18 +71,21 @@ padding:14px 24px 12px;
 background:rgba(251,250,246,.96);
 border-bottom:1px solid var(--line);
 }
+
 .app-header h1,
 .teacher-dashboard-head h1 {
 margin:2px 0 3px;
 font-size:28px;
 letter-spacing:-.4px;
 }
+
 .app-header p,
 .teacher-dashboard-head p {
 margin:0;
 color:var(--muted);
 font-size:13px;
 }
+
 .eyebrow,
 .mini-label {
 color:var(--forest);
@@ -81,6 +93,7 @@ font-weight:800;
 font-size:11px;
 letter-spacing:1.7px;
 }
+
 .header-actions,
 .teacher-head-actions {
 display:flex;
@@ -89,10 +102,12 @@ gap:8px;
 flex-wrap:wrap;
 justify-content:flex-end;
 }
+
 #cloudStatus,
 #studentBadge {
 display:none !important;
 }
+
 .student-badge,
 .cloud-status,
 .task-code-pill {
@@ -103,25 +118,30 @@ background:#fffdf8;
 font-size:12px;
 font-weight:700;
 }
+
 .cloud-status {
 color:var(--muted);
 font-weight:600;
 }
+
 .cloud-status.good {
 color:#2f6b4a;
 border-color:#b7cfbf;
 background:#f2faf4;
 }
+
 .cloud-status.busy {
 color:#765c22;
 border-color:#dccd9b;
 background:#fffaf0;
 }
+
 .cloud-status.bad {
 color:#8d3f35;
 border-color:#e0bbb4;
 background:#fff5f3;
 }
+
 .mode-button {
 min-width:92px;
 padding:9px 16px;
@@ -136,21 +156,26 @@ background .15s ease,
 border-color .15s ease,
 transform .15s ease;
 }
+
 .mode-button:hover {
 background:#f0f4ef;
 border-color:var(--forest);
 }
+
 .mode-button:active {
 transform:translateY(1px);
 }
+
 .mode-button:focus-visible {
 outline:3px solid rgba(79,103,89,.18);
 outline-offset:2px;
 }
 
+
 /* =========================================================
 FIELD JOURNAL STRIP
 ========================================================= */
+
 .journal-strip {
 display:flex;
 align-items:center;
@@ -163,21 +188,25 @@ font-size:10px;
 font-weight:800;
 letter-spacing:1.3px;
 }
+
 .journal-strip i {
 width:34px;
 height:1px;
 background:rgba(255,255,255,.35);
 }
 
+
 /* =========================================================
 MAIN PAGE
 ========================================================= */
+
 .page-container,
 .teacher-dashboard {
 width:min(2000px,100%);
 margin:0 auto;
 padding:14px;
 }
+
 .task-intro,
 .teacher-feedback-panel,
 .legend-section,
@@ -188,6 +217,7 @@ background:rgba(251,250,246,.94);
 border:1px solid var(--line);
 border-radius:12px;
 }
+
 .task-intro {
 display:flex;
 justify-content:space-between;
@@ -196,10 +226,12 @@ align-items:flex-start;
 margin-bottom:10px;
 padding:12px 15px;
 }
+
 .task-intro h2 {
 margin:2px 0 0;
 font-size:18px;
 }
+
 .task-intro p {
 margin:2px 0 0;
 color:var(--muted);
@@ -208,9 +240,11 @@ font-size:13px;
 line-height:1.5;
 }
 
+
 /* =========================================================
 MAP CANVAS
 ========================================================= */
+
 .canvas-wrap {
 position:relative;
 width:100%;
@@ -221,6 +255,7 @@ border:3px solid #343936;
 border-radius:14px;
 box-shadow:0 5px 20px rgba(43,48,45,.08);
 }
+
 #drawingCanvas {
 position:absolute;
 inset:0;
@@ -230,17 +265,21 @@ height:100%;
 display:block;
 touch-action:none;
 }
+
 .canvas-background {
 fill:#fff;
 }
+
 .grid-line {
 stroke:#e8e8e3;
 stroke-width:1;
 }
 
+
 /* =========================================================
 REFERENCE MAP
 ========================================================= */
+
 .reference-overlay {
 position:absolute;
 inset:0;
@@ -253,9 +292,11 @@ pointer-events:none;
 user-select:none;
 }
 
+
 /* =========================================================
 STATUS
 ========================================================= */
+
 .floating-status {
 position:absolute;
 z-index:16;
@@ -271,9 +312,11 @@ font-size:13px;
 pointer-events:none;
 }
 
+
 /* =========================================================
 NORTH
 ========================================================= */
+
 .north-indicator {
 position:absolute;
 z-index:23;
@@ -298,28 +341,34 @@ background .15s ease,
 border-color .15s ease,
 transform .15s ease;
 }
+
 .north-indicator:hover,
 .north-indicator.setting-north {
 border-color:var(--forest);
 background:#f4f8f3;
 }
+
 .north-indicator:active {
 cursor:grabbing;
 }
+
 .north-arrow-inner {
 display:flex;
 flex-direction:column;
 align-items:center;
 transform-origin:center;
 }
+
 .north-arrow-inner strong {
 font-size:11px;
 }
+
 .north-arrow-symbol {
 font-size:27px;
 line-height:.9;
 margin-top:-2px;
 }
+
 .north-control-label {
 margin-top:2px;
 color:var(--forest-dark);
@@ -327,15 +376,18 @@ font-size:8px;
 font-weight:900;
 letter-spacing:.8px;
 }
+
 .north-angle-label {
 color:var(--muted);
 font-size:9px;
 font-weight:800;
 }
 
+
 /* =========================================================
 FLOATING TOOLBAR
 ========================================================= */
+
 .floating-toolbar {
 position:absolute;
 z-index:30;
@@ -356,12 +408,14 @@ box-shadow:0 5px 18px rgba(0,0,0,.2);
 opacity:.4;
 transition:opacity .15s ease;
 }
+
 .floating-toolbar:hover,
 .floating-toolbar:focus-within,
 .floating-toolbar.open,
 .floating-toolbar.recently-used {
 opacity:.9;
 }
+
 .toolbar-button {
 position:relative;
 width:43px;
@@ -378,26 +432,32 @@ background:transparent;
 color:white;
 cursor:pointer;
 }
+
 .toolbar-button:hover {
 background:rgba(255,255,255,.14);
 }
+
 .toolbar-button.active {
 color:#355f4a;
 background:#fffdf8;
 border-color:rgba(255,255,255,.8);
 }
+
 .toolbar-button:disabled {
 opacity:.22;
 cursor:not-allowed;
 }
+
 .toolbar-icon {
 font-size:20px;
 line-height:1;
 }
+
 .layer-icon {
 font-size:22px;
 font-weight:800;
 }
+
 .toolbar-divider {
 width:30px;
 height:1px;
@@ -405,6 +465,7 @@ flex:0 0 1px;
 background:rgba(255,255,255,.22);
 margin:1px 0;
 }
+
 .toolbar-tooltip {
 position:absolute;
 left:53px;
@@ -419,13 +480,16 @@ color:white;
 font-size:12px;
 pointer-events:none;
 }
+
 .toolbar-button:hover .toolbar-tooltip {
 display:block;
 }
 
+
 /* =========================================================
 TOOL FLYOUTS
 ========================================================= */
+
 .tool-flyout {
 position:absolute;
 z-index:29;
@@ -440,14 +504,17 @@ background:rgba(255,253,248,.98);
 backdrop-filter:blur(8px);
 box-shadow:0 10px 28px rgba(0,0,0,.2);
 }
+
 .compact-flyout {
 width:275px;
 }
+
 .more-flyout {
 width:290px;
 max-height:calc(100% - 24px);
 overflow:auto;
 }
+
 .flyout-heading,
 .colour-panel-head,
 .teacher-section-head {
@@ -456,14 +523,17 @@ justify-content:space-between;
 align-items:flex-start;
 gap:12px;
 }
+
 .flyout-heading {
 margin-bottom:12px;
 }
+
 .flyout-heading strong,
 .colour-panel-head strong {
 display:block;
 font-size:17px;
 }
+
 .flyout-heading span,
 .colour-panel-head span {
 display:block;
@@ -471,6 +541,7 @@ color:var(--muted);
 margin-top:2px;
 font-size:11px;
 }
+
 .flyout-close,
 .colour-panel-head button {
 width:29px;
@@ -482,14 +553,17 @@ cursor:pointer;
 font-size:20px;
 }
 
+
 /* =========================================================
 SHAPE CHOICES
 ========================================================= */
+
 .shape-grid {
 display:grid;
 grid-template-columns:1fr 1fr;
 gap:7px;
 }
+
 .shape-choice {
 min-height:63px;
 display:flex;
@@ -503,17 +577,21 @@ background:#fff;
 cursor:pointer;
 font-size:12px;
 }
+
 .shape-choice:hover {
 border-color:var(--forest);
 background:#f3f7f3;
 }
+
 .shape-choice span {
 font-size:23px;
 }
 
+
 /* =========================================================
 INPUTS
 ========================================================= */
+
 .tool-flyout label,
 .colour-panel label,
 .teacher-editor-card label,
@@ -523,6 +601,7 @@ margin:10px 0 5px;
 font-size:12px;
 font-weight:800;
 }
+
 .tool-flyout select,
 .tool-flyout input[type=color],
 .teacher-editor-card input[type=text],
@@ -535,14 +614,17 @@ background:white;
 padding:9px;
 min-height:40px;
 }
+
 .tool-flyout input[type=color] {
 height:46px;
 padding:3px;
 }
 
+
 /* =========================================================
 BUTTONS
 ========================================================= */
+
 .primary-flyout-button,
 .primary-button,
 .modal-primary-button {
@@ -554,10 +636,12 @@ padding:10px 13px;
 cursor:pointer;
 font-weight:800;
 }
+
 .primary-flyout-button {
 width:100%;
 margin-top:13px;
 }
+
 .secondary-flyout-button,
 .quiet-button,
 .modal-secondary-button,
@@ -569,10 +653,12 @@ border-radius:8px;
 padding:9px 11px;
 cursor:pointer;
 }
+
 .full-flyout-button {
 width:100%;
 margin-bottom:7px;
 }
+
 .danger-flyout-button {
 width:100%;
 margin-top:8px;
@@ -585,15 +671,18 @@ cursor:pointer;
 font-weight:700;
 }
 
+
 /* =========================================================
 CANVAS ACTIONS
 ========================================================= */
+
 .canvas-actions {
 position:absolute;
 z-index:22;
 top:12px;
 right:12px;
 }
+
 .canvas-action-button {
 display:flex;
 align-items:center;
@@ -607,28 +696,34 @@ cursor:pointer;
 user-select:none;
 touch-action:none;
 }
+
 .canvas-action-button.holding {
 background:var(--forest);
 color:white;
 }
 
+
 /* =========================================================
 MAP OBJECTS
 ========================================================= */
+
 .map-shape {
 stroke:#3b3d3a;
 stroke-width:4;
 cursor:grab;
 }
+
 .map-shape.selected,
 .map-shape.draft-shape {
 stroke:#2e6eb6;
 stroke-width:6;
 }
+
 .shape-label-container {
 pointer-events:none;
 overflow:visible;
 }
+
 .shape-label-box {
 width:100%;
 height:100%;
@@ -650,15 +745,18 @@ text-shadow:
 1px 1px #fff;
 }
 
+
 /* =========================================================
 ROUTES
 ========================================================= */
+
 .route-hit {
 fill:none;
 stroke:transparent;
 pointer-events:stroke;
 cursor:grab;
 }
+
 .path-line {
 fill:none;
 stroke-linecap:round;
@@ -666,6 +764,7 @@ stroke-linejoin:round;
 stroke-dasharray:16 10;
 pointer-events:none;
 }
+
 .road-edge,
 .road-core {
 fill:none;
@@ -673,9 +772,11 @@ stroke-linecap:round;
 stroke-linejoin:round;
 pointer-events:none;
 }
+
 .road-edge {
 stroke:#474943;
 }
+
 .route-label {
 font-family:Arial,sans-serif;
 font-weight:800;
@@ -687,16 +788,20 @@ stroke-width:5;
 paint-order:stroke;
 pointer-events:none;
 }
+
 .route-label.path-label {
 fill:#244d74;
 }
+
 .route-label.road-label {
 fill:#33352f;
 }
 
+
 /* =========================================================
 TRANSFORMS
 ========================================================= */
+
 .transform-box {
 fill:none;
 stroke:#246fc1;
@@ -704,33 +809,40 @@ stroke-width:3;
 stroke-dasharray:9 6;
 pointer-events:none;
 }
+
 .rotate-line {
 stroke:#246fc1;
 stroke-width:3;
 pointer-events:none;
 }
+
 .resize-handle {
 fill:#fff;
 stroke:#246fc1;
 stroke-width:4;
 pointer-events:all;
 }
+
 .handle-tl,
 .handle-br {
 cursor:nwse-resize;
 }
+
 .handle-tr,
 .handle-bl {
 cursor:nesw-resize;
 }
+
 .handle-left,
 .handle-right {
 cursor:ew-resize;
 }
+
 .handle-top,
 .handle-bottom {
 cursor:ns-resize;
 }
+
 .rotate-handle {
 fill:#246fc1;
 stroke:white;
@@ -738,15 +850,18 @@ stroke-width:4;
 cursor:grab;
 pointer-events:all;
 }
+
 .done-shape-button {
 cursor:pointer;
 pointer-events:all;
 }
+
 .done-shape-rect {
 fill:#4f6759;
 stroke:white;
 stroke-width:3;
 }
+
 .done-shape-text {
 fill:white;
 font-size:18px;
@@ -756,9 +871,11 @@ dominant-baseline:middle;
 pointer-events:none;
 }
 
+
 /* =========================================================
 TEACHER INK
 ========================================================= */
+
 .teacher-ink {
 fill:none;
 stroke:#d94b42;
@@ -767,6 +884,7 @@ stroke-linecap:round;
 stroke-linejoin:round;
 pointer-events:none;
 }
+
 .teacher-review-toolbar {
 position:absolute;
 z-index:35;
@@ -779,6 +897,7 @@ border:1px solid rgba(0,0,0,.15);
 border-radius:10px;
 background:rgba(255,253,248,.95);
 }
+
 .review-tool.active {
 background:#ffe9e5;
 border-color:#d8877c;
@@ -786,22 +905,27 @@ color:#8b3e35;
 font-weight:800;
 }
 
+
 /* =========================================================
 LEGEND
 ========================================================= */
+
 .legend-section {
 margin-top:10px;
 padding:14px 16px;
 }
+
 .section-heading h2 {
 margin:0;
 font-size:18px;
 }
+
 .section-heading p {
 margin:3px 0 0;
 color:var(--muted);
 font-size:11px;
 }
+
 .legend-grid {
 display:grid;
 grid-template-columns:
@@ -812,6 +936,7 @@ minmax(210px,1fr)
 gap:8px 12px;
 margin-top:10px;
 }
+
 .legend-item {
 display:flex;
 align-items:center;
@@ -822,31 +947,37 @@ border:1px solid #e1ded4;
 border-radius:8px;
 background:#fffdf9;
 }
+
 .legend-preview {
 width:31px;
 height:24px;
 flex:0 0 31px;
 overflow:visible;
 }
+
 .legend-text {
 min-width:0;
 line-height:1.1;
 }
+
 .legend-object-name {
 font-size:13px;
 font-weight:800;
 overflow-wrap:anywhere;
 }
+
 .legend-category {
 color:var(--muted);
 font-size:10px;
 margin-top:3px;
 }
+
 .empty-legend {
 color:#858984;
 font-size:12px;
 font-style:italic;
 }
+
 .learning-reminder {
 margin-top:10px;
 padding:11px 14px;
@@ -855,9 +986,11 @@ font-size:13px;
 line-height:1.5;
 }
 
+
 /* =========================================================
 COLOUR PICKER
 ========================================================= */
+
 .colour-panel {
 position:fixed;
 z-index:1500;
@@ -871,12 +1004,14 @@ border:1px solid #bebbb0;
 border-radius:13px;
 box-shadow:0 18px 48px rgba(0,0,0,.28);
 }
+
 .colour-swatches {
 display:grid;
 grid-template-columns:repeat(4,1fr);
 gap:8px;
 margin:14px 0;
 }
+
 .colour-swatches button {
 height:42px;
 border:2px solid white;
@@ -885,6 +1020,7 @@ border-radius:8px;
 background:var(--swatch);
 cursor:pointer;
 }
+
 .colour-panel input[type=color] {
 width:100%;
 height:58px;
@@ -895,9 +1031,11 @@ background:white;
 cursor:pointer;
 }
 
+
 /* =========================================================
 MODALS
 ========================================================= */
+
 .modal-overlay {
 position:fixed;
 inset:0;
@@ -908,6 +1046,7 @@ justify-content:center;
 padding:20px;
 background:rgba(28,34,31,.62);
 }
+
 .object-modal {
 width:min(520px,100%);
 padding:27px;
@@ -915,26 +1054,31 @@ border-radius:15px;
 background:#fffdf8;
 box-shadow:0 18px 48px rgba(0,0,0,.3);
 }
+
 .modal-step-label {
 color:var(--forest);
 font-size:11px;
 font-weight:900;
 letter-spacing:1.4px;
 }
+
 .object-modal h2 {
 margin:5px 0 7px;
 }
+
 .modal-description {
 color:var(--muted);
 line-height:1.45;
 margin:0 0 18px;
 }
+
 .object-modal label {
 display:block;
 margin:12px 0 6px;
 font-size:13px;
 font-weight:800;
 }
+
 .object-modal input,
 .object-modal select {
 width:100%;
@@ -945,28 +1089,33 @@ border-radius:8px;
 background:white;
 font-size:16px;
 }
+
 .object-modal input:focus,
 .object-modal select:focus {
 outline:3px solid rgba(79,103,89,.18);
 border-color:var(--forest);
 }
+
 .modal-actions {
 display:flex;
 justify-content:flex-end;
 gap:9px;
 margin-top:21px;
 }
+
 .modal-primary-button,
 .modal-secondary-button {
 min-height:44px;
 padding:9px 16px;
 }
+
 .modal-error {
 margin-top:8px;
 color:#a04438;
 font-size:13px;
 font-weight:700;
 }
+
 .text-link-button {
 display:block;
 margin:18px auto 0;
@@ -977,12 +1126,15 @@ text-decoration:underline;
 cursor:pointer;
 }
 
+
 /* =========================================================
 TEACHER DASHBOARD
 ========================================================= */
+
 .teacher-dashboard {
 padding-top:18px;
 }
+
 .teacher-dashboard-head {
 display:flex;
 justify-content:space-between;
@@ -990,23 +1142,28 @@ gap:20px;
 align-items:flex-start;
 margin-bottom:14px;
 }
+
 .teacher-layout {
 display:grid;
 grid-template-columns:280px minmax(0,1fr);
 gap:14px;
 }
+
 .teacher-task-sidebar,
 .teacher-editor-card {
 padding:15px;
 }
+
 .teacher-task-sidebar h3 {
 margin:0 0 10px;
 }
+
 .teacher-task-list {
 display:flex;
 flex-direction:column;
 gap:7px;
 }
+
 .teacher-task-item {
 text-align:left;
 border:1px solid #d4d1c7;
@@ -1015,31 +1172,38 @@ border-radius:9px;
 padding:10px;
 cursor:pointer;
 }
+
 .teacher-task-item.active {
 border-color:var(--forest);
 background:#f0f4ef;
 }
+
 .teacher-task-item strong {
 display:block;
 }
+
 .teacher-task-item span {
 display:block;
 margin-top:3px;
 color:var(--muted);
 font-size:11px;
 }
+
 .empty-teacher-state {
 text-align:center;
 padding:70px 20px;
 color:var(--muted);
 }
+
 .teacher-editor-card h2,
 .teacher-editor-card h3 {
 margin:4px 0 8px;
 }
+
 .teacher-editor-card textarea {
 resize:vertical;
 }
+
 .permission-grid {
 display:grid;
 grid-template-columns:
@@ -1050,6 +1214,7 @@ minmax(0,1fr)
 gap:8px;
 margin:8px 0 14px;
 }
+
 .permission-grid label {
 margin:0;
 padding:9px;
@@ -1058,30 +1223,36 @@ border-radius:8px;
 background:#fffdf8;
 font-weight:600;
 }
+
 .permission-grid input {
 margin-right:6px;
 }
+
 .helper-text {
 color:var(--muted);
 font-size:12px;
 margin:2px 0 10px;
 }
+
 .reference-manager,
 .submission-section {
 margin-top:20px;
 padding-top:18px;
 border-top:1px solid var(--line);
 }
+
 .reference-manager-actions {
 display:flex;
 gap:8px;
 align-items:center;
 flex-wrap:wrap;
 }
+
 .danger-outline-button {
 color:#8c3d34;
 border-color:#d7aaa3;
 }
+
 .teacher-reference-preview {
 display:block;
 width:min(640px,100%);
@@ -1090,12 +1261,14 @@ border:1px solid var(--line);
 border-radius:9px;
 background:white;
 }
+
 .submission-list {
 display:flex;
 flex-direction:column;
 gap:7px;
 margin-top:10px;
 }
+
 .submission-row {
 display:grid;
 grid-template-columns:
@@ -1110,14 +1283,17 @@ border:1px solid #ddd9cf;
 border-radius:8px;
 background:#fffdf8;
 }
+
 .submission-name strong {
 display:block;
 }
+
 .submission-name span,
 .submission-meta {
 color:var(--muted);
 font-size:11px;
 }
+
 .status-pill {
 justify-self:start;
 padding:5px 8px;
@@ -1126,10 +1302,12 @@ font-size:10px;
 font-weight:800;
 background:#ecebe6;
 }
+
 .status-pill.submitted {
 background:#e8f3eb;
 color:#2e6745;
 }
+
 .teacher-feedback-panel {
 display:grid;
 grid-template-columns:
@@ -1141,48 +1319,62 @@ align-items:end;
 margin-top:10px;
 padding:13px 15px;
 }
+
 .teacher-feedback-panel h2 {
 margin:2px 0 0;
 font-size:17px;
 }
+
 .teacher-feedback-panel label {
 margin:0 0 5px;
 }
 
+
 /* =========================================================
 RESPONSIVE
 ========================================================= */
+
 @media (max-height:800px) {
+
 .floating-toolbar {
 top:8px;
 bottom:8px;
 gap:2px;
 padding:4px 6px;
 }
+
 .toolbar-button {
 min-height:24px;
 max-height:36px;
 }
+
 .toolbar-icon {
 font-size:18px;
 }
+
 }
+
 @media (max-width:1000px) {
+
 .app-header {
 align-items:flex-start;
 }
+
 .canvas-wrap {
 min-height:520px;
 aspect-ratio:auto;
 }
+
 .floating-status {
 left:82px;
 right:12px;
 max-width:none;
 }
+
 .teacher-layout {
 grid-template-columns:1fr;
 }
+
 .teacher-task-list {
 display:grid;
 grid-template-columns:
@@ -1191,38 +1383,50 @@ auto-fit,
 minmax(180px,1fr)
 );
 }
+
 .teacher-feedback-panel {
 grid-template-columns:1fr;
 }
+
 .submission-row {
 grid-template-columns:1fr 90px;
 }
+
 .submission-meta {
 display:none;
 }
+
 }
+
 @media (max-width:700px) {
+
 .app-header,
 .teacher-dashboard-head {
 flex-direction:column;
 }
+
 .header-actions {
 width:100%;
 justify-content:flex-start;
 }
+
 .mode-button {
 flex:1;
 }
+
 .journal-strip {
 gap:6px;
 }
+
 .journal-strip i {
 width:12px;
 }
+
 .page-container,
 .teacher-dashboard {
 padding:7px;
 }
+
 .floating-toolbar {
 left:6px;
 width:51px;
@@ -1230,11 +1434,13 @@ top:6px;
 bottom:6px;
 padding:4px;
 }
+
 .toolbar-button {
 width:39px;
 min-height:23px;
 max-height:33px;
 }
+
 .tool-flyout {
 left:63px;
 width:min(
@@ -1242,56 +1448,70 @@ width:min(
 calc(100% - 72px)
 );
 }
+
 .floating-status {
 left:66px;
 font-size:11px;
 }
+
 .north-indicator {
 display:none;
 }
+
 .canvas-actions {
 right:7px;
 }
+
 .canvas-action-button strong {
 display:none;
 }
+
 .colour-panel {
 left:12px;
 right:12px;
 width:auto;
 }
+
 .permission-grid {
 grid-template-columns:1fr;
 }
+
 }
+
 
 /* =========================================================
 STUDENT PROFILES + CLASS / GROUP WORK
 ========================================================= */
+
 .task-copy {
 max-width:980px;
 }
+
 .task-members {
 margin-top:6px !important;
 color:var(--forest-dark) !important;
 font-weight:800;
 }
+
 .student-profile-page {
 width:min(1280px,100%);
 margin:0 auto;
 padding:24px 16px 40px;
 }
+
 .student-profile-shell {
 display:flex;
 flex-direction:column;
 gap:16px;
 }
+
 .profile-hero,
 .profile-card {
 background:rgba(251,250,246,.96);
 border:1px solid var(--line);
 border-radius:14px;
 }
+
 .profile-hero {
 display:flex;
 align-items:flex-start;
@@ -1299,35 +1519,42 @@ justify-content:space-between;
 gap:18px;
 padding:22px 24px;
 }
+
 .profile-hero h1 {
 margin:4px 0 2px;
 font-size:30px;
 letter-spacing:-.4px;
 }
+
 .profile-hero p {
 margin:0;
 color:var(--muted);
 font-weight:700;
 }
+
 .profile-grid {
 display:grid;
 grid-template-columns:minmax(300px,.8fr) minmax(0,1.4fr);
 gap:16px;
 align-items:start;
 }
+
 .profile-card {
 padding:20px;
 }
+
 .profile-card h2 {
 margin:4px 0 6px;
 font-size:20px;
 }
+
 .profile-card > p {
 margin:0 0 15px;
 color:var(--muted);
 font-size:13px;
 line-height:1.5;
 }
+
 .profile-section-head,
 .teacher-panel-actions {
 display:flex;
@@ -1335,15 +1562,18 @@ align-items:flex-start;
 justify-content:space-between;
 gap:16px;
 }
+
 .profile-section-head h2,
 .teacher-panel-actions h2 {
 margin:3px 0 0;
 }
+
 .task-code-entry {
 display:flex;
 gap:8px;
 align-items:stretch;
 }
+
 .task-code-entry input {
 min-width:0;
 flex:1;
@@ -1356,12 +1586,14 @@ font-weight:800;
 letter-spacing:1px;
 text-transform:uppercase;
 }
+
 .student-projects-list {
 display:flex;
 flex-direction:column;
 gap:9px;
 margin-top:14px;
 }
+
 .student-project-card {
 width:100%;
 text-align:left;
@@ -1371,20 +1603,24 @@ border-radius:10px;
 background:#fffdf8;
 cursor:pointer;
 }
+
 .student-project-card:hover {
 border-color:var(--forest);
 background:#f3f7f3;
 }
+
 .student-project-card-head {
 display:flex;
 align-items:flex-start;
 justify-content:space-between;
 gap:12px;
 }
+
 .student-project-card strong {
 display:block;
 font-size:14px;
 }
+
 .student-project-meta,
 .student-project-members {
 margin-top:5px;
@@ -1392,9 +1628,11 @@ color:var(--muted);
 font-size:11px;
 line-height:1.4;
 }
+
 .student-project-members {
 color:var(--forest-dark);
 }
+
 .student-project-status {
 flex:0 0 auto;
 padding:4px 8px;
@@ -1404,10 +1642,12 @@ font-size:10px;
 font-weight:900;
 text-transform:capitalize;
 }
+
 .student-project-status.submitted {
 background:#e8f3eb;
 color:#2e6745;
 }
+
 .student-login-modal select {
 width:100%;
 min-height:50px;
@@ -1417,11 +1657,13 @@ border-radius:8px;
 background:white;
 font-size:16px;
 }
+
 .group-modal-card {
 max-height:min(760px,calc(100vh - 40px));
 display:flex;
 flex-direction:column;
 }
+
 .group-members-list {
 min-height:80px;
 max-height:360px;
@@ -1431,6 +1673,7 @@ grid-template-columns:repeat(2,minmax(0,1fr));
 gap:7px;
 padding:4px 2px;
 }
+
 .group-member-option {
 display:flex;
 align-items:flex-start;
@@ -1443,18 +1686,22 @@ cursor:pointer;
 font-size:12px;
 line-height:1.3;
 }
+
 .group-member-option.current-student {
 border-color:#b7cfbf;
 background:#f2faf4;
 cursor:default;
 }
+
 .group-member-option input {
 margin-top:2px;
 }
 
+
 /* =========================================================
 TEACHER NAVIGATION
 ========================================================= */
+
 .teacher-tabs {
 display:inline-flex;
 gap:5px;
@@ -1464,6 +1711,7 @@ border:1px solid var(--line);
 border-radius:10px;
 background:rgba(251,250,246,.94);
 }
+
 .teacher-tab-button {
 min-width:110px;
 padding:9px 14px;
@@ -1473,13 +1721,16 @@ background:transparent;
 cursor:pointer;
 font-weight:800;
 }
+
 .teacher-tab-button.active {
 background:var(--forest);
 color:white;
 }
+
 .teacher-panel-actions {
 margin-bottom:12px;
 }
+
 .task-class-assignment {
 margin:18px 0;
 padding:14px;
@@ -1487,14 +1738,17 @@ border:1px solid #ddd9cf;
 border-radius:10px;
 background:#faf9f4;
 }
+
 .task-class-assignment h3 {
 margin-top:0;
 }
+
 .class-checkbox-grid {
 display:grid;
 grid-template-columns:repeat(auto-fit,minmax(170px,1fr));
 gap:7px;
 }
+
 .class-checkbox-option {
 display:flex !important;
 align-items:center;
@@ -1506,23 +1760,28 @@ border-radius:8px;
 background:white;
 font-weight:700 !important;
 }
+
 .class-checkbox-option input {
 margin:0;
 }
 
+
 /* =========================================================
 CLASS MANAGEMENT
 ========================================================= */
+
 .inline-form-row {
 display:flex;
 gap:8px;
 align-items:center;
 flex-wrap:wrap;
 }
+
 .inline-form-row input[type=text] {
 flex:1 1 260px;
 min-width:0;
 }
+
 .class-import-card,
 .manual-student-card {
 margin-top:18px;
@@ -1531,10 +1790,12 @@ border:1px solid #ddd9cf;
 border-radius:10px;
 background:#faf9f4;
 }
+
 .class-import-card h3,
 .manual-student-card h3 {
 margin-top:0;
 }
+
 .class-import-card input[type=file] {
 display:block;
 width:100%;
@@ -1544,6 +1805,7 @@ border:1px dashed #bdb9ad;
 border-radius:8px;
 background:white;
 }
+
 .class-import-preview {
 max-height:190px;
 overflow:auto;
@@ -1555,19 +1817,23 @@ background:white;
 font-size:12px;
 line-height:1.45;
 }
+
 .class-import-preview strong {
 display:block;
 margin-bottom:5px;
 }
+
 .roster-head {
 margin-top:22px;
 }
+
 .class-roster-list {
 display:flex;
 flex-direction:column;
 gap:6px;
 margin-top:8px;
 }
+
 .class-roster-row {
 display:grid;
 grid-template-columns:42px minmax(0,1fr) auto;
@@ -1578,15 +1844,18 @@ border:1px solid #ddd9cf;
 border-radius:8px;
 background:#fffdf8;
 }
+
 .roster-number {
 color:var(--muted);
 font-size:11px;
 font-weight:800;
 }
+
 .roster-name {
 font-size:13px;
 font-weight:700;
 }
+
 .roster-remove {
 padding:6px 9px;
 border:1px solid #d7aaa3;
@@ -1597,40 +1866,54 @@ cursor:pointer;
 font-size:11px;
 font-weight:800;
 }
+
 button:disabled {
 cursor:not-allowed;
 opacity:.55;
 }
+
 @media (max-width:850px) {
+
 .profile-grid {
 grid-template-columns:1fr;
 }
+
 .group-members-list {
 grid-template-columns:1fr;
 }
+
 .teacher-panel-actions,
 .profile-section-head {
 flex-direction:column;
 }
+
 }
+
 @media (max-width:600px) {
+
 .profile-hero {
 flex-direction:column;
 }
+
 .task-code-entry {
 flex-direction:column;
 }
+
 .inline-form-row {
 align-items:stretch;
 }
+
 .inline-form-row > button {
 flex:1 1 auto;
 }
+
 }
+
 
 /* =========================================================
 STUDENT MARKED WORK / TEACHER FEEDBACK
 ========================================================= */
+
 .student-review-panel {
 display:flex;
 align-items:flex-start;
@@ -1643,18 +1926,22 @@ border-left:5px solid var(--forest);
 border-radius:12px;
 background:#f4f8f3;
 }
+
 .student-review-panel h2 {
 margin:3px 0 3px;
 font-size:18px;
 }
+
 .student-review-copy {
 min-width:0;
 }
+
 .student-review-date {
 margin:0 0 8px;
 color:var(--muted);
 font-size:11px;
 }
+
 .student-review-feedback {
 margin:0;
 white-space:pre-wrap;
@@ -1662,6 +1949,7 @@ color:var(--ink);
 font-size:13px;
 line-height:1.5;
 }
+
 .student-project-badges {
 display:flex;
 align-items:center;
@@ -1669,6 +1957,7 @@ justify-content:flex-end;
 gap:6px;
 flex-wrap:wrap;
 }
+
 .teacher-review-badge {
 flex:0 0 auto;
 padding:4px 8px;
@@ -1678,6 +1967,7 @@ color:#2e6745;
 font-size:10px;
 font-weight:900;
 }
+
 .student-project-review-note {
 margin-top:7px;
 color:#2e6745;
@@ -1685,18 +1975,140 @@ font-size:11px;
 font-weight:800;
 line-height:1.35;
 }
+
 .submission-actions {
 display:flex;
 flex-direction:column;
 gap:6px;
 width:100%;
 }
+
 .submission-actions > button {
 width:100%;
 min-width:0;
 }
+
 @media (max-width:700px) {
+
 .student-review-panel {
 flex-direction:column;
 }
+
+}
+
+
+/* =========================================================
+GUEST ACCOUNTS + SINGLE-EDITOR LOCK
+========================================================= */
+
+.edit-lock-banner {
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:18px;
+margin-bottom:10px;
+padding:13px 15px;
+border:1px solid #dfc28d;
+border-left:5px solid #b8802f;
+border-radius:12px;
+background:#fff8ea;
+}
+
+.edit-lock-banner strong {
+display:block;
+margin-top:3px;
+font-size:14px;
+}
+
+.edit-lock-banner p {
+margin:4px 0 0;
+color:#6f634f;
+font-size:12px;
+line-height:1.45;
+}
+
+.login-divider {
+display:flex;
+align-items:center;
+gap:10px;
+margin:18px 0 10px;
+color:var(--muted);
+font-size:11px;
+font-weight:800;
+text-transform:uppercase;
+letter-spacing:.7px;
+}
+
+.login-divider::before,
+.login-divider::after {
+content:"";
+height:1px;
+flex:1;
+background:var(--line);
+}
+
+.guest-entry-actions {
+display:flex;
+flex-direction:column;
+gap:8px;
+}
+
+.full-width-button {
+width:100%;
+}
+
+.guest-modal-card {
+width:min(520px,100%);
+}
+
+.guest-account-note {
+margin:12px 0 0;
+padding:9px 10px;
+border-radius:8px;
+background:#f5f3ed;
+color:var(--muted);
+font-size:11px;
+line-height:1.45;
+}
+
+.guest-access-setting {
+display:flex !important;
+align-items:flex-start;
+gap:9px;
+margin:12px 0 0 !important;
+padding:11px 12px;
+border:1px solid #d8d5cb;
+border-radius:9px;
+background:#fffdf8;
+}
+
+.guest-access-setting input {
+margin-top:3px;
+}
+
+.guest-access-setting span {
+display:block;
+}
+
+.guest-access-setting strong {
+display:block;
+font-size:12px;
+}
+
+.guest-access-setting small {
+display:block;
+margin-top:3px;
+color:var(--muted);
+font-size:10px;
+font-weight:500;
+line-height:1.4;
+}
+
+@media (max-width:700px) {
+
+.edit-lock-banner {
+flex-direction:column;
+align-items:stretch;
+}
+
 }
