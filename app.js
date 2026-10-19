@@ -148,6 +148,32 @@ const retryEditLockButton =
     $("retryEditLockButton");
 
 
+const askToDrawButton =
+    $("askToDrawButton");
+
+
+const cancelEditRequestButton =
+    $("cancelEditRequestButton");
+
+
+const editRequestPrompt =
+    $("editRequestPrompt");
+
+
+const editRequestPromptTitle =
+    $("editRequestPromptTitle");
+
+
+const editRequestPromptCountdown =
+    $("editRequestPromptCountdown");
+
+
+const handOverButton =
+    $("handOverButton");
+
+
+const notNowButton =
+    $("notNowButton");
 const studentProfilePage =
     $("studentProfilePage");
 
@@ -187,6 +213,22 @@ const studentBadge =
 
 const teacherPortalButton =
     $("teacherPortalButton");
+
+
+const studentModeButton =
+    $("studentModeButton");
+
+
+const roleIndicator =
+    $("roleIndicator");
+
+
+const roleIndicatorLabel =
+    $("roleIndicatorLabel");
+
+
+const roleIndicatorDetail =
+    $("roleIndicatorDetail");
 
 
 const canvas =
@@ -441,6 +483,10 @@ const teacherPassword =
 
 const teacherLoginError =
     $("teacherLoginError");
+
+const teacherGoogleButton =
+    $("teacherGoogleButton");
+
 
 const teacherLoginButton =
     $("teacherLoginButton");
@@ -858,6 +904,38 @@ let editLockHolderName =
 let editLockLeaseExpiresAt =
     null;
 
+
+// Edit Requests (see EDIT REQUESTS).
+let currentGroupSize =
+    0;
+
+
+let editRequestState =
+    "";
+
+
+let editRequestNotice =
+    "";
+
+
+let editRequestRequesterName =
+    "";
+
+
+let editRequestDeadline =
+    0;
+
+
+let editRequestCountdownTimer =
+    null;
+
+
+let editRequestSavedAtZero =
+    false;
+
+
+let viewOnlyChecks =
+    0;
 let editLockHeartbeatTimer =
     null;
 
@@ -2213,21 +2291,53 @@ function applyStudentEditLockUI() {
             false;
 
 
+        const canAsk =
+            isGroupProject();
+
+
+        const waiting =
+            editRequestState === "waiting";
+
+
         editLockTitle.textContent =
 
-            editLockHolderName
+            waiting
 
-                ? `${editLockHolderName} is currently editing this project.`
+                ? `Waiting for ${editLockHolderName || "the Editor"} to answer…`
 
-                : "This project is currently being edited on another device.";
+                : editLockHolderName
+                    ? `${editLockHolderName} is drawing.`
+                    : "Someone on another device is drawing.";
 
 
         editLockMessage.textContent =
-            "You can view the latest saved map and teacher feedback here, but drawing, saving and submitting are disabled on this device. When the other editor leaves or stops responding, the lock expires automatically within about 90 seconds.";
+
+            editRequestNotice ||
+
+            (
+                waiting
+
+                    ? "If they don't answer in 30 seconds, it will be your turn. Keep this screen open."
+
+                    : canAsk
+
+                        ? "You can watch the map as they draw. Tap Ask to draw for a turn."
+
+                        : "You can view the latest saved map and teacher feedback here, but drawing, saving and submitting are disabled on this device. When the other editor leaves or stops responding, the lock expires automatically within about 90 seconds."
+            );
 
 
         retryEditLockButton.hidden =
-            false;
+            canAsk;
+
+
+        askToDrawButton.hidden =
+            !canAsk ||
+            waiting;
+
+
+        cancelEditRequestButton.hidden =
+            !waiting;
     }
 
     else {
@@ -2241,6 +2351,14 @@ function applyStudentEditLockUI() {
 
 
         editLockBanner.hidden =
+            true;
+
+
+        askToDrawButton.hidden =
+            true;
+
+
+        cancelEditRequestButton.hidden =
             true;
     }
 }
@@ -2260,6 +2378,7 @@ function handleLostEditLock(
 
     stopEditLockHeartbeat();
 
+    hideEditRequestPrompt();
 
     resetInteractionState();
 
@@ -11280,8 +11399,9 @@ async function getProjectReviewSnapshot(
 
 /* =========================================================
 LIVE CHECKS
-Repeat a check every LIVE_CHECK_INTERVAL_MS while it is
-active and the page is visible. Checks never overlap.
+Repeat a check every LIVE_CHECK_INTERVAL_MS (or the interval
+given) while it is active and the page is visible. Checks
+never overlap.
 ========================================================= */
 
 const liveChecks = [];
@@ -11289,7 +11409,8 @@ const liveChecks = [];
 
 function createLiveCheck(
     isActive,
-    check
+    check,
+    intervalMs = LIVE_CHECK_INTERVAL_MS
 ) {
 
     let timer =
@@ -11359,7 +11480,7 @@ function createLiveCheck(
         timer =
             setInterval(
                 runNow,
-                LIVE_CHECK_INTERVAL_MS
+                intervalMs
             );
     }
 
@@ -11402,6 +11523,811 @@ document.addEventListener(
                 }
             }
         );
+    }
+);
+
+
+/* =========================================================
+EDIT REQUESTS
+A View-only Group member asks the Editor for a turn. The
+database decides every rule (one request at a time, the
+30-second countdown, whether the asker is still there); this
+page asks about every 5 seconds and shows the answer.
+View-only devices also follow the Editor's map.
+========================================================= */
+
+const EDIT_REQUEST_CHECK_MS =
+    5000;
+
+
+function isGroupProject() {
+
+    return (
+
+        currentIdentityType !== "guest" &&
+
+        currentGroupSize >= 2
+    );
+}
+
+
+function isWatchingTurns() {
+
+    return (
+
+        BACKEND_READY &&
+
+        appMode === "student" &&
+
+        !studentWorkspace.hidden &&
+
+        Boolean(
+            currentSubmission?.id
+        ) &&
+
+        hasCurrentLearnerIdentity() &&
+
+        (
+            isGroupProject() ||
+            studentReadOnly
+        )
+    );
+}
+
+
+const turnWatcher =
+    createLiveCheck(
+        isWatchingTurns,
+        checkTurns,
+        EDIT_REQUEST_CHECK_MS
+    );
+
+
+function startTurnWatcher() {
+
+    editRequestState =
+        "";
+
+    editRequestNotice =
+        "";
+
+    viewOnlyChecks =
+        0;
+
+    hideEditRequestPrompt();
+
+    applyStudentEditLockUI();
+
+    turnWatcher.start();
+}
+
+
+async function checkTurns() {
+
+    if (
+        isGroupProject()
+    ) {
+
+        await checkEditRequest();
+    }
+
+
+    if (
+        studentReadOnly
+    ) {
+
+        viewOnlyChecks +=
+            1;
+
+
+        // About every 10 seconds.
+        if (
+            viewOnlyChecks % 2 === 0
+        ) {
+
+            await followEditorMap();
+        }
+    }
+}
+
+
+async function checkEditRequest() {
+
+    const submissionId =
+        currentSubmission.id;
+
+
+    const {
+        data,
+        error
+    } =
+        await sb.rpc(
+            "student_check_edit_request",
+            {
+                p_submission_id:
+                    submissionId,
+                p_editor_token:
+                    EDITOR_TOKEN
+            }
+        );
+
+
+    if (error) {
+
+        throw error;
+    }
+
+
+    if (
+        currentSubmission?.id !==
+        submissionId
+    ) {
+
+        return;
+    }
+
+
+    const turn =
+        (
+            Array.isArray(data)
+                ? data[0]
+                : data
+        ) ||
+        {};
+
+
+    const previous =
+        editRequestState;
+
+
+    editRequestState =
+        turn.state ||
+        "";
+
+
+    if (
+        turn.state === "editing" ||
+        turn.state === "incoming"
+    ) {
+
+        if (
+            !editLockOwned
+        ) {
+
+            // Our turn: open the latest saved map before drawing.
+            await loadStudentProject(
+                submissionId
+            );
+
+
+            statusBar.textContent =
+                "Your turn — you're drawing now. Your work saves automatically.";
+
+
+            return;
+        }
+
+
+        if (
+            turn.state === "incoming"
+        ) {
+
+            showEditRequestPrompt(
+                turn.requester_name,
+                turn.seconds_left
+            );
+        }
+
+        else {
+
+            hideEditRequestPrompt();
+        }
+
+
+        return;
+    }
+
+
+    hideEditRequestPrompt();
+
+
+    if (
+        turn.state === "viewing"
+    ) {
+
+        if (
+            editLockOwned
+        ) {
+
+            // The pen passed on without an answer.
+            passTurnTo(
+                turn.editor_name
+            );
+
+
+            return;
+        }
+
+
+        editLockHolderName =
+            turn.editor_name ||
+            editLockHolderName;
+
+
+        if (
+            !turn.requester_name &&
+            editRequestNotice.startsWith(
+                "Someone already asked"
+            )
+        ) {
+
+            editRequestNotice =
+                "";
+        }
+    }
+
+    else if (
+        previous === "waiting" &&
+        turn.state !== "waiting"
+    ) {
+
+        editRequestNotice =
+
+            turn.state === "refused"
+
+                ? `${turn.editor_name || "The Editor"} said not now. You can ask again later.`
+
+                : turn.state === "ran_out"
+
+                    ? "Your request ran out. Ask again."
+
+                    : "";
+    }
+
+
+    applyStudentEditLockUI();
+}
+
+
+function passTurnTo(
+    name
+) {
+
+    const message =
+        `${name || "Someone else"} is drawing now. Ask to draw to get a turn back.`;
+
+
+    hideEditRequestPrompt();
+
+
+    editRequestState =
+        "";
+
+
+    editLockHolderName =
+        name ||
+        "";
+
+
+    editRequestNotice =
+        message;
+
+
+    handleLostEditLock(
+        message
+    );
+}
+
+
+async function followEditorMap() {
+
+    const submissionId =
+        currentSubmission.id;
+
+
+    const result =
+
+        currentIdentityType === "guest"
+
+            ? await sb.rpc(
+                "guest_load_project",
+                {
+                    p_submission_id:
+                        submissionId
+                }
+            )
+
+            : await sb.rpc(
+                "student_load_project",
+                {
+                    p_submission_id:
+                        submissionId,
+                    p_student_id:
+                        currentStudentProfile.student_id
+                }
+            );
+
+
+    if (
+        result.error
+    ) {
+
+        throw result.error;
+    }
+
+
+    const project =
+        Array.isArray(
+            result.data
+        )
+            ? result.data[0]
+            : result.data;
+
+
+    if (
+        !project ||
+        !studentReadOnly ||
+        currentSubmission?.id !==
+        submissionId ||
+        project.updated_at ===
+        currentSubmission.updated_at
+    ) {
+
+        return;
+    }
+
+
+    currentSubmission.updated_at =
+        project.updated_at;
+
+    currentSubmission.status =
+        project.status;
+
+    currentSubmission.submitted_at =
+        project.submitted_at;
+
+
+    // Keeps this device's zoom and position.
+    loadMapData(
+        project.map_data ||
+        {}
+    );
+}
+
+
+function showEditRequestPrompt(
+    name,
+    secondsLeft
+) {
+
+    const deadline =
+        Date.now() +
+        Math.max(
+            0,
+            Number(secondsLeft) ||
+            0
+        ) *
+        1000;
+
+
+    if (
+        editRequestPrompt.hidden
+    ) {
+
+        editRequestSavedAtZero =
+            false;
+
+        editRequestDeadline =
+            deadline;
+
+        handOverButton.disabled =
+            false;
+
+        notNowButton.disabled =
+            false;
+    }
+
+    else if (
+        Math.abs(
+            deadline -
+            editRequestDeadline
+        ) > 1500
+    ) {
+
+        editRequestDeadline =
+            deadline;
+    }
+
+
+    editRequestRequesterName =
+        name ||
+        "A group member";
+
+
+    editRequestPromptTitle.textContent =
+        `${editRequestRequesterName} wants to draw.`;
+
+
+    editRequestPrompt.hidden =
+        false;
+
+
+    renderEditRequestCountdown();
+
+
+    if (
+        !editRequestCountdownTimer
+    ) {
+
+        editRequestCountdownTimer =
+            setInterval(
+                renderEditRequestCountdown,
+                1000
+            );
+    }
+}
+
+
+function renderEditRequestCountdown() {
+
+    const left =
+        Math.max(
+            0,
+            Math.ceil(
+                (
+                    editRequestDeadline -
+                    Date.now()
+                ) /
+                1000
+            )
+        );
+
+
+    editRequestPromptCountdown.textContent =
+
+        left > 0
+
+            ? `Handing over in ${left} s`
+
+            : "Handing over now…";
+
+
+    // Save at 0 so the last strokes are kept when the pen moves on.
+    if (
+        left === 0 &&
+        !editRequestSavedAtZero &&
+        editLockOwned
+    ) {
+
+        editRequestSavedAtZero =
+            true;
+
+        clearTimeout(
+            saveTimer
+        );
+
+        saveStudentMap(
+            false
+        );
+    }
+}
+
+
+function hideEditRequestPrompt() {
+
+    editRequestPrompt.hidden =
+        true;
+
+
+    clearInterval(
+        editRequestCountdownTimer
+    );
+
+
+    editRequestCountdownTimer =
+        null;
+}
+
+
+async function answerEditRequest(
+    handOver
+) {
+
+    if (
+        !currentSubmission?.id ||
+        !editLockOwned
+    ) {
+
+        return;
+    }
+
+
+    const name =
+        editRequestRequesterName;
+
+
+    handOverButton.disabled =
+        true;
+
+    notNowButton.disabled =
+        true;
+
+
+    try {
+
+        if (
+            handOver
+        ) {
+
+            clearTimeout(
+                saveTimer
+            );
+
+            await saveStudentMap(
+                false
+            );
+
+
+            if (
+                !editLockOwned
+            ) {
+
+                return;
+            }
+        }
+
+
+        const {
+            data,
+            error
+        } =
+            await sb.rpc(
+                "student_answer_edit_request",
+                {
+                    p_submission_id:
+                        currentSubmission.id,
+                    p_editor_token:
+                        EDITOR_TOKEN,
+                    p_hand_over:
+                        handOver
+                }
+            );
+
+
+        if (error) {
+
+            throw error;
+        }
+
+
+        if (
+            data === "granted"
+        ) {
+
+            passTurnTo(
+                name
+            );
+
+
+            return;
+        }
+
+
+        hideEditRequestPrompt();
+
+
+        statusBar.textContent =
+
+            data === "refused"
+
+                ? "You kept drawing."
+
+                : `${name} is no longer there, so you are still drawing.`;
+    }
+
+    catch (error) {
+
+        console.warn(
+            "Could not answer the request to draw:",
+            error
+        );
+
+
+        handOverButton.disabled =
+            false;
+
+        notNowButton.disabled =
+            false;
+
+
+        statusBar.textContent =
+            "Could not answer. Please try again.";
+    }
+}
+
+
+handOverButton.addEventListener(
+    "click",
+    () =>
+        answerEditRequest(
+            true
+        )
+);
+
+
+notNowButton.addEventListener(
+    "click",
+    () =>
+        answerEditRequest(
+            false
+        )
+);
+
+
+askToDrawButton.addEventListener(
+
+    "click",
+
+    async () => {
+
+        if (
+            !currentSubmission?.id
+        ) {
+
+            return;
+        }
+
+
+        const submissionId =
+            currentSubmission.id;
+
+
+        askToDrawButton.disabled =
+            true;
+
+
+        editRequestNotice =
+            "";
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+                await sb.rpc(
+                    "student_ask_to_draw",
+                    {
+                        p_submission_id:
+                            submissionId,
+                        p_editor_token:
+                            EDITOR_TOKEN
+                    }
+                );
+
+
+            if (error) {
+
+                throw error;
+            }
+
+
+            if (
+                data === "free"
+            ) {
+
+                await loadStudentProject(
+                    submissionId
+                );
+
+
+                return;
+            }
+
+
+            if (
+                data === "waiting"
+            ) {
+
+                editRequestState =
+                    "waiting";
+            }
+
+            else {
+
+                editRequestNotice =
+                    `Someone already asked. Wait for ${editLockHolderName || "the Editor"} to answer.`;
+            }
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Could not ask to draw:",
+                error
+            );
+
+
+            editRequestNotice =
+                "Could not send your request. Please try again.";
+        }
+
+        finally {
+
+            askToDrawButton.disabled =
+                false;
+
+
+            applyStudentEditLockUI();
+        }
+    }
+);
+
+
+cancelEditRequestButton.addEventListener(
+
+    "click",
+
+    async () => {
+
+        if (
+            !currentSubmission?.id
+        ) {
+
+            return;
+        }
+
+
+        cancelEditRequestButton.disabled =
+            true;
+
+
+        try {
+
+            const {
+                error
+            } =
+                await sb.rpc(
+                    "student_cancel_edit_request",
+                    {
+                        p_submission_id:
+                            currentSubmission.id,
+                        p_editor_token:
+                            EDITOR_TOKEN
+                    }
+                );
+
+
+            if (error) {
+
+                throw error;
+            }
+
+
+            editRequestState =
+                "";
+
+            editRequestNotice =
+                "";
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Could not cancel the request:",
+                error
+            );
+        }
+
+        finally {
+
+            cancelEditRequestButton.disabled =
+                false;
+
+
+            applyStudentEditLockUI();
+        }
     }
 );
 
@@ -12730,6 +13656,8 @@ async function loadStudentProject(
         };
 
 
+        currentGroupSize =
+            members.length;
         resetStudentReviewState();
 
 
@@ -12869,9 +13797,9 @@ async function loadStudentProject(
 
                 project.status === "submitted"
 
-                    ? "You have the edit lock. This project has been submitted, but you can continue editing and resubmit if needed."
+                    ? "You are drawing. This project has been handed in, but you can keep editing and hand it in again."
 
-                    : "You have the edit lock. Your work saves automatically.";
+                    : "You are drawing. Your work saves automatically.";
         }
 
         else {
@@ -12886,15 +13814,18 @@ async function loadStudentProject(
 
                 editLockHolderName
 
-                    ? `${editLockHolderName} is editing this project. This device is read-only and will not save changes.`
+                    ? `${editLockHolderName} is drawing. You can watch from this device.`
 
-                    : "Another device is editing this project. This device is read-only and will not save changes.";
+                    : "Someone on another device is drawing. You can watch from this device.";
         }
 
 
         startReviewWatcher(
             project.submission_id
         );
+
+
+        startTurnWatcher();
     }
 
     catch (error) {
@@ -13170,6 +14101,143 @@ teacherPortalButton.addEventListener(
 );
 
 
+/* =========================================================
+ROLE INDICATOR
+Shows in the header whether the app is being used as a
+Student or a Teacher, following whichever screen is open.
+========================================================= */
+
+function currentRole() {
+
+    return (
+
+        !teacherLoginModal.hidden ||
+
+        appMode === "teacher-dashboard" ||
+
+        appMode === "teacher-review" ||
+
+        !teacherDashboard.hidden
+
+    )
+        ? "teacher"
+        : "student";
+}
+
+
+function refreshRoleIndicator() {
+
+    const role =
+        currentRole();
+
+
+    const detail =
+
+        role === "teacher"
+
+            ? (
+                currentTeacherUser &&
+                teacherLoginModal.hidden
+
+                    ? currentTeacherUser.email ||
+                    "Signed in"
+
+                    : "Signing in"
+            )
+
+            : hasCurrentLearnerIdentity()
+
+                ? studentBadge.textContent.trim()
+
+                : "Signing in";
+
+
+    document.body.classList.toggle(
+        "role-teacher",
+        role === "teacher"
+    );
+
+
+    roleIndicator.dataset.role =
+        role;
+
+
+    roleIndicatorLabel.textContent =
+        role === "teacher"
+            ? "Teacher"
+            : "Student";
+
+
+    roleIndicatorDetail.textContent =
+        detail;
+
+
+    roleIndicator.title =
+        `Using the app as a ${role === "teacher" ? "Teacher" : "Student"}: ${detail}`;
+
+
+    studentModeButton.classList.toggle(
+        "active",
+        role === "student"
+    );
+
+    studentModeButton.setAttribute(
+        "aria-pressed",
+        String(role === "student")
+    );
+
+
+    teacherPortalButton.classList.toggle(
+        "active",
+        role === "teacher"
+    );
+
+    teacherPortalButton.setAttribute(
+        "aria-pressed",
+        String(role === "teacher")
+    );
+}
+
+
+const roleIndicatorObserver =
+    new MutationObserver(
+        refreshRoleIndicator
+    );
+
+
+[
+    teacherLoginModal,
+    teacherDashboard,
+    studentWorkspace,
+    studentProfilePage,
+    startupModal
+].forEach(
+    element =>
+        roleIndicatorObserver.observe(
+            element,
+            {
+                attributes: true,
+                attributeFilter: [
+                    "hidden"
+                ]
+            }
+        )
+);
+
+
+roleIndicatorObserver.observe(
+    studentBadge,
+    {
+        childList: true,
+        characterData: true,
+        subtree: true
+    }
+);
+
+
+refreshRoleIndicator();
+
+
 startupTeacherLink.addEventListener(
     "click",
     openTeacherLogin
@@ -13249,52 +14317,9 @@ teacherLoginButton.addEventListener(
             }
 
 
-            currentTeacherUser =
-                data.user;
-
-
-            const profile =
-                await sb
-                    .from(
-                        "teacher_profiles"
-                    )
-                    .upsert(
-
-                        {
-                            id:
-                                data.user.id,
-
-                            display_name:
-                                data.user.email
-                        },
-
-                        {
-                            onConflict:
-                                "id"
-                        }
-                    )
-                    .select()
-                    .single();
-
-
-            if (
-                profile.error
-            ) {
-
-                throw profile.error;
-            }
-
-
-            teacherLoginModal.hidden =
-                true;
-
-
-            document.body.classList.remove(
-                "modal-open"
+            await finishTeacherSignIn(
+                data.user
             );
-
-
-            await openTeacherDashboard();
         }
 
         catch (error) {
@@ -13317,6 +14342,248 @@ teacherLoginButton.addEventListener(
         }
     }
 );
+
+
+/* =========================================================
+TEACHER SIGN-IN WITH GOOGLE
+Google sends the Teacher back to this page, which then
+finishes signing in instead of starting a student session.
+========================================================= */
+
+const GOOGLE_SIGN_IN_KEY =
+    "oeMapMakerGoogleSignInV1";
+
+
+async function finishTeacherSignIn(
+    user
+) {
+
+    currentTeacherUser =
+        user;
+
+
+    const profile =
+        await sb
+            .from(
+                "teacher_profiles"
+            )
+            .upsert(
+                {
+                    id:
+                        user.id,
+                    display_name:
+                        user.email
+                },
+                {
+                    onConflict:
+                        "id"
+                }
+            )
+            .select()
+            .single();
+
+
+    if (
+        profile.error
+    ) {
+
+        throw profile.error;
+    }
+
+
+    teacherLoginModal.hidden =
+        true;
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+
+    await openTeacherDashboard();
+}
+
+
+teacherGoogleButton.addEventListener(
+
+    "click",
+
+    async () => {
+
+        teacherLoginError.hidden =
+            true;
+
+        teacherGoogleButton.disabled =
+            true;
+
+
+        try {
+
+            sessionStorage.setItem(
+                GOOGLE_SIGN_IN_KEY,
+                "1"
+            );
+
+
+            await sb
+                .auth
+                .signOut();
+
+
+            const {
+                error
+            } =
+                await sb
+                    .auth
+                    .signInWithOAuth({
+                        provider:
+                            "google",
+                        options: {
+                            redirectTo:
+                                window.location.origin +
+                                window.location.pathname,
+                            queryParams: {
+                                prompt:
+                                    "select_account"
+                            }
+                        }
+                    });
+
+
+            if (error) {
+
+                throw error;
+            }
+
+            // The browser now goes to Google.
+        }
+
+        catch (error) {
+
+            sessionStorage.removeItem(
+                GOOGLE_SIGN_IN_KEY
+            );
+
+
+            teacherLoginError.textContent =
+                error.message ||
+                "Could not start Google sign-in.";
+
+            teacherLoginError.hidden =
+                false;
+
+            teacherGoogleButton.disabled =
+                false;
+        }
+    }
+);
+
+
+// Returns true when this page load was the return from Google.
+async function resumeGoogleTeacherSignIn() {
+
+    if (
+        sessionStorage.getItem(
+            GOOGLE_SIGN_IN_KEY
+        ) !== "1"
+    ) {
+
+        return false;
+    }
+
+
+    sessionStorage.removeItem(
+        GOOGLE_SIGN_IN_KEY
+    );
+
+
+    const returned =
+        new URLSearchParams(
+            window.location.search
+        );
+
+
+    const returnedHash =
+        new URLSearchParams(
+            window.location.hash.slice(1)
+        );
+
+
+    const googleError =
+        returned.get("error_description") ||
+        returnedHash.get("error_description") ||
+        returned.get("error") ||
+        returnedHash.get("error");
+
+
+    // Lets the Supabase client read the sign-in from the address first.
+    const {
+        data: {
+            session
+        }
+    } =
+        await sb
+            .auth
+            .getSession();
+
+
+    window.history.replaceState(
+        window.history.state,
+        "",
+        window.location.origin +
+        window.location.pathname
+    );
+
+
+    if (
+        session?.user &&
+        !session.user.is_anonymous
+    ) {
+
+        startupModal.hidden =
+            true;
+
+
+        try {
+
+            await finishTeacherSignIn(
+                session.user
+            );
+
+
+            return true;
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+        }
+    }
+
+
+    // Cancelled or failed: back to the Teacher sign-in, with a reason.
+    await prepareStudentLogin();
+
+    await openTeacherLogin();
+
+
+    teacherLoginError.textContent =
+
+        googleError
+
+            ? `Google sign-in did not finish: ${googleError}`
+
+            : "Google sign-in did not finish. Please try again, or use your email and password.";
+
+
+    teacherLoginError.hidden =
+        false;
+
+
+    return true;
+}
 
 
 /* =========================================================
@@ -18269,6 +19536,14 @@ async function initialise() {
         "Ready",
         "good"
     );
+
+
+    if (
+        await resumeGoogleTeacherSignIn()
+    ) {
+
+        return;
+    }
 
 
     await prepareStudentLogin();
