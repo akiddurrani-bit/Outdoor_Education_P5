@@ -10,6 +10,8 @@ const DEFAULT_SHAPE_FILL = "#c7d2df";
 const LOCAL_SAVE_KEY = "oeMapMakerLocalV9";
 const MAX_HISTORY = 60;
 
+const LIVE_CHECK_INTERVAL_MS = 10000;
+
 const EDITOR_TOKEN_STORAGE_KEY =
     "oeMapMakerEditorTokenV1";
 
@@ -172,6 +174,9 @@ const refreshStudentProjectsButton =
 
 const studentProjectsList =
     $("studentProjectsList");
+
+const studentProjectsNotice =
+    $("studentProjectsNotice");
 
 
 const cloudStatus =
@@ -846,6 +851,20 @@ let editLockHeartbeatTimer =
 
 let editLockHeartbeatFailures =
     0;
+
+let reviewWatchSubmissionId =
+    null;
+
+let reviewWatchSignature =
+    "";
+
+let projectsNoticeTimer =
+    null;
+
+// Last-saved time of the Review the Teacher is marking, as this
+// Teacher last saw it; null when it had no Review yet.
+let reviewLastSeenSavedAt =
+    null;
 
 
 /* =========================================================
@@ -11175,6 +11194,447 @@ async function getProjectReviewSnapshot(
 
 
 /* =========================================================
+LIVE CHECKS
+Repeat a check every LIVE_CHECK_INTERVAL_MS while it is
+active and the page is visible. Checks never overlap.
+========================================================= */
+
+const liveChecks = [];
+
+
+function createLiveCheck(
+    isActive,
+    check
+) {
+
+    let timer =
+        null;
+
+    let inFlight =
+        false;
+
+
+    function stop() {
+
+        clearInterval(
+            timer
+        );
+
+        timer =
+            null;
+    }
+
+
+    async function runNow() {
+
+        if (
+            !isActive()
+        ) {
+
+            stop();
+
+            return;
+        }
+
+        if (
+            document.hidden ||
+            inFlight
+        ) {
+            return;
+        }
+
+        inFlight =
+            true;
+
+        try {
+
+            await check();
+        }
+
+        catch (error) {
+
+            console.warn(
+                "Live check failed:",
+                error
+            );
+        }
+
+        finally {
+
+            inFlight =
+                false;
+        }
+    }
+
+
+    function start() {
+
+        stop();
+
+        timer =
+            setInterval(
+                runNow,
+                LIVE_CHECK_INTERVAL_MS
+            );
+    }
+
+
+    const liveCheck = {
+        start,
+        stop,
+        runNow,
+
+        isRunning:
+            () =>
+                timer !== null
+    };
+
+    liveChecks.push(
+        liveCheck
+    );
+
+    return liveCheck;
+}
+
+
+document.addEventListener(
+    "visibilitychange",
+    () => {
+
+        if (
+            document.hidden
+        ) {
+            return;
+        }
+
+        liveChecks.forEach(
+            liveCheck => {
+
+                if (
+                    liveCheck.isRunning()
+                ) {
+                    liveCheck.runNow();
+                }
+            }
+        );
+    }
+);
+
+
+/* =========================================================
+LIVE TEACHER FEEDBACK
+While a Project is open, show its Review as soon as a
+Teacher saves or changes it.
+========================================================= */
+
+function reviewSignature(
+    review
+) {
+
+    if (!review) {
+        return "";
+    }
+
+    return stateString({
+        updatedAt:
+            review.updatedAt,
+
+        feedback:
+            review.feedback,
+
+        annotations:
+            review.annotations
+    });
+}
+
+
+function isWatchingOpenProject() {
+
+    return (
+        Boolean(reviewWatchSubmissionId) &&
+
+        appMode === "student" &&
+
+        !studentWorkspace.hidden &&
+
+        currentSubmission?.id ===
+        reviewWatchSubmissionId
+    );
+}
+
+
+const reviewWatcher =
+    createLiveCheck(
+        isWatchingOpenProject,
+        checkForReviewUpdate
+    );
+
+
+function startReviewWatcher(
+    submissionId
+) {
+
+    reviewWatchSubmissionId =
+        submissionId;
+
+    reviewWatchSignature =
+        reviewSignature(
+            studentReviewData
+        );
+
+    reviewWatcher.start();
+}
+
+
+function stopReviewWatcher() {
+
+    reviewWatcher.stop();
+
+    reviewWatchSubmissionId =
+        null;
+
+    reviewWatchSignature =
+        "";
+}
+
+
+async function checkForReviewUpdate() {
+
+    const submissionId =
+        reviewWatchSubmissionId;
+
+    const review =
+        await fetchStudentReview(
+            submissionId
+        );
+
+    // The student may have left this Project while we waited.
+    if (
+        !isWatchingOpenProject() ||
+        reviewWatchSubmissionId !== submissionId
+    ) {
+        return;
+    }
+
+    const signature =
+        reviewSignature(
+            review
+        );
+
+    if (
+        signature ===
+        reviewWatchSignature
+    ) {
+        return;
+    }
+
+    reviewWatchSignature =
+        signature;
+
+    showUpdatedStudentReview(
+        review
+    );
+}
+
+
+function showUpdatedStudentReview(
+    review
+) {
+
+    // Respect "Hide teacher markings" if the student chose it.
+    const keepMarkingsHidden =
+        Boolean(studentReviewData) &&
+        !studentReviewVisible;
+
+    applyStudentReviewSnapshot(
+        review
+    );
+
+    if (
+        keepMarkingsHidden &&
+        studentReviewData
+    ) {
+
+        studentReviewVisible =
+            false;
+
+        annotations =
+            [];
+
+        toggleStudentMarkedWorkButton.textContent =
+            "Show teacher markings";
+    }
+
+    renderAnnotations();
+
+    statusBar.textContent =
+        "Teacher feedback updated.";
+}
+
+
+/* =========================================================
+LIVE MY PROJECTS
+While a student is on their profile page, keep My Projects
+up to date: new Projects, status changes and new Reviews.
+========================================================= */
+
+function isShowingStudentProfile() {
+
+    return (
+        hasCurrentLearnerIdentity() &&
+
+        !studentProfilePage.hidden &&
+
+        studentWorkspace.hidden
+    );
+}
+
+
+function currentLearnerProfile() {
+
+    return currentIdentityType === "guest"
+        ? currentGuestProfile
+        : currentStudentProfile;
+}
+
+
+function projectListSignature(
+    projects
+) {
+
+    return stateString(
+        projects.map(
+            project => [
+                project.submission_id,
+                project.status,
+                project.updated_at,
+                project.submitted_at,
+                reviewSignature(
+                    project.teacher_review_snapshot
+                )
+            ]
+        )
+    );
+}
+
+
+const projectsWatcher =
+    createLiveCheck(
+        isShowingStudentProfile,
+        checkForProjectUpdates
+    );
+
+
+async function checkForProjectUpdates() {
+
+    const learner =
+        currentLearnerProfile();
+
+    const projects =
+        await fetchStudentProjects();
+
+    // The student may have opened a Project or switched while we waited.
+    if (
+        !isShowingStudentProfile() ||
+        currentLearnerProfile() !== learner
+    ) {
+        return;
+    }
+
+    if (
+        projectListSignature(projects) ===
+        projectListSignature(currentStudentProjects)
+    ) {
+        return;
+    }
+
+    const previousReviews =
+        new Map(
+            currentStudentProjects.map(
+                project => [
+                    project.submission_id,
+                    reviewSignature(
+                        project.teacher_review_snapshot
+                    )
+                ]
+            )
+        );
+
+    const newlyMarked =
+        projects.filter(
+            project =>
+                project.teacher_review_snapshot &&
+
+                reviewSignature(
+                    project.teacher_review_snapshot
+                ) !==
+                previousReviews.get(
+                    project.submission_id
+                )
+        );
+
+    currentStudentProjects =
+        projects;
+
+    renderStudentProjectHistory(
+        new Set(
+            newlyMarked.map(
+                project =>
+                    project.submission_id
+            )
+        )
+    );
+
+    if (
+        newlyMarked.length
+    ) {
+
+        showProjectsNotice(
+            newlyMarked.length === 1
+                ? `New feedback on ${newlyMarked[0].task_title || "a project"}.`
+                : `New feedback on ${newlyMarked.length} projects.`
+        );
+    }
+}
+
+
+function showProjectsNotice(
+    message
+) {
+
+    clearTimeout(
+        projectsNoticeTimer
+    );
+
+    studentProjectsNotice.textContent =
+        message;
+
+    studentProjectsNotice.hidden =
+        false;
+
+    projectsNoticeTimer =
+        setTimeout(
+            hideProjectsNotice,
+            12000
+        );
+}
+
+
+function hideProjectsNotice() {
+
+    clearTimeout(
+        projectsNoticeTimer
+    );
+
+    studentProjectsNotice.hidden =
+        true;
+
+    studentProjectsNotice.textContent =
+        "";
+}
+
+
+/* =========================================================
 PROJECT HISTORY
 ========================================================= */
 
@@ -11188,75 +11648,17 @@ async function loadStudentProjectHistory() {
     }
 
 
+    hideProjectsNotice();
+
+
     studentProjectsList.innerHTML =
         `<p class="helper-text">Loading projects…</p>`;
 
 
     try {
 
-        let result;
-
-
-        if (
-            currentIdentityType === "guest"
-        ) {
-
-            result =
-                await sb.rpc(
-                    "guest_project_history"
-                );
-        }
-
-        else {
-
-            result =
-                await sb.rpc(
-
-                    "student_project_history",
-
-                    {
-                        p_student_id:
-                            currentStudentProfile.student_id
-                    }
-                );
-        }
-
-
-        if (
-            result.error
-        ) {
-
-            throw result.error;
-        }
-
-
-        const projects =
-
-            Array.isArray(
-                result.data
-            )
-
-                ? result.data
-
-                : [];
-
-
         currentStudentProjects =
-            await Promise.all(
-
-                projects.map(
-
-                    async project => ({
-
-                        ...project,
-
-                        teacher_review_snapshot:
-                            await getProjectReviewSnapshot(
-                                project
-                            )
-                    })
-                )
-            );
+            await fetchStudentProjects();
 
 
         renderStudentProjectHistory();
@@ -11279,10 +11681,82 @@ ${escapeHtml(
 </p>
 `;
     }
+
+
+    projectsWatcher.start();
 }
 
 
-function renderStudentProjectHistory() {
+async function fetchStudentProjects() {
+
+    let result;
+
+
+    if (
+        currentIdentityType === "guest"
+    ) {
+
+        result =
+            await sb.rpc(
+                "guest_project_history"
+            );
+    }
+
+    else {
+
+        result =
+            await sb.rpc(
+
+                "student_project_history",
+
+                {
+                    p_student_id:
+                        currentStudentProfile.student_id
+                }
+            );
+    }
+
+
+    if (
+        result.error
+    ) {
+
+        throw result.error;
+    }
+
+
+    const projects =
+
+        Array.isArray(
+            result.data
+        )
+
+            ? result.data
+
+            : [];
+
+
+    return Promise.all(
+
+        projects.map(
+
+            async project => ({
+
+                ...project,
+
+                teacher_review_snapshot:
+                    await getProjectReviewSnapshot(
+                        project
+                    )
+            })
+        )
+    );
+}
+
+
+function renderStudentProjectHistory(
+    highlightedProjectIds = new Set()
+) {
 
     studentProjectsList.innerHTML =
         "";
@@ -11319,6 +11793,18 @@ No projects yet. Enter a task code to start.
 
             button.className =
                 "student-project-card";
+
+
+            if (
+                highlightedProjectIds.has(
+                    project.submission_id
+                )
+            ) {
+
+                button.classList.add(
+                    "student-project-card-updated"
+                );
+            }
 
 
             const members =
@@ -12009,6 +12495,11 @@ async function loadStudentProject(
     }
 
 
+    projectsWatcher.stop();
+
+    hideProjectsNotice();
+
+
     try {
 
         let result;
@@ -12314,6 +12805,11 @@ async function loadStudentProject(
 
                     : "Another device is editing this project. This device is read-only and will not save changes.";
         }
+
+
+        startReviewWatcher(
+            project.submission_id
+        );
     }
 
     catch (error) {
@@ -12340,6 +12836,9 @@ async function loadStudentProject(
 
         studentWorkspace.hidden =
             true;
+
+
+        projectsWatcher.start();
     }
 }
 
@@ -12418,6 +12917,8 @@ async function returnToStudentProfile() {
         true;
 
 
+    stopReviewWatcher();
+
     resetStudentReviewState();
 
 
@@ -12467,6 +12968,12 @@ switchStudentButton.addEventListener(
         currentStudentRoster =
             [];
 
+
+        stopReviewWatcher();
+
+        projectsWatcher.stop();
+
+        hideProjectsNotice();
 
         resetStudentReviewState();
 
@@ -12793,6 +13300,17 @@ function setTeacherSection(
 
             : "false"
     );
+
+
+    // Catch up on Student Maps that changed while on the Classes tab.
+    if (
+        showTasks
+    ) {
+
+        submissionsWatcher.start();
+
+        submissionsWatcher.runNow();
+    }
 }
 
 
@@ -12847,6 +13365,12 @@ async function openTeacherDashboard() {
     teacherFeedbackPanel.hidden =
         true;
 
+
+    stopReviewWatcher();
+
+    projectsWatcher.stop();
+
+    hideProjectsNotice();
 
     resetStudentReviewState();
 
@@ -15722,15 +16246,92 @@ removeReferenceButton.addEventListener(
 SUBMISSIONS
 ========================================================= */
 
+/* Rows are kept per Project so live refreshes update them in
+   place: buttons never move under the Teacher's cursor. */
+
+let submissionRowEntries =
+    new Map();
+
+let submissionListSignature =
+    "";
+
+let renderedSubmissionsTaskId =
+    null;
+
+
 async function loadSubmissions() {
 
     if (
         !selectedTeacherTask
     ) {
+        return;
+    }
+
+    const taskId =
+        selectedTeacherTask.id;
+
+    let items;
+
+    try {
+
+        items =
+            await fetchTaskProjects(
+                taskId
+            );
+    }
+
+    catch (error) {
+
+        submissionRowEntries =
+            new Map();
+
+        submissionListSignature =
+            "";
+
+        renderedSubmissionsTaskId =
+            null;
+
+        submissionList.innerHTML =
+            `
+<p class="helper-text">
+${escapeHtml(error.message || "Could not load student maps.")}
+</p>
+`;
+
+        submissionsWatcher.start();
 
         return;
     }
 
+    // Another Task may have been selected while we waited.
+    if (
+        selectedTeacherTask?.id !==
+        taskId
+    ) {
+        return;
+    }
+
+    submissionRowEntries =
+        new Map();
+
+    submissionList.innerHTML =
+        "";
+
+    renderSubmissionList(
+        items,
+        false
+    );
+
+    renderedSubmissionsTaskId =
+        taskId;
+
+    submissionsWatcher.start();
+}
+
+
+async function fetchTaskProjects(
+    taskId
+) {
 
     const {
         data,
@@ -15753,50 +16354,171 @@ submitted_at
             )
             .eq(
                 "task_id",
-                selectedTeacherTask.id
-            )
-            .order(
-
-                "updated_at",
-
-                {
-                    ascending: false
-                }
+                taskId
             );
 
-
     if (error) {
-
-        submissionList.innerHTML =
-            `
-<p class="helper-text">
-${escapeHtml(error.message)}
-</p>
-`;
-
-
-        return;
+        throw error;
     }
 
-
-    renderSubmissionList(
+    const items =
         data ||
-        []
+        [];
+
+    const markedAt =
+        new Map();
+
+    if (
+        items.length
+    ) {
+
+        const reviews =
+            await sb
+                .from(
+                    "submission_reviews"
+                )
+                .select(
+                    `
+submission_id,
+teacher_feedback,
+teacher_annotations,
+updated_at
+`
+                )
+                .in(
+                    "submission_id",
+                    items.map(
+                        item =>
+                            item.id
+                    )
+                );
+
+        if (
+            reviews.error
+        ) {
+            throw reviews.error;
+        }
+
+        (reviews.data || []).forEach(
+            review => {
+
+                // An emptied Review does not count as Marked.
+                const snapshot =
+                    normaliseTeacherReviewSnapshot(
+                        review
+                    );
+
+                if (snapshot) {
+
+                    markedAt.set(
+                        review.submission_id,
+                        review.updated_at
+                    );
+                }
+            }
+        );
+    }
+
+    return items
+        .map(
+            item => ({
+                ...item,
+
+                reviewed_at:
+                    markedAt.get(
+                        item.id
+                    ) ||
+                    null
+            })
+        )
+        .sort(
+            compareSubmissionsForList
+        );
+}
+
+
+function compareSubmissionsForList(
+    first,
+    second
+) {
+
+    const options = {
+        numeric:
+            true,
+
+        sensitivity:
+            "base"
+    };
+
+    return (
+        String(first.class_name || "").localeCompare(
+            String(second.class_name || ""),
+            undefined,
+            options
+        ) ||
+
+        String(first.group_name || first.student_name || "").localeCompare(
+            String(second.group_name || second.student_name || ""),
+            undefined,
+            options
+        ) ||
+
+        String(first.id).localeCompare(
+            String(second.id)
+        )
+    );
+}
+
+
+function submissionRowSignature(
+    submission
+) {
+
+    return stateString([
+        submission.id,
+        submission.student_name,
+        submission.class_name,
+        submission.group_name,
+        submission.status,
+        submission.updated_at,
+        submission.reviewed_at
+    ]);
+}
+
+
+function formatShortDateTime(
+    value
+) {
+
+    return new Date(
+        value
+    ).toLocaleString(
+        undefined,
+        {
+            dateStyle:
+                "short",
+
+            timeStyle:
+                "short"
+        }
     );
 }
 
 
 function renderSubmissionList(
-    items
+    items,
+    highlightChanges = false
 ) {
-
-    submissionList.innerHTML =
-        "";
-
 
     if (
         !items.length
     ) {
+
+        submissionRowEntries =
+            new Map();
+
+        submissionListSignature =
+            stateString([]);
 
         submissionList.innerHTML =
             `
@@ -15805,147 +16527,364 @@ No student saves yet.
 </p>
 `;
 
-
         return;
     }
 
+    // Drop any message left from an empty or failed load.
+    Array.from(
+        submissionList.children
+    ).forEach(
+        child => {
+
+            if (
+                !child.classList.contains(
+                    "submission-row"
+                )
+            ) {
+                child.remove();
+            }
+        }
+    );
+
+    const nextEntries =
+        new Map();
+
+    let anchor =
+        submissionList.firstElementChild;
 
     items.forEach(
-
         submission => {
 
-            const row =
-                document.createElement(
-                    "div"
+            const signature =
+                submissionRowSignature(
+                    submission
                 );
 
+            let entry =
+                submissionRowEntries.get(
+                    submission.id
+                );
 
-            row.className =
-                "submission-row";
+            if (!entry) {
+
+                entry =
+                    createSubmissionRow(
+                        submission
+                    );
+
+                if (highlightChanges) {
+
+                    flashSubmissionRow(
+                        entry.row
+                    );
+                }
+            }
+
+            else if (
+                entry.signature !==
+                signature
+            ) {
+
+                const becameSubmitted =
+                    entry.submission.status !== "submitted" &&
+                    submission.status === "submitted";
+
+                entry.submission =
+                    submission;
+
+                fillSubmissionRow(
+                    entry
+                );
+
+                if (
+                    highlightChanges &&
+                    becameSubmitted
+                ) {
+
+                    flashSubmissionRow(
+                        entry.row
+                    );
+                }
+            }
+
+            entry.submission =
+                submission;
+
+            entry.signature =
+                signature;
+
+            nextEntries.set(
+                submission.id,
+                entry
+            );
+
+            if (
+                entry.row === anchor
+            ) {
+
+                anchor =
+                    anchor.nextElementSibling;
+            }
+
+            else {
+
+                submissionList.insertBefore(
+                    entry.row,
+                    anchor
+                );
+            }
+        }
+    );
+
+    submissionRowEntries.forEach(
+        (entry, id) => {
+
+            if (
+                !nextEntries.has(id)
+            ) {
+                entry.row.remove();
+            }
+        }
+    );
+
+    submissionRowEntries =
+        nextEntries;
+
+    submissionListSignature =
+        stateString(
+            items.map(
+                submissionRowSignature
+            )
+        );
+}
 
 
-            row.innerHTML =
-                `
+function createSubmissionRow(
+    submission
+) {
+
+    const entry = {
+        submission,
+
+        signature:
+            "",
+
+        row:
+            document.createElement(
+                "div"
+            ),
+
+        actions:
+            document.createElement(
+                "div"
+            )
+    };
+
+    entry.row.className =
+        "submission-row";
+
+    entry.actions.className =
+        "submission-actions";
+
+    const reviewButton =
+        document.createElement(
+            "button"
+        );
+
+    reviewButton.type =
+        "button";
+
+    reviewButton.className =
+        "quiet-button";
+
+    reviewButton.textContent =
+        "Review";
+
+    reviewButton.addEventListener(
+        "click",
+        () =>
+            openSubmissionReview(
+                entry.submission.id
+            )
+    );
+
+    const deleteProgressButton =
+        document.createElement(
+            "button"
+        );
+
+    deleteProgressButton.type =
+        "button";
+
+    deleteProgressButton.className =
+        "danger-outline-button";
+
+    deleteProgressButton.textContent =
+        "Delete";
+
+    deleteProgressButton.addEventListener(
+        "click",
+        () =>
+            deleteStudentSubmissionProgress(
+                entry.submission,
+                deleteProgressButton
+            )
+    );
+
+    entry.actions.append(
+        reviewButton,
+        deleteProgressButton
+    );
+
+    entry.row.appendChild(
+        entry.actions
+    );
+
+    fillSubmissionRow(
+        entry
+    );
+
+    return entry;
+}
+
+
+function fillSubmissionRow(
+    entry
+) {
+
+    const submission =
+        entry.submission;
+
+    Array.from(
+        entry.row.children
+    ).forEach(
+        child => {
+
+            if (
+                child !== entry.actions
+            ) {
+                child.remove();
+            }
+        }
+    );
+
+    entry.row.insertAdjacentHTML(
+        "afterbegin",
+        `
 <div class="submission-name">
-
 <strong>
 ${escapeHtml(submission.student_name)}
 </strong>
-
 <span>
 ${escapeHtml(submission.class_name)}
 ${
-                    submission.group_name
-
-                        ? ` · ${escapeHtml(submission.group_name)}`
-
-                        : ""
-                }
+            submission.group_name
+                ? ` · ${escapeHtml(submission.group_name)}`
+                : ""
+        }
 </span>
-
+${
+            submission.reviewed_at
+                ? `<span class="submission-marked">Marked · ${escapeHtml(formatShortDateTime(submission.reviewed_at))}</span>`
+                : ""
+        }
 </div>
-
 <div class="submission-meta">
 ${new Date(submission.updated_at).toLocaleString()}
 </div>
-
 <div class="status-pill ${
-                    submission.status === "submitted"
-                        ? "submitted"
-                        : ""
-                }">
+            submission.status === "submitted"
+                ? "submitted"
+                : ""
+        }">
 ${escapeHtml(
-                    submission.status ||
-                    "draft"
-                )}
+            submission.status ||
+            "draft"
+        )}
 </div>
-`;
+`
+    );
+}
 
 
-            const actions =
-                document.createElement(
-                    "div"
-                );
+function flashSubmissionRow(
+    row
+) {
+
+    row.classList.remove(
+        "submission-row-updated"
+    );
+
+    // Force a reflow so the highlight can replay.
+    void row.offsetWidth;
+
+    row.classList.add(
+        "submission-row-updated"
+    );
+}
 
 
-            actions.className =
-                "submission-actions";
+function isShowingTaskSubmissions() {
+
+    return (
+        appMode === "teacher-dashboard" &&
+
+        !teacherDashboard.hidden &&
+
+        !teacherTasksPanel.hidden &&
+
+        Boolean(selectedTeacherTask)
+    );
+}
 
 
-            const reviewButton =
-                document.createElement(
-                    "button"
-                );
+const submissionsWatcher =
+    createLiveCheck(
+        isShowingTaskSubmissions,
+        checkForSubmissionUpdates
+    );
 
 
-            reviewButton.type =
-                "button";
+async function checkForSubmissionUpdates() {
 
+    const taskId =
+        selectedTeacherTask.id;
 
-            reviewButton.className =
-                "quiet-button";
+    // Let loadSubmissions finish the first draw for a new Task.
+    if (
+        renderedSubmissionsTaskId !==
+        taskId
+    ) {
+        return;
+    }
 
+    const items =
+        await fetchTaskProjects(
+            taskId
+        );
 
-            reviewButton.textContent =
-                "Review";
+    if (
+        !isShowingTaskSubmissions() ||
+        selectedTeacherTask.id !== taskId ||
+        renderedSubmissionsTaskId !== taskId
+    ) {
+        return;
+    }
 
+    if (
+        stateString(
+            items.map(
+                submissionRowSignature
+            )
+        ) ===
+        submissionListSignature
+    ) {
+        return;
+    }
 
-            reviewButton.addEventListener(
-
-                "click",
-
-                () =>
-                    openSubmissionReview(
-                        submission.id
-                    )
-            );
-
-
-            const deleteProgressButton =
-                document.createElement(
-                    "button"
-                );
-
-
-            deleteProgressButton.type =
-                "button";
-
-
-            deleteProgressButton.className =
-                "danger-outline-button";
-
-
-            deleteProgressButton.textContent =
-                "Delete";
-
-
-            deleteProgressButton.addEventListener(
-
-                "click",
-
-                () =>
-                    deleteStudentSubmissionProgress(
-                        submission,
-                        deleteProgressButton
-                    )
-            );
-
-
-            actions.append(
-                reviewButton,
-                deleteProgressButton
-            );
-
-
-            row.appendChild(
-                actions
-            );
-
-
-            submissionList.appendChild(
-                row
-            );
-        }
+    renderSubmissionList(
+        items,
+        true
     );
 }
 
@@ -16021,7 +16960,8 @@ async function openSubmissionReview(
             .select(
                 `
 teacher_annotations,
-teacher_feedback
+teacher_feedback,
+updated_at
 `
             )
             .eq(
@@ -16042,6 +16982,11 @@ teacher_feedback
 
         return;
     }
+
+
+    reviewLastSeenSavedAt =
+        reviewResult.data?.updated_at ??
+        null;
 
 
     annotations =
@@ -16194,6 +17139,75 @@ backToDashboardButton.addEventListener(
 );
 
 
+/* Before saving, make sure no other Teacher saved this Review
+   since this Teacher opened (or last saved) it. */
+
+async function confirmNoNewerReview(
+    submissionId
+) {
+
+    const latest =
+        await sb
+            .from(
+                "submission_reviews"
+            )
+            .select(
+                "updated_at"
+            )
+            .eq(
+                "submission_id",
+                submissionId
+            )
+            .maybeSingle();
+
+
+    if (
+        latest.error
+    ) {
+
+        console.warn(
+            "Could not check for other Teachers' changes:",
+            latest.error
+        );
+
+        return confirm(
+            "Could not check whether another Teacher changed this Review. Save anyway?"
+        );
+    }
+
+
+    const latestSavedAt =
+        latest.data?.updated_at ??
+        null;
+
+
+    if (
+        latestSavedAt ===
+        reviewLastSeenSavedAt
+    ) {
+        return true;
+    }
+
+
+    if (
+        !latestSavedAt
+    ) {
+
+        return confirm(
+            "This Review was removed after you opened it. Save your version anyway?"
+        );
+    }
+
+
+    return confirm(
+
+        `Another Teacher saved this Review at ${formatShortDateTime(latestSavedAt)}, after you opened it.\n\n` +
+
+        "Saving will replace their ink and feedback. Save anyway?"
+    );
+}
+
+
 saveTeacherFeedbackButton.addEventListener(
 
     "click",
@@ -16224,6 +17238,38 @@ saveTeacherFeedbackButton.addEventListener(
             "Saving feedback…",
             "busy"
         );
+
+
+        const saveConfirmed =
+            await confirmNoNewerReview(
+                reviewSubmission.id
+            );
+
+
+        if (
+            !saveConfirmed
+        ) {
+
+            setCloudStatus(
+                "Feedback not saved",
+                "busy"
+            );
+
+
+            statusBar.textContent =
+                "Not saved. Your ink and feedback are still on screen.";
+
+
+            saveTeacherFeedbackButton.disabled =
+                false;
+
+
+            saveTeacherFeedbackButton.textContent =
+                "Save feedback + ink";
+
+
+            return;
+        }
 
 
         const savedAt =
@@ -16260,7 +17306,11 @@ saveTeacherFeedbackButton.addEventListener(
                             onConflict:
                                 "submission_id"
                         }
-                    );
+                    )
+                    .select(
+                        "updated_at"
+                    )
+                    .single();
 
 
             if (
@@ -16269,6 +17319,12 @@ saveTeacherFeedbackButton.addEventListener(
 
                 throw reviewSave.error;
             }
+
+
+            // The database sets its own time on update, so remember what it stored.
+            reviewLastSeenSavedAt =
+                reviewSave.data?.updated_at ??
+                savedAt;
 
 
             setCloudStatus(
