@@ -734,6 +734,22 @@ const reviewStudentName =
 const reviewStudentMeta =
     $("reviewStudentMeta");
 
+
+const reviewDraftNotice =
+    $("reviewDraftNotice");
+
+
+const reviewHint =
+    $("reviewHint");
+
+
+const handInForThemButton =
+    $("handInForThemButton");
+
+
+const editLockLabel =
+    $("editLockLabel");
+
 const teacherFeedbackText =
     $("teacherFeedbackText");
 
@@ -940,6 +956,11 @@ let editRequestSavedAtZero =
 
 let viewOnlyChecks =
     0;
+
+
+// Submitted or Marked: locked for students (see HANDED IN IS FINAL).
+let projectHandedIn =
+    false;
 let editLockHeartbeatTimer =
     null;
 
@@ -2054,14 +2075,27 @@ async function saveStudentMap(
 
 
         if (
+            String(
+                error.message ||
+                ""
+            ).includes(
+                "PROJECT_HANDED_IN"
+            )
+        ) {
 
+            await showHandedInProject();
+
+            return;
+        }
+
+
+        if (
             String(
                 error.message ||
                 ""
             ).includes(
                 "EDIT_LOCK_REQUIRED"
             )
-
         ) {
 
             handleLostEditLock(
@@ -2199,8 +2233,13 @@ async function submitToTeacher() {
         );
 
 
+        await loadStudentProject(
+            currentSubmission.id
+        );
+
+
         statusBar.textContent =
-            "✓ Map submitted to your teacher.";
+            "✓ Handed in. Your teacher can mark it now.";
     }
 
     catch (error) {
@@ -2211,14 +2250,27 @@ async function submitToTeacher() {
 
 
         if (
+            String(
+                error.message ||
+                ""
+            ).includes(
+                "PROJECT_HANDED_IN"
+            )
+        ) {
 
+            await showHandedInProject();
+
+            return;
+        }
+
+
+        if (
             String(
                 error.message ||
                 ""
             ).includes(
                 "EDIT_LOCK_REQUIRED"
             )
-
         ) {
 
             handleLostEditLock(
@@ -2293,6 +2345,52 @@ function applyStudentEditLockUI() {
 
         editLockBanner.hidden =
             false;
+
+
+        if (
+            projectHandedIn
+        ) {
+
+            const marked =
+                Boolean(
+                    studentReviewData
+                );
+
+
+            editLockLabel.textContent =
+                marked
+                    ? "MARKED"
+                    : "HANDED IN";
+
+
+            editLockTitle.textContent =
+                marked
+                    ? "Your teacher has marked this map."
+                    : "Handed in — waiting for your teacher.";
+
+
+            editLockMessage.textContent =
+                marked
+                    ? "Read the feedback below. The map can't be changed now."
+                    : "Your map is with your teacher. You can look at it, but it can't be changed now.";
+
+
+            retryEditLockButton.hidden =
+                true;
+
+            askToDrawButton.hidden =
+                true;
+
+            cancelEditRequestButton.hidden =
+                true;
+
+
+            return;
+        }
+
+
+        editLockLabel.textContent =
+            "VIEW-ONLY";
 
 
         const canAsk =
@@ -7650,6 +7748,17 @@ submitButton.addEventListener(
 
         closeFlyouts();
 
+
+        if (
+            !confirm(
+                "Hand in your map to your teacher?\n\nYou won't be able to change it afterwards."
+            )
+        ) {
+
+            return;
+        }
+
+
         submitToTeacher();
     }
 );
@@ -9790,6 +9899,7 @@ function beginTeacherAnnotation(
 ) {
 
     if (
+        annotationPenButton.disabled ||
         !annotationPenButton
             .classList
             .contains(
@@ -10946,6 +11056,9 @@ async function loginStudentProfile() {
             `${profile.student_name} · ${profile.class_name}`;
 
 
+        sessionWatcher.start();
+
+
         startupModal.hidden =
             true;
 
@@ -11317,6 +11430,9 @@ function applyStudentReviewSnapshot(
 
     studentReviewPanel.hidden =
         false;
+
+
+    applyStudentEditLockUI();
 }
 
 
@@ -11532,6 +11648,428 @@ document.addEventListener(
 
 
 /* =========================================================
+HANDED IN IS FINAL
+Once a Project is Submitted (or Marked) nobody can draw on
+it: every member's device shows it locked. A student is
+signed in on one device at a time.
+========================================================= */
+
+function handedInStatusText() {
+
+    return studentReviewData
+
+        ? "Marked. Read your teacher's feedback below."
+
+        : "Handed in. Waiting for your teacher to mark it.";
+}
+
+
+// Nobody draws on a handed-in map, so let the pen go.
+async function closeHandedInProject() {
+
+    if (
+        editLockOwned
+    ) {
+
+        await releaseCurrentEditLock();
+    }
+
+
+    stopEditLockHeartbeat();
+
+
+    editLockOwned =
+        false;
+
+
+    studentReadOnly =
+        true;
+
+
+    hideEditRequestPrompt();
+
+
+    applyStudentEditLockUI();
+
+
+    return false;
+}
+
+
+// Someone else handed it in (a groupmate or the Teacher).
+async function showHandedInProject() {
+
+    if (
+        currentSubmission?.id
+    ) {
+
+        await loadStudentProject(
+            currentSubmission.id
+        );
+    }
+
+
+    statusBar.textContent =
+        "This map has been handed in, so it can't be changed now.";
+}
+
+
+function isSignedInAsStudent() {
+
+    return (
+
+        BACKEND_READY &&
+
+        currentIdentityType === "registered" &&
+
+        Boolean(
+            currentStudentProfile
+        ) &&
+
+        appMode !== "teacher-dashboard" &&
+
+        appMode !== "teacher-review"
+    );
+}
+
+
+const sessionWatcher =
+    createLiveCheck(
+        isSignedInAsStudent,
+        checkStillSignedIn
+    );
+
+
+async function checkStillSignedIn() {
+
+    const {
+        data,
+        error
+    } =
+        await sb.rpc(
+            "student_current_profile"
+        );
+
+
+    if (error) {
+
+        throw error;
+    }
+
+
+    const me =
+        Array.isArray(data)
+            ? data[0]
+            : data;
+
+
+    if (
+        me?.student_id ===
+        currentStudentProfile?.student_id
+    ) {
+
+        return;
+    }
+
+
+    await signedOutElsewhere();
+}
+
+
+async function signedOutElsewhere() {
+
+    // The other device already freed the pen.
+    editLockOwned =
+        false;
+
+    studentReadOnly =
+        false;
+
+
+    stopEditLockHeartbeat();
+
+    hideEditRequestPrompt();
+
+    stopReviewWatcher();
+
+    projectsWatcher.stop();
+
+    sessionWatcher.stop();
+
+    hideProjectsNotice();
+
+    resetStudentReviewState();
+
+
+    currentIdentityType =
+        null;
+
+    currentStudentProfile =
+        null;
+
+    currentStudentProjects =
+        [];
+
+    currentStudentRoster =
+        [];
+
+    currentSubmission =
+        null;
+
+    projectHandedIn =
+        false;
+
+
+    studentProfilePage.hidden =
+        true;
+
+    studentWorkspace.hidden =
+        true;
+
+    teacherDashboard.hidden =
+        true;
+
+    startupModal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    await prepareStudentLogin();
+
+
+    startupError.textContent =
+        "You signed in on another device, so you've been signed out here.";
+
+    startupError.hidden =
+        false;
+}
+
+
+/* Teacher side: watch drafts, mark only handed-in work. */
+
+function reviewIsHandedIn() {
+
+    return (
+        reviewSubmission?.status ===
+        "submitted"
+    );
+}
+
+
+function applyReviewMarkingState() {
+
+    const handedIn =
+        reviewIsHandedIn();
+
+
+    annotationPenButton.disabled =
+        !handedIn;
+
+    annotationPenButton.classList.toggle(
+        "active",
+        handedIn
+    );
+
+    clearAnnotationsButton.disabled =
+        !handedIn;
+
+    saveTeacherFeedbackButton.disabled =
+        !handedIn;
+
+    teacherFeedbackText.disabled =
+        !handedIn;
+
+    reviewDraftNotice.hidden =
+        handedIn;
+
+    handInForThemButton.hidden =
+        handedIn;
+
+    reviewHint.hidden =
+        !handedIn;
+}
+
+
+function isWatchingDraftForTeacher() {
+
+    return (
+
+        appMode === "teacher-review" &&
+
+        Boolean(
+            reviewSubmission
+        ) &&
+
+        !reviewIsHandedIn()
+    );
+}
+
+
+const draftReviewWatcher =
+    createLiveCheck(
+        isWatchingDraftForTeacher,
+        refreshDraftForTeacher
+    );
+
+
+async function refreshDraftForTeacher() {
+
+    const submissionId =
+        reviewSubmission.id;
+
+
+    const {
+        data,
+        error
+    } =
+        await sb
+            .from(
+                "submissions"
+            )
+            .select(
+                "id,status,submitted_at,updated_at,map_data"
+            )
+            .eq(
+                "id",
+                submissionId
+            )
+            .single();
+
+
+    if (error) {
+
+        throw error;
+    }
+
+
+    if (
+        reviewSubmission?.id !==
+        submissionId
+    ) {
+
+        return;
+    }
+
+
+    if (
+        data.updated_at !==
+        reviewSubmission.updated_at
+    ) {
+
+        loadMapData(
+            data.map_data ||
+            {}
+        );
+    }
+
+
+    reviewSubmission = {
+        ...reviewSubmission,
+        ...data
+    };
+
+
+    applyReviewMarkingState();
+}
+
+
+handInForThemButton.addEventListener(
+
+    "click",
+
+    async () => {
+
+        if (
+            !reviewSubmission
+        ) {
+
+            return;
+        }
+
+
+        if (
+            !confirm(
+                `Hand in this map for ${reviewStudentName.textContent.trim()}?\n\nThey won't be able to change it afterwards.`
+            )
+        ) {
+
+            return;
+        }
+
+
+        handInForThemButton.disabled =
+            true;
+
+
+        try {
+
+            const {
+                data,
+                error
+            } =
+                await sb
+                    .from(
+                        "submissions"
+                    )
+                    .update({
+                        status:
+                            "submitted",
+                        submitted_at:
+                            new Date().toISOString()
+                    })
+                    .eq(
+                        "id",
+                        reviewSubmission.id
+                    )
+                    .select()
+                    .single();
+
+
+            if (error) {
+
+                throw error;
+            }
+
+
+            reviewSubmission =
+                data;
+
+
+            loadMapData(
+                data.map_data ||
+                {}
+            );
+
+
+            applyReviewMarkingState();
+
+
+            statusBar.textContent =
+                "Handed in. You can mark it now.";
+        }
+
+        catch (error) {
+
+            alert(
+                error.message ||
+                "Could not hand in this map."
+            );
+        }
+
+        finally {
+
+            handInForThemButton.disabled =
+                false;
+        }
+    }
+);
+
+
+/* =========================================================
 EDIT REQUESTS
 A View-only Group member asks the Editor for a turn. The
 database decides every rule (one request at a time, the
@@ -11571,6 +12109,8 @@ function isWatchingTurns() {
 
         hasCurrentLearnerIdentity() &&
 
+        !projectHandedIn &&
+
         (
             isGroupProject() ||
             studentReadOnly
@@ -11609,6 +12149,14 @@ function startTurnWatcher() {
 async function checkTurns() {
 
     if (
+        projectHandedIn
+    ) {
+
+        return;
+    }
+
+
+    if (
         isGroupProject()
     ) {
 
@@ -11616,21 +12164,16 @@ async function checkTurns() {
     }
 
 
+    viewOnlyChecks +=
+        1;
+
+
+    // About every 10 seconds: follow the map, notice a hand-in.
     if (
-        studentReadOnly
+        viewOnlyChecks % 2 === 0
     ) {
 
-        viewOnlyChecks +=
-            1;
-
-
-        // About every 10 seconds.
-        if (
-            viewOnlyChecks % 2 === 0
-        ) {
-
-            await followEditorMap();
-        }
+        await followEditorMap();
     }
 }
 
@@ -11870,9 +12413,30 @@ async function followEditorMap() {
 
     if (
         !project ||
-        !studentReadOnly ||
         currentSubmission?.id !==
-        submissionId ||
+        submissionId
+    ) {
+
+        return;
+    }
+
+
+    // Handed in by a groupmate or the Teacher: show it locked.
+    if (
+        project.status === "submitted"
+    ) {
+
+        await loadStudentProject(
+            submissionId
+        );
+
+
+        return;
+    }
+
+
+    if (
+        !studentReadOnly ||
         project.updated_at ===
         currentSubmission.updated_at
     ) {
@@ -13774,8 +14338,20 @@ async function loadStudentProject(
         await loadCurrentTaskReference();
 
 
+        projectHandedIn =
+            project.status === "submitted" ||
+            Boolean(
+                latestStudentReview
+            );
+
+
         const acquired =
-            await claimCurrentEditLock();
+
+            projectHandedIn
+
+                ? await closeHandedInProject()
+
+                : await claimCurrentEditLock();
 
 
         setTool(
@@ -13821,6 +14397,15 @@ async function loadStudentProject(
                     ? `${editLockHolderName} is drawing. You can watch from this device.`
 
                     : "Someone on another device is drawing. You can watch from this device.";
+        }
+
+
+        if (
+            projectHandedIn
+        ) {
+
+            statusBar.textContent =
+                handedInStatusText();
         }
 
 
@@ -18269,25 +18854,6 @@ function submissionRowSignature(
 }
 
 
-/* Marked, then handed in again after the Review was last saved. */
-
-function isResubmittedAwaitingReview(
-    submission
-) {
-
-    return (
-        submission.status === "submitted" &&
-
-        Boolean(submission.reviewed_at) &&
-
-        Boolean(submission.submitted_at) &&
-
-        new Date(submission.submitted_at) >
-        new Date(submission.reviewed_at)
-    );
-}
-
-
 function formatShortDateTime(
     value
 ) {
@@ -18391,14 +18957,6 @@ No student saves yet.
                     entry.submission.status !== "submitted" &&
                     submission.status === "submitted";
 
-                const becameResubmitted =
-                    !isResubmittedAwaitingReview(
-                        entry.submission
-                    ) &&
-                    isResubmittedAwaitingReview(
-                        submission
-                    );
-
                 entry.submission =
                     submission;
 
@@ -18409,8 +18967,7 @@ No student saves yet.
                 if (
                     highlightChanges &&
                     (
-                        becameSubmitted ||
-                        becameResubmitted
+                        becameSubmitted
                     )
                 ) {
 
@@ -18597,11 +19154,7 @@ ${
         }
 </span>
 ${
-            isResubmittedAwaitingReview(
-                submission
-            )
-                ? `<span class="submission-resubmitted">Resubmitted – awaiting review</span>`
-                : submission.reviewed_at
+            submission.reviewed_at
                 ? `<span class="submission-marked">Marked · ${escapeHtml(formatShortDateTime(submission.reviewed_at))}</span>`
                 : ""
         }
@@ -18836,6 +19389,12 @@ updated_at
             ? `${data.class_name} · Group of ${data.group_name.split(",").length}`
 
             : data.class_name;
+
+
+    applyReviewMarkingState();
+
+
+    draftReviewWatcher.start();
 
 
     appMode =

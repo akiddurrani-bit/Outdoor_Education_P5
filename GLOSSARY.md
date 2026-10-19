@@ -45,7 +45,7 @@ The one map a student, or a Group of students, builds for one Task. It exists fr
 _Avoid_: Submission, map file, attempt
 
 **Submitted**:
-The state of a Project that has been handed to the teacher. Any one member of the Group can submit on behalf of all of them, and a Submitted Project can still be edited and handed in again.
+The state of a Project that has been handed to the teacher. Any one member of the Group can submit on behalf of all of them. Submitting is final for students: they can no longer change the Project. A teacher can also submit a Group's Project for them.
 _Avoid_: Final, completed
 
 **Group**:
@@ -53,7 +53,7 @@ The set of students from one Class sharing one Project for one Task, chosen by w
 _Avoid_: Team, pair
 
 **Editor**:
-The one device currently allowed to change a Project. Every other device that opens the same Project at that moment is View-only until the Editor hands over in answer to an Edit Request, or leaves.
+The one device currently allowed to change a Project. Every other device that opens the same Project at that moment is View-only until the Editor hands over in answer to an Edit Request, or leaves. A student is signed in on one device at a time: signing in on another device signs the first one out.
 _Avoid_: Owner, host
 
 **View-only**:
@@ -93,13 +93,9 @@ _Avoid_: Key
 ### Teacher feedback
 
 **Review**:
-A teacher's written feedback together with their free-form red-pen ink, laid over one Project without changing the student's map. A Project has at most one Review; the teacher saves it, and saving again updates it rather than adding another.
+A teacher's written feedback together with their free-form red-pen ink, laid over one Submitted Project without changing the student's map. A teacher can watch a Project while it is being drawn but can only Review it once it is Submitted. A Project has at most one Review; the teacher saves it, and saving again updates it rather than adding another. Students see a Review only once it is saved.
 _Avoid_: Marking, comments, annotation, submitting (for teachers)
 
 **Marked**:
-The state of a Project once a teacher has saved a Review for it. There is no hidden draft Review.
+The state of a Project once a teacher has saved a Review for it. A Marked Project is final: students can read the Review but change nothing. There is no hidden draft Review.
 _Avoid_: Graded, checked, returned
-
-**Resubmitted**:
-The state of a Marked Project that the student handed in again after its Review was last saved. It awaits a fresh Review; until then the student still sees the previous one.
-_Avoid_: Re-marked, updated
