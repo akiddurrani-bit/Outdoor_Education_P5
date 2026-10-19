@@ -17098,7 +17098,7 @@ addStudentButton.addEventListener(
         }
 
 
-        const name =
+        const typedName =
             newStudentName
                 .value
                 .replace(
@@ -17108,8 +17108,28 @@ addStudentButton.addEventListener(
                 .trim();
 
 
-        if (!name) {
+        // "26. Ahmad" or "26 Ahmad": 26 is the register number.
+        const numbered =
+            typedName.match(
+                /^(\d{1,3})\s*[.):-]?\s+(\S.*)$/
+            );
 
+
+        const name =
+            numbered
+                ? numbered[2]
+                : typedName;
+
+
+        const requestedRegister =
+            numbered
+                ? Number(
+                    numbered[1]
+                )
+                : null;
+
+
+        if (!name) {
             return;
         }
 
@@ -17190,13 +17210,106 @@ addStudentButton.addEventListener(
 
         else {
 
+            // Removed students keep their numbers, so count everyone.
+            const everyoneResult =
+                await sb
+                    .from(
+                        "students"
+                    )
+                    .select(
+                        "id,student_name,register_no,active"
+                    )
+                    .eq(
+                        "class_id",
+                        selectedTeacherClass.id
+                    );
+
+
+            if (
+                everyoneResult.error
+            ) {
+
+                alert(
+                    everyoneResult.error.message
+                );
+
+                return;
+            }
+
+
+            const everyone =
+                everyoneResult.data ||
+                [];
+
+
+            const holder =
+                requestedRegister &&
+                everyone.find(
+                    student =>
+                        Number(
+                            student.register_no
+                        ) ===
+                        requestedRegister
+                );
+
+
+            if (
+                holder &&
+                holder.active
+            ) {
+
+                alert(
+                    `Register number ${requestedRegister} already belongs to ${holder.student_name}.`
+                );
+
+                return;
+            }
+
+
+            if (holder) {
+
+                if (
+                    !confirm(
+                        `Register number ${requestedRegister} belonged to ${holder.student_name}, who was removed from this class. Give the number to ${name} instead?`
+                    )
+                ) {
+
+                    return;
+                }
+
+
+                const released =
+                    await sb
+                        .from(
+                            "students"
+                        )
+                        .update({
+                            register_no:
+                                null
+                        })
+                        .eq(
+                            "id",
+                            holder.id
+                        );
+
+
+                if (
+                    released.error
+                ) {
+
+                    alert(
+                        released.error.message
+                    );
+
+                    return;
+                }
+            }
+
+
             const maxRegister =
                 Math.max(
-
                     0,
-
-                    ...selectedClassRoster.map(
-
+                    ...everyone.map(
                         student =>
                             Number(
                                 student.register_no
@@ -17219,9 +17332,9 @@ addStudentButton.addEventListener(
                             selectedTeacherClass.id,
 
                         register_no:
+                            requestedRegister ||
                             maxRegister +
                             1,
-
                         student_name:
                             name,
 
