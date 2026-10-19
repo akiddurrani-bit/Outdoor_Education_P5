@@ -1308,6 +1308,33 @@ background:#e8f3eb;
 color:#2e6745;
 }
 
+.submission-name .submission-marked {
+display:block;
+margin-top:2px;
+color:#2e6745;
+font-weight:800;
+}
+
+.submission-row-updated {
+animation:submission-row-updated 2.4s ease-out;
+}
+
+@keyframes submission-row-updated {
+0%,
+40% {
+border-color:var(--forest);
+background:#e4efe6;
+box-shadow:0 0 0 3px #e4efe6;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+.submission-row-updated {
+animation:none;
+border-color:var(--forest);
+}
+}
+
 .teacher-feedback-panel {
 display:grid;
 grid-template-columns:
@@ -1607,6 +1634,36 @@ cursor:pointer;
 .student-project-card:hover {
 border-color:var(--forest);
 background:#f3f7f3;
+}
+
+.student-project-card-updated {
+animation:student-project-card-updated 2.4s ease-out;
+}
+
+@keyframes student-project-card-updated {
+0%,
+40% {
+border-color:var(--forest);
+background:#e4efe6;
+box-shadow:0 0 0 3px #e4efe6;
+}
+}
+
+@media (prefers-reduced-motion: reduce) {
+.student-project-card-updated {
+animation:none;
+border-color:var(--forest);
+}
+}
+
+.student-projects-notice {
+margin:12px 0 0;
+padding:8px 10px;
+border-radius:8px;
+background:#e4efe6;
+color:#2e6745;
+font-size:12px;
+font-weight:800;
 }
 
 .student-project-card-head {
