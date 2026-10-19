@@ -767,8 +767,7 @@ id="teacherFeedbackPanel"
 class="teacher-feedback-panel"
 hidden
 >
-
-<div>
+<div class="review-heading">
 <div class="mini-label">
 TEACHER REVIEW
 </div>
@@ -776,8 +775,14 @@ TEACHER REVIEW
 <h2 id="reviewStudentName">
 Student Map
 </h2>
+
+<p
+id="reviewStudentMeta"
+class="review-meta"
+></p>
 </div>
 
+<div class="review-field">
 <label for="teacherFeedbackText">
 Written feedback
 </label>
@@ -787,7 +792,9 @@ id="teacherFeedbackText"
 rows="4"
 placeholder="Write feedback for the student..."
 ></textarea>
+</div>
 
+<div class="review-actions">
 <button
 id="saveTeacherFeedbackButton"
 class="primary-button"
@@ -796,6 +803,10 @@ type="button"
 Save feedback + ink
 </button>
 
+<p class="review-hint">
+Students see it in My Projects within about 10 seconds.
+</p>
+</div>
 </section>
 
 <section

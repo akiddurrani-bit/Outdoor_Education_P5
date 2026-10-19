@@ -359,7 +359,7 @@ NORTH
 position:absolute;
 z-index:23;
 top:12px;
-right:176px;
+right:12px;
 width:82px;
 min-height:92px;
 padding:7px 6px 6px;
@@ -718,7 +718,7 @@ CANVAS ACTIONS
 position:absolute;
 z-index:22;
 top:12px;
-right:12px;
+right:106px;
 }
 
 .canvas-action-button {
@@ -1385,25 +1385,61 @@ border-color:var(--forest);
 }
 }
 
+/* Who is being reviewed | written feedback | save. */
 .teacher-feedback-panel {
 display:grid;
 grid-template-columns:
-260px
-minmax(300px,1fr)
+minmax(200px,300px)
+minmax(0,1fr)
 auto;
-gap:14px;
-align-items:end;
+gap:22px;
+align-items:start;
 margin-top:10px;
-padding:13px 15px;
+padding:16px 18px;
 }
 
 .teacher-feedback-panel h2 {
-margin:2px 0 0;
+margin:4px 0 0;
 font-size:17px;
+line-height:1.35;
+}
+
+.review-meta {
+margin:6px 0 0;
+color:var(--muted);
+font-size:12px;
+font-weight:700;
 }
 
 .teacher-feedback-panel label {
-margin:0 0 5px;
+margin:0 0 6px;
+}
+
+.review-field textarea {
+min-height:96px;
+resize:vertical;
+font:inherit;
+font-size:14px;
+line-height:1.45;
+}
+
+.review-actions {
+display:flex;
+flex-direction:column;
+gap:7px;
+align-self:end;
+}
+
+.review-actions .primary-button {
+white-space:nowrap;
+}
+
+.review-hint {
+max-width:190px;
+margin:0;
+color:var(--muted);
+font-size:11px;
+line-height:1.4;
 }
 
 
