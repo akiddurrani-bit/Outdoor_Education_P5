@@ -364,8 +364,17 @@ const closeColourPanel =
 const startupModal =
     $("startupModal");
 
-const startupClassSelect =
-    $("startupClassSelect");
+const startupDescription =
+    $("startupDescription");
+
+const startupTaskCode =
+    $("startupTaskCode");
+
+const startupNameStep =
+    $("startupNameStep");
+
+const startupChangeCodeButton =
+    $("startupChangeCodeButton");
 
 const startupStudentSelect =
     $("startupStudentSelect");
@@ -565,6 +574,9 @@ const saveClassNameButton =
 
 const archiveClassButton =
     $("archiveClassButton");
+
+const deleteClassButton =
+    $("deleteClassButton");
 
 const classListFile =
     $("classListFile");
@@ -10002,23 +10014,44 @@ async function detectResumeGuestSession() {
 }
 
 
-async function prepareStudentLogin() {
+/* Students sign in Task Code first: the code decides which
+   Classes' names are offered, so nobody browses every Class. */
+
+let pendingSignInTaskCode =
+    "";
+
+
+function showStartupCodeStep() {
+
+    pendingSignInTaskCode =
+        "";
+
+    startupNameStep.hidden =
+        true;
+
+    startupStudentSelect.innerHTML =
+        `<option value="">Choose your name</option>`;
+
+    startupTaskCode.disabled =
+        false;
+
+    startupDescription.textContent =
+        "Type the task code from your teacher.";
+
+    studentLoginButton.textContent =
+        "Find my name";
 
     startupError.hidden =
         true;
+}
 
 
-    startupClassSelect.innerHTML =
-        `<option value="">Loading classes…</option>`;
+async function prepareStudentLogin() {
 
+    showStartupCodeStep();
 
-    startupStudentSelect.innerHTML =
-        `<option value="">Select your class first</option>`;
-
-
-    startupStudentSelect.disabled =
-        true;
-
+    startupTaskCode.value =
+        "";
 
     resumeGuestButton.hidden =
         true;
@@ -10028,25 +10061,17 @@ async function prepareStudentLogin() {
         !BACKEND_READY
     ) {
 
-        startupClassSelect.innerHTML =
-            `<option value="">Backend not configured</option>`;
-
-
         studentLoginButton.disabled =
             true;
-
 
         openGuestButton.disabled =
             true;
 
-
         startupError.textContent =
             "Student profiles need the connected class database.";
 
-
         startupError.hidden =
             false;
-
 
         return;
     }
@@ -10054,7 +10079,6 @@ async function prepareStudentLogin() {
 
     studentLoginButton.disabled =
         false;
-
 
     openGuestButton.disabled =
         false;
@@ -10064,74 +10088,7 @@ async function prepareStudentLogin() {
 
         await ensureAnonymousStudentSession();
 
-
         await detectResumeGuestSession();
-
-
-        const {
-            data,
-            error
-        } =
-            await sb.rpc(
-                "student_list_classes"
-            );
-
-
-        if (error) {
-
-            throw error;
-        }
-
-
-        const classes =
-
-            Array.isArray(data)
-
-                ? data
-
-                : [];
-
-
-        startupClassSelect.innerHTML =
-            `<option value="">Select your class</option>`;
-
-
-        classes.forEach(
-
-            item => {
-
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                option.value =
-                    item.id;
-
-
-                option.textContent =
-                    item.class_name;
-
-
-                startupClassSelect.appendChild(
-                    option
-                );
-            }
-        );
-
-
-        if (
-            !classes.length
-        ) {
-
-            startupClassSelect.innerHTML =
-                `<option value="">No classes available</option>`;
-
-
-            studentLoginButton.disabled =
-                true;
-        }
     }
 
     catch (error) {
@@ -10140,21 +10097,20 @@ async function prepareStudentLogin() {
             error
         );
 
-
         startupError.textContent =
-
             error.message ||
-
-            "Could not load classes.";
-
+            "Could not start signing in.";
 
         startupError.hidden =
             false;
-
-
-        startupClassSelect.innerHTML =
-            `<option value="">Could not load classes</option>`;
     }
+
+
+    setTimeout(
+        () =>
+            startupTaskCode.focus(),
+        20
+    );
 }
 
 
@@ -10264,12 +10220,37 @@ async function openGuestProfile(
     await loadStudentProjectHistory();
 
 
-    studentTaskCode.value =
+    // A code typed before choosing "Create Guest Account" opens straight away.
+    const signInTaskCode =
+        startupTaskCode
+            .value
+            .trim()
+            .toUpperCase();
+
+
+    showStartupCodeStep();
+
+
+    startupTaskCode.value =
         "";
+
+
+    studentTaskCode.value =
+        signInTaskCode;
 
 
     studentTaskError.hidden =
         true;
+
+
+    if (
+        signInTaskCode
+    ) {
+
+        await openTaskFromCode();
+
+        return;
+    }
 
 
     studentTaskCode.focus();
@@ -10498,95 +10479,170 @@ resumeGuestButton.addEventListener(
 REGISTERED STUDENT LOGIN
 ========================================================= */
 
-async function loadStudentRoster(
-    classId
+function rosterDisplayName(
+    student
 ) {
 
-    currentStudentRoster =
-        [];
+    return student.register_no
+        ? `${student.register_no} · ${student.student_name}`
+        : student.student_name;
+}
 
+
+function renderStartupNames(
+    names
+) {
 
     startupStudentSelect.innerHTML =
-        `<option value="">Loading names…</option>`;
+        `<option value="">Choose your name</option>`;
+
+    const classNames =
+        [
+            ...new Set(
+                names.map(
+                    student =>
+                        student.class_name
+                )
+            )
+        ];
+
+    // Group names under their Class when the Task is set for several.
+    classNames.forEach(
+        className => {
+
+            let parent =
+                startupStudentSelect;
+
+            if (
+                classNames.length > 1
+            ) {
+
+                parent =
+                    document.createElement(
+                        "optgroup"
+                    );
+
+                parent.label =
+                    className;
+
+                startupStudentSelect.appendChild(
+                    parent
+                );
+            }
+
+            names
+                .filter(
+                    student =>
+                        student.class_name === className
+                )
+                .forEach(
+                    student => {
+
+                        const option =
+                            document.createElement(
+                                "option"
+                            );
+
+                        option.value =
+                            student.student_id;
+
+                        option.textContent =
+                            rosterDisplayName(
+                                student
+                            );
+
+                        parent.appendChild(
+                            option
+                        );
+                    }
+                );
+        }
+    );
+}
 
 
-    startupStudentSelect.disabled =
+async function findStudentNamesForTaskCode() {
+
+    const code =
+        startupTaskCode
+            .value
+            .trim()
+            .toUpperCase();
+
+    startupError.hidden =
         true;
 
 
-    if (!classId) {
+    if (!code) {
 
-        startupStudentSelect.innerHTML =
-            `<option value="">Select your class first</option>`;
+        startupError.textContent =
+            "Type the task code from your teacher.";
 
+        startupError.hidden =
+            false;
 
         return;
     }
 
 
+    studentLoginButton.disabled =
+        true;
+
+    studentLoginButton.textContent =
+        "Checking…";
+
+
     try {
+
+        await ensureAnonymousStudentSession();
 
         const {
             data,
             error
         } =
             await sb.rpc(
-
-                "student_list_roster",
-
+                "student_list_task_roster",
                 {
-                    p_class_id:
-                        classId
+                    p_code:
+                        code
                 }
             );
 
-
         if (error) {
-
             throw error;
         }
 
-
-        currentStudentRoster =
-
+        const names =
             Array.isArray(data)
-
                 ? data
-
                 : [];
 
+        if (
+            !names.length
+        ) {
 
-        startupStudentSelect.innerHTML =
-            `<option value="">Select your name</option>`;
+            throw new Error(
+                "No names found for this code. Check the code with your teacher — your class may not be open yet."
+            );
+        }
 
-
-        currentStudentRoster.forEach(
-
-            student => {
-
-                const option =
-                    document.createElement(
-                        "option"
-                    );
-
-
-                option.value =
-                    student.id;
-
-
-                option.textContent =
-                    student.student_name;
-
-
-                startupStudentSelect.appendChild(
-                    option
-                );
-            }
+        renderStartupNames(
+            names
         );
 
+        pendingSignInTaskCode =
+            code;
 
-        startupStudentSelect.disabled =
-            !currentStudentRoster.length;
+        startupTaskCode.disabled =
+            true;
+
+        startupNameStep.hidden =
+            false;
+
+        startupDescription.textContent =
+            "Now choose your name.";
+
+        startupStudentSelect.focus();
     }
 
     catch (error) {
@@ -10595,37 +10651,49 @@ async function loadStudentRoster(
             error
         );
 
-
-        startupStudentSelect.innerHTML =
-            `<option value="">Could not load names</option>`;
-
-
         startupError.textContent =
-
             error.message ||
-
-            "Could not load the class list.";
-
+            "Could not check this task code.";
 
         startupError.hidden =
             false;
     }
+
+    finally {
+
+        studentLoginButton.disabled =
+            false;
+
+        studentLoginButton.textContent =
+            pendingSignInTaskCode
+                ? "Continue"
+                : "Find my name";
+    }
 }
 
 
-startupClassSelect.addEventListener(
+startupTaskCode.addEventListener(
+    "keydown",
+    event => {
 
-    "change",
+        if (
+            event.key === "Enter"
+        ) {
+            loginStudentProfile();
+        }
+    }
+);
 
-    async () => {
 
-        startupError.hidden =
-            true;
+startupChangeCodeButton.addEventListener(
+    "click",
+    () => {
 
+        showStartupCodeStep();
 
-        await loadStudentRoster(
-            startupClassSelect.value
-        );
+        startupTaskCode.focus();
+
+        startupTaskCode.select();
     }
 );
 
@@ -10636,8 +10704,15 @@ async function loginStudentProfile() {
         true;
 
 
-    const classId =
-        startupClassSelect.value;
+    // Step 1: the Task Code decides which names are offered.
+    if (
+        !pendingSignInTaskCode
+    ) {
+
+        await findStudentNamesForTaskCode();
+
+        return;
+    }
 
 
     const studentId =
@@ -10645,15 +10720,11 @@ async function loginStudentProfile() {
 
 
     if (
-
-        !classId ||
-
         !studentId
-
     ) {
 
         startupError.textContent =
-            "Please select your class and your name.";
+            "Choose your name from the list.";
 
 
         startupError.hidden =
@@ -10776,15 +10847,27 @@ async function loginStudentProfile() {
         await loadStudentProjectHistory();
 
 
-        studentTaskCode.value =
+        // Go straight into the Task the student signed in with.
+        const signInTaskCode =
+            pendingSignInTaskCode;
+
+
+        showStartupCodeStep();
+
+
+        startupTaskCode.value =
             "";
+
+
+        studentTaskCode.value =
+            signInTaskCode;
 
 
         studentTaskError.hidden =
             true;
 
 
-        studentTaskCode.focus();
+        await openTaskFromCode();
     }
 
     catch (error) {
@@ -10812,7 +10895,9 @@ async function loginStudentProfile() {
 
 
         studentLoginButton.textContent =
-            "Continue";
+            pendingSignInTaskCode
+                ? "Continue"
+                : "Find my name";
     }
 }
 
@@ -12284,7 +12369,7 @@ ${
 >
 
 <span>
-${escapeHtml(student.student_name)}
+${escapeHtml(rosterDisplayName(student))}
 ${
                     isCurrent
                         ? "<strong> · You</strong>"
@@ -12999,18 +13084,6 @@ switchStudentButton.addEventListener(
         );
 
 
-        startupClassSelect.value =
-            "";
-
-
-        startupStudentSelect.innerHTML =
-            `<option value="">Select your class first</option>`;
-
-
-        startupStudentSelect.disabled =
-            true;
-
-
         await prepareStudentLogin();
     }
 );
@@ -13685,6 +13758,102 @@ students
 }
 
 
+async function restoreArchivedClass(
+    name
+) {
+
+    const {
+        data: archived
+    } =
+        await sb
+            .from(
+                "classes"
+            )
+            .select("*")
+            .eq(
+                "teacher_id",
+                currentTeacherUser.id
+            )
+            .eq(
+                "class_name",
+                name
+            )
+            .eq(
+                "active",
+                false
+            )
+            .maybeSingle();
+
+
+    if (!archived) {
+
+        alert(
+            "A class with this name already exists."
+        );
+
+
+        return;
+    }
+
+
+    if (
+        !confirm(
+            `${name} was archived earlier. Restore it with its students and projects?`
+        )
+    ) {
+
+        return;
+    }
+
+
+    const {
+        error
+    } =
+        await sb
+            .from(
+                "classes"
+            )
+            .update({
+                active: true
+            })
+            .eq(
+                "id",
+                archived.id
+            );
+
+
+    if (error) {
+
+        alert(
+            error.message
+        );
+
+
+        return;
+    }
+
+
+    await loadTeacherClasses();
+
+
+    const restored =
+        teacherClasses.find(
+
+            item =>
+                item.id ===
+                archived.id
+        );
+
+
+    if (restored) {
+
+        await selectTeacherClass(
+            restored
+        );
+    }
+}
+
+
 createClassButton.addEventListener(
 
     "click",
@@ -13727,15 +13896,24 @@ createClassButton.addEventListener(
                 .single();
 
 
+        if (
+            error &&
+            error.code === "23505"
+        ) {
+
+            await restoreArchivedClass(
+                name
+            );
+
+
+            return;
+        }
+
+
         if (error) {
 
             alert(
-
-                error.code === "23505"
-
-                    ? "A class with this name already exists."
-
-                    : error.message
+                error.message
             );
 
 
@@ -14155,6 +14333,296 @@ archiveClassButton.addEventListener(
 );
 
 
+/* =========================================================
+DELETE CLASS
+Deletes the Class, its Roster, and every Project its students
+worked on (with Reviews). Tasks are kept: they may be set for
+other Classes. Projects go first, while this Teacher can still
+see them through the Class.
+========================================================= */
+
+async function findClassProjectIds(
+    classId
+) {
+
+    const ids =
+        new Set();
+
+
+    const byClass =
+        await sb
+            .from(
+                "submissions"
+            )
+            .select(
+                "id"
+            )
+            .eq(
+                "class_id",
+                classId
+            );
+
+    if (
+        byClass.error
+    ) {
+        throw byClass.error;
+    }
+
+    (byClass.data || []).forEach(
+        row =>
+            ids.add(
+                row.id
+            )
+    );
+
+
+    // Older Projects may not record their Class, so also go by membership.
+    const roster =
+        await sb
+            .from(
+                "students"
+            )
+            .select(
+                "id"
+            )
+            .eq(
+                "class_id",
+                classId
+            );
+
+    if (
+        roster.error
+    ) {
+        throw roster.error;
+    }
+
+    const studentIds =
+        (roster.data || []).map(
+            row =>
+                row.id
+        );
+
+    if (
+        studentIds.length
+    ) {
+
+        const memberships =
+            await sb
+                .from(
+                    "submission_members"
+                )
+                .select(
+                    "submission_id"
+                )
+                .in(
+                    "student_id",
+                    studentIds
+                );
+
+        if (
+            memberships.error
+        ) {
+            throw memberships.error;
+        }
+
+        (memberships.data || []).forEach(
+            row =>
+                ids.add(
+                    row.submission_id
+                )
+        );
+    }
+
+
+    return {
+        projectIds:
+            [...ids],
+
+        studentCount:
+            studentIds.length
+    };
+}
+
+
+deleteClassButton.addEventListener(
+    "click",
+    async () => {
+
+        if (
+            !selectedTeacherClass
+        ) {
+            return;
+        }
+
+
+        const classItem =
+            selectedTeacherClass;
+
+
+        deleteClassButton.disabled =
+            true;
+
+
+        try {
+
+            const {
+                projectIds,
+                studentCount
+            } =
+                await findClassProjectIds(
+                    classItem.id
+                );
+
+
+            const typed =
+                prompt(
+                    `Delete ${classItem.class_name} permanently?\n\n` +
+                    `This deletes ${studentCount} student${studentCount === 1 ? "" : "s"} and ` +
+                    `${projectIds.length} project${projectIds.length === 1 ? "" : "s"}, including teacher feedback. ` +
+                    "Tasks are kept. This cannot be undone.\n\n" +
+                    "To keep the work, press Cancel and use Archive Class instead.\n\n" +
+                    "Type the class name to confirm:"
+                );
+
+
+            if (
+                typed === null
+            ) {
+                return;
+            }
+
+
+            if (
+                typed.trim() !==
+                classItem.class_name
+            ) {
+
+                alert(
+                    "The name did not match, so nothing was deleted."
+                );
+
+                return;
+            }
+
+
+            deleteClassButton.textContent =
+                "Deleting…";
+
+
+            setCloudStatus(
+                "Deleting class…",
+                "busy"
+            );
+
+
+            // Reviews, group links and edit locks are removed with each Project.
+            if (
+                projectIds.length
+            ) {
+
+                const projectDelete =
+                    await sb
+                        .from(
+                            "submissions"
+                        )
+                        .delete()
+                        .in(
+                            "id",
+                            projectIds
+                        );
+
+                if (
+                    projectDelete.error
+                ) {
+                    throw projectDelete.error;
+                }
+            }
+
+
+            // The Roster and the Class's Task assignments go with the Class.
+            const classDelete =
+                await sb
+                    .from(
+                        "classes"
+                    )
+                    .delete()
+                    .eq(
+                        "id",
+                        classItem.id
+                    )
+                    .select(
+                        "id"
+                    );
+
+            if (
+                classDelete.error
+            ) {
+                throw classDelete.error;
+            }
+
+            if (
+                !classDelete.data?.length
+            ) {
+
+                throw new Error(
+                    "This class could not be deleted. You may no longer have access to it."
+                );
+            }
+
+
+            selectedTeacherClass =
+                null;
+
+
+            noClassSelected.hidden =
+                false;
+
+
+            classEditor.hidden =
+                true;
+
+
+            setCloudStatus(
+                "Class deleted",
+                "good"
+            );
+
+
+            await loadTeacherClasses();
+        }
+
+        catch (error) {
+
+            console.error(
+                error
+            );
+
+
+            setCloudStatus(
+                "Class delete failed",
+                "bad"
+            );
+
+
+            alert(
+                error.message ||
+                "Could not delete this class."
+            );
+        }
+
+        finally {
+
+            deleteClassButton.disabled =
+                false;
+
+
+            deleteClassButton.textContent =
+                "Delete Class";
+        }
+    }
+);
+
+
 function cleanImportedNames(
     names
 ) {
@@ -14483,6 +14951,33 @@ importClassListButton.addEventListener(
             !selectedTeacherClass ||
 
             !pendingClassImportNames.length
+
+        ) {
+
+            return;
+        }
+
+
+        // Nudge towards first names only; never block the import.
+        const fullNameCount =
+            pendingClassImportNames.filter(
+                name =>
+                    /\s/.test(
+                        String(name).trim()
+                    )
+            ).length;
+
+
+        if (
+
+            fullNameCount >
+            pendingClassImportNames.length / 2 &&
+
+            !confirm(
+                "Most of these names have two or more words, so they look like full names.\n\n" +
+                "For children's privacy, use first names only — the register number tells children with the same name apart.\n\n" +
+                "Import anyway?"
+            )
 
         ) {
 
@@ -15531,8 +16026,51 @@ saveTaskSettingsButton.addEventListener(
             }
 
 
-            const deleteAssignments =
-                await sb
+            // Add newly ticked Classes first, then remove unticked ones.
+            // A co-Teacher only sees this Task through its Classes, so the
+            // Task must never be left with none of theirs in between.
+            if (
+                selectedClassIds.length
+            ) {
+
+                const addAssignments =
+                    await sb
+                        .from(
+                            "task_classes"
+                        )
+                        .upsert(
+
+                            selectedClassIds.map(
+                                classId => ({
+                                    task_id:
+                                        selectedTeacherTask.id,
+
+                                    class_id:
+                                        classId
+                                })
+                            ),
+
+                            {
+                                onConflict:
+                                    "task_id,class_id",
+
+                                ignoreDuplicates:
+                                    true
+                            }
+                        );
+
+
+                if (
+                    addAssignments.error
+                ) {
+
+                    throw addAssignments.error;
+                }
+            }
+
+
+            let removeAssignments =
+                sb
                     .from(
                         "task_classes"
                     )
@@ -15544,47 +16082,27 @@ saveTaskSettingsButton.addEventListener(
 
 
             if (
-                deleteAssignments.error
-            ) {
-
-                throw deleteAssignments.error;
-            }
-
-
-            if (
                 selectedClassIds.length
             ) {
 
-                const assignmentRows =
-                    selectedClassIds.map(
-
-                        classId => ({
-
-                            task_id:
-                                selectedTeacherTask.id,
-
-                            class_id:
-                                classId
-                        })
+                removeAssignments =
+                    removeAssignments.not(
+                        "class_id",
+                        "in",
+                        `(${selectedClassIds.join(",")})`
                     );
+            }
 
 
-                const insertAssignments =
-                    await sb
-                        .from(
-                            "task_classes"
-                        )
-                        .insert(
-                            assignmentRows
-                        );
+            const removeResult =
+                await removeAssignments;
 
 
-                if (
-                    insertAssignments.error
-                ) {
+            if (
+                removeResult.error
+            ) {
 
-                    throw insertAssignments.error;
-                }
+                throw removeResult.error;
             }
 
 
@@ -15874,46 +16392,7 @@ deleteTaskButton.addEventListener(
             }
 
 
-            const classAssignmentDelete =
-                await sb
-                    .from(
-                        "task_classes"
-                    )
-                    .delete()
-                    .eq(
-                        "task_id",
-                        taskId
-                    );
-
-
-            if (
-                classAssignmentDelete.error
-            ) {
-
-                throw classAssignmentDelete.error;
-            }
-
-
-            const taskDelete =
-                await sb
-                    .from(
-                        "tasks"
-                    )
-                    .delete()
-                    .eq(
-                        "id",
-                        taskId
-                    );
-
-
-            if (
-                taskDelete.error
-            ) {
-
-                throw taskDelete.error;
-            }
-
-
+            // Remove the Reference Map while this Teacher can still see the Task.
             if (
                 referencePath
             ) {
@@ -15934,12 +16413,44 @@ deleteTaskButton.addEventListener(
                 ) {
 
                     console.warn(
-
-                        "Task deleted, but its old reference image could not be removed:",
-
+                        "Could not remove the task's reference image:",
                         referenceDelete.error
                     );
                 }
+            }
+
+
+            // Deleting the Task also removes which Classes it was set for.
+            const taskDelete =
+                await sb
+                    .from(
+                        "tasks"
+                    )
+                    .delete()
+                    .eq(
+                        "id",
+                        taskId
+                    )
+                    .select(
+                        "id"
+                    );
+
+
+            if (
+                taskDelete.error
+            ) {
+
+                throw taskDelete.error;
+            }
+
+
+            if (
+                !taskDelete.data?.length
+            ) {
+
+                throw new Error(
+                    "This task could not be deleted. You may no longer have access to it."
+                );
             }
 
 
@@ -16481,8 +16992,28 @@ function submissionRowSignature(
         submission.group_name,
         submission.status,
         submission.updated_at,
+        submission.submitted_at,
         submission.reviewed_at
     ]);
+}
+
+
+/* Marked, then handed in again after the Review was last saved. */
+
+function isResubmittedAwaitingReview(
+    submission
+) {
+
+    return (
+        submission.status === "submitted" &&
+
+        Boolean(submission.reviewed_at) &&
+
+        Boolean(submission.submitted_at) &&
+
+        new Date(submission.submitted_at) >
+        new Date(submission.reviewed_at)
+    );
 }
 
 
@@ -16589,6 +17120,14 @@ No student saves yet.
                     entry.submission.status !== "submitted" &&
                     submission.status === "submitted";
 
+                const becameResubmitted =
+                    !isResubmittedAwaitingReview(
+                        entry.submission
+                    ) &&
+                    isResubmittedAwaitingReview(
+                        submission
+                    );
+
                 entry.submission =
                     submission;
 
@@ -16598,7 +17137,10 @@ No student saves yet.
 
                 if (
                     highlightChanges &&
-                    becameSubmitted
+                    (
+                        becameSubmitted ||
+                        becameResubmitted
+                    )
                 ) {
 
                     flashSubmissionRow(
@@ -16784,7 +17326,11 @@ ${
         }
 </span>
 ${
-            submission.reviewed_at
+            isResubmittedAwaitingReview(
+                submission
+            )
+                ? `<span class="submission-resubmitted">Resubmitted – awaiting review</span>`
+                : submission.reviewed_at
                 ? `<span class="submission-marked">Marked · ${escapeHtml(formatShortDateTime(submission.reviewed_at))}</span>`
                 : ""
         }

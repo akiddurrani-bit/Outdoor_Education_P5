@@ -1419,7 +1419,7 @@ Upload class list
 </h3>
 
 <p class="helper-text">
-Upload an Excel or CSV file. Use one student name per row, or a column headed “Name”.
+Upload an Excel or CSV file with one student per row, or a column headed “Name”. Use first names only — the register number tells children with the same name apart.
 </p>
 </div>
 
@@ -1457,7 +1457,7 @@ Add one student
 <input
 id="newStudentName"
 type="text"
-placeholder="Student name"
+placeholder="First name"
 autocomplete="off"
 >
 
@@ -1490,6 +1490,27 @@ Roster
 id="classRosterList"
 class="class-roster-list"
 ></div>
+
+<div class="reference-manager">
+<div>
+<div class="mini-label">
+DANGER ZONE
+</div>
+<h3>
+Delete Class
+</h3>
+<p class="helper-text">
+Permanently deletes this class, its student list, and all of its students' projects and teacher feedback. Tasks are kept. To keep the work, archive the class instead.
+</p>
+</div>
+<button
+id="deleteClassButton"
+class="danger-outline-button"
+type="button"
+>
+Delete Class
+</button>
+</div>
 
 </div>
 </section>
@@ -1596,35 +1617,54 @@ STUDENT LOGIN
 </div>
 
 <h2>
-Find your profile
+Start your activity
 </h2>
 
-<p class="modal-description">
-Select your class, then choose your name.
+<p
+id="startupDescription"
+class="modal-description"
+>
+Type the task code from your teacher.
 </p>
 
-<label for="startupClassSelect">
-Class
+<label for="startupTaskCode">
+Task code
 </label>
 
-<select id="startupClassSelect">
-<option value="">
-Loading classes…
-</option>
-</select>
+<input
+id="startupTaskCode"
+type="text"
+maxlength="8"
+placeholder="e.g. ABC123"
+autocomplete="off"
+autocapitalize="characters"
+spellcheck="false"
+>
+
+<div
+id="startupNameStep"
+hidden
+>
 
 <label for="startupStudentSelect">
-Name
+Your name
 </label>
 
-<select
-id="startupStudentSelect"
-disabled
->
+<select id="startupStudentSelect">
 <option value="">
-Select your class first
+Choose your name
 </option>
 </select>
+
+<button
+id="startupChangeCodeButton"
+class="text-link-button"
+type="button"
+>
+Use a different task code
+</button>
+
+</div>
 
 <div
 id="startupError"
