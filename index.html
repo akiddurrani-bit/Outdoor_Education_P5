@@ -110,7 +110,10 @@ class="edit-lock-banner"
 hidden
 >
 <div>
-<div class="mini-label">
+<div
+id="editLockLabel"
+class="mini-label"
+>
 VIEW-ONLY
 </div>
 
@@ -795,6 +798,23 @@ placeholder="Write feedback for the student..."
 </div>
 
 <div class="review-actions">
+<p
+id="reviewDraftNotice"
+class="review-draft-notice"
+hidden
+>
+Still being drawn. You can mark it once the group hands it in.
+</p>
+
+<button
+id="handInForThemButton"
+class="quiet-button"
+type="button"
+hidden
+>
+Hand in for them
+</button>
+
 <button
 id="saveTeacherFeedbackButton"
 class="primary-button"
@@ -803,7 +823,10 @@ type="button"
 Save feedback + ink
 </button>
 
-<p class="review-hint">
+<p
+id="reviewHint"
+class="review-hint"
+>
 Students see it in My Projects within about 10 seconds.
 </p>
 </div>

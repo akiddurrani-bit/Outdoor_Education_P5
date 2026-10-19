@@ -1358,13 +1358,6 @@ text-transform:uppercase;
 letter-spacing:0.08em;
 }
 
-.submission-name .submission-resubmitted {
-display:block;
-margin-top:2px;
-color:#8a5a1f;
-font-weight:800;
-}
-
 .submission-row-updated {
 animation:submission-row-updated 2.4s ease-out;
 }
@@ -1432,6 +1425,26 @@ align-self:end;
 
 .review-actions .primary-button {
 white-space:nowrap;
+}
+
+.review-draft-notice {
+max-width:220px;
+margin:0;
+padding:8px 10px;
+border:1px solid #dfc28d;
+border-radius:8px;
+background:#fff8ea;
+color:#6f5326;
+font-size:12px;
+font-weight:700;
+line-height:1.4;
+}
+
+.review-tool:disabled,
+.teacher-feedback-panel .primary-button:disabled,
+.teacher-feedback-panel textarea:disabled {
+opacity:.45;
+cursor:not-allowed;
 }
 
 .review-hint {

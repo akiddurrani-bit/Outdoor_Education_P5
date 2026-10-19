@@ -1,5 +1,7 @@
 # Spec: "Resubmitted – awaiting review"
 
+> **Superseded 20 Oct 2026** by `handed-in-is-final.md`: handing in is now final, so a Project can no longer be Resubmitted.
+
 Status: draft · Phase 2, item 5 · One Supabase change (proposed, not applied) + front end · Tracked in [issue #7](https://github.com/akiddurrani-bit/Outdoor_Education_P5/issues/7)
 
 ## Problem Statement
