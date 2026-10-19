@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="t">
+  <title id="t">OE Map Maker</title>
+  <!-- Badge -->
+  <rect width="64" height="64" rx="15" fill="#34483d"/>
+  <!-- Sun -->
+  <circle cx="47" cy="17" r="6" fill="#e2cf9f"/>
+  <!-- Far hills -->
+  <path d="M0 42 L17 22 L27 33 L36 24 L52 42 L64 34 V64 H0 Z" fill="#6f8b77"/>
+  <!-- Near ground -->
+  <path d="M0 48 C14 40 30 41 42 45 C50 48 57 47 64 43 V64 H0 Z" fill="#4f6759"/>
+  <!-- Pine tree -->
+  <path d="M14 26 L20 37 H16.5 L21.5 45 H6.5 L11.5 37 H8 Z" fill="#a9c49a"/>
+  <rect x="12.6" y="45" width="2.8" height="5" rx="1" fill="#a9c49a"/>
+  <!-- Trail -->
+  <path d="M10 60 C20 56 26 55 32 52 C37 49.5 40 48 44 46.5" fill="none" stroke="#f3efe3" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="0.1 5.4"/>
+  <!-- Map pin -->
+  <path d="M47 50 C47 50 39.5 41.5 39.5 36.5 A7.5 7.5 0 0 1 54.5 36.5 C54.5 41.5 47 50 47 50 Z" fill="#d0705f"/>
+  <circle cx="47" cy="36.5" r="2.9" fill="#f3efe3"/>
+</svg>

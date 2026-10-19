@@ -7,7 +7,7 @@ A tool for Outdoor Education lessons in which students build abstract maps of a 
 ### Setting work
 
 **Teacher**:
-Anyone who has signed up with an email address. A Teacher sees and manages only the Classes they are a Teacher of, along with those Classes' Tasks, Projects and Reviews. All Teachers of a Class are equal.
+Anyone who signs in with an email address and password, or with a Google account. A Teacher sees and manages only the Classes they are a Teacher of, along with those Classes' Tasks, Projects and Reviews. All Teachers of a Class are equal.
 _Avoid_: Admin, staff, owner
 
 **Task**:
@@ -53,12 +53,16 @@ The set of students from one Class sharing one Project for one Task, chosen by w
 _Avoid_: Team, pair
 
 **Editor**:
-The one device currently allowed to change a Project. Every other device that opens the same Project at that moment is View-only until the Editor leaves.
+The one device currently allowed to change a Project. Every other device that opens the same Project at that moment is View-only until the Editor hands over in answer to an Edit Request, or leaves.
 _Avoid_: Owner, host
 
 **View-only**:
-How a Project appears on any device that is not its Editor: the latest saved map and feedback can be seen, but nothing can be drawn, saved or submitted.
+How a Project appears on any device that is not its Editor: the map can be watched as the Editor builds it, and feedback can be seen, but nothing can be drawn, saved or submitted.
 _Avoid_: Locked out, read-only mode
+
+**Edit Request**:
+A View-only Group member asking the Editor for a turn to draw. The Editor can hand over or refuse; if they do not answer in time, the student who asked becomes the Editor anyway, provided they are still there and looking at their screen. A Project has at most one Edit Request waiting at a time.
+_Avoid_: Unlock, take over, permission
 
 ### Map features
 

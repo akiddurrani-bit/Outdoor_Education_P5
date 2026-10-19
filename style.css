@@ -72,6 +72,21 @@ background:rgba(251,250,246,.96);
 border-bottom:1px solid var(--line);
 }
 
+.brand {
+display:flex;
+align-items:center;
+gap:12px;
+min-width:0;
+}
+
+.brand-logo {
+flex-shrink:0;
+width:48px;
+height:48px;
+border-radius:12px;
+box-shadow:0 2px 6px rgba(52,72,61,.22);
+}
+
 .app-header h1,
 .teacher-dashboard-head h1 {
 margin:2px 0 3px;
@@ -171,28 +186,51 @@ outline:3px solid rgba(79,103,89,.18);
 outline-offset:2px;
 }
 
-
-/* =========================================================
-FIELD JOURNAL STRIP
-========================================================= */
-
-.journal-strip {
-display:flex;
-align-items:center;
-justify-content:center;
-gap:12px;
-padding:7px 16px;
-background:var(--forest-dark);
-color:#f3efe3;
-font-size:10px;
-font-weight:800;
-letter-spacing:1.3px;
+/* Who is using the app right now: Student or Teacher. */
+.mode-button.active {
+background:var(--role-colour);
+border-color:var(--role-colour);
+color:#fff;
 }
 
-.journal-strip i {
-width:34px;
-height:1px;
-background:rgba(255,255,255,.35);
+.app-header {
+--role-colour:var(--forest);
+border-top:4px solid var(--role-colour);
+}
+
+body.role-teacher .app-header {
+--role-colour:#2f4f7a;
+}
+
+.role-indicator {
+display:flex;
+align-items:center;
+gap:8px;
+max-width:340px;
+padding:5px 12px 5px 5px;
+border:1px solid var(--role-colour);
+border-radius:999px;
+background:#fffdf8;
+font-size:12px;
+}
+
+.role-indicator-label {
+padding:4px 10px;
+border-radius:999px;
+background:var(--role-colour);
+color:#fff;
+font-size:11px;
+font-weight:800;
+letter-spacing:1px;
+text-transform:uppercase;
+}
+
+.role-indicator-detail {
+overflow:hidden;
+color:var(--ink);
+font-weight:700;
+white-space:nowrap;
+text-overflow:ellipsis;
 }
 
 
@@ -1453,12 +1491,43 @@ justify-content:flex-start;
 flex:1;
 }
 
-.journal-strip {
+.role-indicator {
+flex-basis:100%;
+max-width:none;
+}
+
+/* Keep the header compact so the map gets the screen. */
+.app-header {
+gap:10px;
+padding:10px 16px;
+}
+
+.app-header h1 {
+font-size:21px;
+}
+
+.brand {
+gap:10px;
+}
+
+.brand-logo {
+width:38px;
+height:38px;
+border-radius:10px;
+}
+
+.teacher-dashboard-head h1 {
+font-size:23px;
+}
+
+.header-actions {
 gap:6px;
 }
 
-.journal-strip i {
-width:12px;
+.mode-button {
+min-width:0;
+padding:7px 12px;
+font-size:14px;
 }
 
 .page-container,
@@ -2096,6 +2165,77 @@ font-size:12px;
 line-height:1.45;
 }
 
+.edit-lock-actions {
+display:flex;
+flex-wrap:wrap;
+gap:8px;
+flex-shrink:0;
+}
+
+/* Edit Request prompt on the Editor's device: floats over the map
+   so the Editor can keep drawing while deciding. */
+.edit-request-prompt {
+position:fixed;
+z-index:60;
+left:50%;
+bottom:24px;
+transform:translateX(-50%);
+display:flex;
+align-items:center;
+gap:18px;
+width:min(560px, calc(100vw - 32px));
+box-sizing:border-box;
+padding:14px 16px;
+border:1px solid #9fc2a8;
+border-left:5px solid #2f7d4a;
+border-radius:12px;
+background:#f1faf3;
+box-shadow:0 10px 30px rgba(0, 0, 0, 0.18);
+}
+
+.edit-request-prompt[hidden] {
+display:none;
+}
+
+.edit-request-prompt strong {
+display:block;
+margin-top:3px;
+font-size:15px;
+}
+
+.edit-request-prompt p {
+margin:4px 0 0;
+color:#2f5a3c;
+font-size:13px;
+font-variant-numeric:tabular-nums;
+}
+.google-sign-in-button {
+display:flex;
+align-items:center;
+justify-content:center;
+gap:10px;
+width:100%;
+margin:4px 0 12px;
+padding:11px 14px;
+border:1px solid #c8c7c0;
+border-radius:10px;
+background:#fff;
+color:#1f1f1f;
+font-size:14px;
+font-weight:700;
+cursor:pointer;
+}
+
+.google-sign-in-button:hover {
+background:#f6f8fb;
+border-color:#2f4f7a;
+}
+
+.google-sign-in-button:disabled {
+opacity:.6;
+cursor:wait;
+}
+
 .login-divider {
 display:flex;
 align-items:center;
@@ -2175,9 +2315,9 @@ line-height:1.4;
 
 @media (max-width:700px) {
 
-.edit-lock-banner {
+.edit-lock-banner,
+.edit-request-prompt {
 flex-direction:column;
 align-items:stretch;
 }
-
 }
