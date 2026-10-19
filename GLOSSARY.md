@@ -7,8 +7,8 @@ A tool for Outdoor Education lessons in which students build abstract maps of a 
 ### Setting work
 
 **Teacher**:
-Anyone signed in to the teacher portal. Every Teacher can see and manage every Class, Task and Project.
-_Avoid_: Admin, staff
+Anyone who has signed up with an email address. A Teacher sees and manages only the Classes they are a Teacher of, along with those Classes' Tasks, Projects and Reviews. All Teachers of a Class are equal.
+_Avoid_: Admin, staff, owner
 
 **Task**:
 An activity a teacher sets for one or more Classes, with instructions, the tools students may use, and optionally a Reference Map.
@@ -19,12 +19,20 @@ The short code students enter to open a Task.
 _Avoid_: Join code, PIN
 
 **Class**:
-A named group of students, such as TG1. Students identify themselves by choosing their Class and their name from its Roster, without a password.
+A named group of students, such as TG1, with one or more Teachers. The Teacher who creates a Class is its first Teacher. Students never browse Classes: they enter a Task Code, then choose their own name from the Rosters of the Classes that Task is set for, without a password.
 _Avoid_: Form, section
 
+**Open / Closed**:
+Whether a Class currently appears to students at sign-in. A new Class starts Closed while its Teacher prepares the Roster, and the Teacher opens it for a lesson and can close it again afterwards.
+_Avoid_: Active, archived, published
+
 **Roster**:
-The list of student names belonging to a Class.
+The list of students belonging to a Class, each identified by register number and first name only.
 _Avoid_: Class list, register
+
+**Guest**:
+A student who is not on any Roster and signs in by typing a name, receiving a Guest Code that tells them apart from others with the same name. A Guest always works alone and is never part of a Group.
+_Avoid_: Visitor, temporary student
 
 **Reference Map**:
 An image of the real site that students can see only while holding a button, for comparison with their own map.
@@ -43,6 +51,14 @@ _Avoid_: Final, completed
 **Group**:
 The set of students from one Class sharing one Project for one Task, chosen by whichever member opens the Task first. A student working alone is a Group of one; Groups do not carry over between Tasks.
 _Avoid_: Team, pair
+
+**Editor**:
+The one device currently allowed to change a Project. Every other device that opens the same Project at that moment is View-only until the Editor leaves.
+_Avoid_: Owner, host
+
+**View-only**:
+How a Project appears on any device that is not its Editor: the latest saved map and feedback can be seen, but nothing can be drawn, saved or submitted.
+_Avoid_: Locked out, read-only mode
 
 ### Map features
 
