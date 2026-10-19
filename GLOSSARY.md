@@ -22,9 +22,9 @@ _Avoid_: Join code, PIN
 A named group of students, such as TG1, with one or more Teachers. The Teacher who creates a Class is its first Teacher. Students never browse Classes: they enter a Task Code, then choose their own name from the Rosters of the Classes that Task is set for, without a password.
 _Avoid_: Form, section
 
-**Open / Closed**:
-Whether a Class currently appears to students at sign-in. A new Class starts Closed while its Teacher prepares the Roster, and the Teacher opens it for a lesson and can close it again afterwards.
-_Avoid_: Active, archived, published
+**Archived**:
+A Class retired from use, for example at the end of the year. It disappears from Teachers' lists and from sign-in, but its students' Projects are kept. Deleting a Class, by contrast, removes it together with its Roster and all its Projects.
+_Avoid_: Closed, inactive, hidden
 
 **Roster**:
 The list of students belonging to a Class, each identified by register number and first name only.
