@@ -730,6 +730,10 @@ const teacherFeedbackPanel =
 const reviewStudentName =
     $("reviewStudentName");
 
+
+const reviewStudentMeta =
+    $("reviewStudentMeta");
+
 const teacherFeedbackText =
     $("teacherFeedbackText");
 
@@ -18821,12 +18825,17 @@ updated_at
 
 
     reviewStudentName.textContent =
+        data.group_name ||
+        data.student_name;
+
+
+    reviewStudentMeta.textContent =
 
         data.group_name
 
-            ? `${data.class_name} · ${data.group_name}`
+            ? `${data.class_name} · Group of ${data.group_name.split(",").length}`
 
-            : `${data.student_name} · ${data.class_name}`;
+            : data.class_name;
 
 
     appMode =
