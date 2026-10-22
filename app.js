@@ -20782,7 +20782,7 @@ updated_at
 
 
     taskInstructions.textContent =
-        "Teacher review copy — red ink and comments are stored separately from the student's map.";
+        "";
 
 
     taskMembers.textContent =
