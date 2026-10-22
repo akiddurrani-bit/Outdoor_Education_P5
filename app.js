@@ -724,6 +724,34 @@ const clearAnnotationsButton =
 const backToDashboardButton =
     $("backToDashboardButton");
 
+
+const teacherGallery =
+    $("teacherGallery");
+
+
+const galleryHeading =
+    $("galleryHeading");
+
+
+const galleryContent =
+    $("galleryContent");
+
+
+const openGalleryButton =
+    $("openGalleryButton");
+
+
+const galleryBackButton =
+    $("galleryBackButton");
+
+
+const continueTeacherStep =
+    $("continueTeacherStep");
+
+
+const continueTeacherButton =
+    $("continueTeacherButton");
+
 const teacherFeedbackPanel =
     $("teacherFeedbackPanel");
 
@@ -833,6 +861,31 @@ let referenceHoldActive = false;
 let colourBeforeState = null;
 
 let saveTimer = null;
+
+
+// Gallery: the Task it shows, or null when it is closed.
+let galleryTaskId =
+    null;
+
+
+// True while the first Gallery load for galleryTaskId is in flight.
+let galleryLoading =
+    false;
+
+
+// True when the open Review screen was opened from a Gallery tile.
+let reviewOpenedFromGallery =
+    false;
+
+
+// Project id → { submission, signature, mapUpdatedAt, tile, ... }
+let galleryEntries =
+    new Map();
+
+
+// Class name → { section, grid }
+let galleryClassSections =
+    new Map();
 
 let toolbarWakeTimer = null;
 
@@ -8147,11 +8200,34 @@ RENDER SHAPES
 
 function renderShapes() {
 
-    shapeLayer.innerHTML =
+    drawShapes(
+
+        shapeLayer,
+
+        shapes,
+
+        selectedItem?.kind === "shape"
+            ? selectedItem.id
+            : null
+    );
+}
+
+
+/*
+Draw Landmarks into any SVG layer. Shared by the editor and
+by map previews, so both always draw Landmarks the same way.
+*/
+function drawShapes(
+    layer,
+    shapeList,
+    selectedShapeId = null
+) {
+
+    layer.innerHTML =
         "";
 
 
-    shapes.forEach(
+    shapeList.forEach(
 
         shape => {
 
@@ -8236,12 +8312,9 @@ function renderShapes() {
 
 
             if (
-
-                selectedItem?.kind === "shape" &&
-
-                selectedItem.id ===
+                selectedShapeId !== null &&
+                selectedShapeId ===
                 shape.id
-
             ) {
 
                 element.classList.add(
@@ -8262,7 +8335,7 @@ ${centre.y}
             );
 
 
-            shapeLayer.appendChild(
+            layer.appendChild(
                 element
             );
 
@@ -8276,7 +8349,8 @@ ${centre.y}
             ) {
 
                 renderWrappedLabel(
-                    shape
+                    shape,
+                    layer
                 );
             }
         }
@@ -8324,7 +8398,8 @@ function calculateLabelFontSize(
 
 
 function renderWrappedLabel(
-    shape
+    shape,
+    layer = shapeLayer
 ) {
 
     const bounds =
@@ -8503,7 +8578,7 @@ function renderWrappedLabel(
     );
 
 
-    shapeLayer.appendChild(
+    layer.appendChild(
         foreignObject
     );
 }
@@ -8555,11 +8630,27 @@ function routePolyline(
 
 function renderRoutes() {
 
-    routeLayer.innerHTML =
+    drawRoutes(
+        routeLayer,
+        routes
+    );
+}
+
+
+/*
+Draw Routes into any SVG layer. Shared by the editor and by
+map previews, so both always draw Routes the same way.
+*/
+function drawRoutes(
+    layer,
+    routeList
+) {
+
+    layer.innerHTML =
         "";
 
 
-    routes.forEach(
+    routeList.forEach(
 
         route => {
 
@@ -8772,10 +8863,175 @@ function renderRoutes() {
             }
 
 
-            routeLayer.appendChild(
+            layer.appendChild(
                 group
             );
         }
+    );
+}
+
+
+/* =========================================================
+MAP PREVIEW
+========================================================= */
+
+function mapDataHasFeatures(
+    mapData
+) {
+
+    const data =
+        mapData ||
+        {};
+
+
+    return (
+
+        (
+            Array.isArray(
+                data.shapes
+            ) &&
+            data.shapes.length > 0
+        ) ||
+
+        (
+            Array.isArray(
+                data.routes
+            ) &&
+            data.routes.some(
+                route =>
+                    route.kind !==
+                    "boundary"
+            )
+        )
+    );
+}
+
+
+/*
+Draw one Project's map, read-only, into a container: the whole
+canvas scaled to fit, with its North Arrow. No Legend, Reference
+Map, selection or Review ink. Never touches the editor's state.
+*/
+function renderMapPreview(
+    container,
+    mapData
+) {
+
+    const data =
+        mapData ||
+        {};
+
+
+    const svg =
+        document.createElementNS(
+            SVG_NS,
+            "svg"
+        );
+
+    svg.setAttribute(
+        "viewBox",
+        `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`
+    );
+
+    svg.setAttribute(
+        "preserveAspectRatio",
+        "xMidYMid meet"
+    );
+
+    svg.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    const background =
+        document.createElementNS(
+            SVG_NS,
+            "rect"
+        );
+
+    background.setAttribute(
+        "width",
+        CANVAS_WIDTH
+    );
+
+    background.setAttribute(
+        "height",
+        CANVAS_HEIGHT
+    );
+
+    background.setAttribute(
+        "class",
+        "canvas-background"
+    );
+
+
+    const previewShapeLayer =
+        document.createElementNS(
+            SVG_NS,
+            "g"
+        );
+
+    const previewRouteLayer =
+        document.createElementNS(
+            SVG_NS,
+            "g"
+        );
+
+
+    svg.append(
+        background,
+        previewShapeLayer,
+        previewRouteLayer
+    );
+
+
+    drawShapes(
+
+        previewShapeLayer,
+
+        Array.isArray(
+            data.shapes
+        )
+            ? data.shapes
+            : []
+    );
+
+
+    drawRoutes(
+
+        previewRouteLayer,
+
+        Array.isArray(
+            data.routes
+        )
+            ? data.routes
+            : []
+    );
+
+
+    const north =
+        document.createElement(
+            "div"
+        );
+
+    north.className =
+        "map-preview-north";
+
+    north.innerHTML =
+        `<strong>N</strong><span>↑</span>`;
+
+    north.style.transform =
+        `rotate(${Number(data.northAngle) || 0}deg)`;
+
+
+    container.classList.add(
+        "map-preview"
+    );
+
+    container.replaceChildren(
+        svg,
+        north
     );
 }
 
@@ -10281,12 +10537,19 @@ function showStartupCodeStep() {
 
 async function prepareStudentLogin() {
 
+
     showStartupCodeStep();
+
 
     startupTaskCode.value =
         "";
 
+
     resumeGuestButton.hidden =
+        true;
+
+
+    continueTeacherStep.hidden =
         true;
 
 
@@ -10319,17 +10582,38 @@ async function prepareStudentLogin() {
 
     try {
 
-        await ensureAnonymousStudentSession();
 
-        await detectResumeGuestSession();
+        // A signed-in Teacher keeps their session until a student
+        // actually starts (Task Code or Guest), or they sign out.
+        const teacherUser =
+            await signedInTeacherUser();
+
+
+        if (teacherUser) {
+
+
+            continueTeacherButton.textContent =
+                `Continue as ${teacherUser.email || "Teacher"}`;
+
+
+            continueTeacherStep.hidden =
+                false;
+        }
+
+
+        else {
+
+
+            await ensureAnonymousStudentSession();
+
+
+            await detectResumeGuestSession();
+        }
     }
-
     catch (error) {
-
         console.error(
             error
         );
-
         startupError.textContent =
             error.message ||
             "Could not start signing in.";
@@ -14321,6 +14605,10 @@ async function loadStudentProject(
             true;
 
 
+        backToDashboardButton.hidden =
+            true;
+
+
         teacherFeedbackPanel.hidden =
             true;
 
@@ -15069,6 +15357,162 @@ teacherGoogleButton.addEventListener(
 
 
 // Returns true when this page load was the return from Google.
+/* The Teacher signed in on this browser, or null. */
+async function signedInTeacherUser() {
+
+
+    const {
+        data: {
+            session
+        }
+    } =
+        await sb
+            .auth
+            .getSession();
+
+
+    return (
+        session?.user &&
+        !session.user.is_anonymous
+    )
+        ? session.user
+        : null;
+}
+
+
+continueTeacherButton.addEventListener(
+    "click",
+    async () => {
+
+
+        continueTeacherButton.disabled =
+            true;
+
+
+        startupError.hidden =
+            true;
+
+
+        try {
+
+
+            const user =
+                await signedInTeacherUser();
+
+
+            // Signed out elsewhere since the page loaded.
+            if (!user) {
+
+
+                await prepareStudentLogin();
+
+
+                return;
+            }
+
+
+            startupModal.hidden =
+                true;
+
+
+            await finishTeacherSignIn(
+                user
+            );
+        }
+
+
+        catch (error) {
+
+
+            console.error(
+                error
+            );
+
+
+            startupModal.hidden =
+                false;
+
+
+            startupError.textContent =
+                error.message ||
+                "Could not continue as Teacher.";
+
+
+            startupError.hidden =
+                false;
+        }
+
+
+        finally {
+
+
+            continueTeacherButton.disabled =
+                false;
+        }
+    }
+);
+
+
+const LAST_TEACHER_TASK_KEY =
+    "oeMapMakerLastTeacherTaskV1";
+
+
+function rememberTeacherTask(
+    taskId
+) {
+
+
+    try {
+
+
+        if (taskId) {
+
+
+            sessionStorage.setItem(
+                LAST_TEACHER_TASK_KEY,
+                taskId
+            );
+        }
+
+
+        else {
+
+
+            sessionStorage.removeItem(
+                LAST_TEACHER_TASK_KEY
+            );
+        }
+    }
+
+
+    catch (error) {
+
+
+        // Storage can be blocked; the Task is simply not remembered.
+    }
+}
+
+
+function rememberedTeacherTaskId() {
+
+
+    try {
+
+
+        return sessionStorage.getItem(
+            LAST_TEACHER_TASK_KEY
+        );
+    }
+
+
+    catch (error) {
+
+
+        return null;
+    }
+}
+
+
 async function resumeGoogleTeacherSignIn() {
 
     if (
@@ -15283,11 +15727,23 @@ async function openTeacherDashboard() {
         false;
 
 
+    teacherGallery.hidden =
+        true;
+
+
+    galleryTaskId =
+        null;
+
+
     startupModal.hidden =
         true;
 
 
     teacherReviewToolbar.hidden =
+        true;
+
+
+    backToDashboardButton.hidden =
         true;
 
 
@@ -15316,9 +15772,31 @@ async function openTeacherDashboard() {
 
 
     await loadTeacherClasses();
-
-
     await loadTeacherTasks();
+
+
+    // After a refresh, reopen the Task this tab last had selected.
+    if (
+        !selectedTeacherTask
+    ) {
+
+
+        const lastTask =
+            teacherTasks.find(
+                task =>
+                    task.id ===
+                    rememberedTeacherTaskId()
+            );
+
+
+        if (lastTask) {
+
+
+            await selectTeacherTask(
+                lastTask
+            );
+        }
+    }
 }
 
 
@@ -15340,6 +15818,11 @@ teacherSignOutButton.addEventListener(
 
         currentTeacherUser =
             null;
+
+
+        rememberTeacherTask(
+            null
+        );
 
 
         window.location.reload();
@@ -17769,8 +18252,14 @@ async function selectTeacherTask(
     task
 ) {
 
+
     selectedTeacherTask =
         task;
+
+
+    rememberTeacherTask(
+        task.id
+    );
 
 
     noTaskSelected.hidden =
@@ -19379,11 +19868,954 @@ refreshSubmissionsButton.addEventListener(
 
 
 /* =========================================================
+GALLERY
+Every Project for the selected Task, side by side as small
+maps, for Teachers only. It has no actions of its own.
+========================================================= */
+
+
+function galleryStatus(
+    submission
+) {
+
+    if (
+        submission.reviewed_at
+    ) {
+
+        return {
+            label:
+                "Marked",
+            className:
+                "marked"
+        };
+    }
+
+
+    if (
+        submission.status === "submitted"
+    ) {
+
+        return {
+            label:
+                "Submitted",
+            className:
+                "submitted"
+        };
+    }
+
+
+    return {
+        label:
+            "Drawing",
+        className:
+            ""
+    };
+}
+
+
+function formatTimeAgo(
+    value
+) {
+
+    const minutes =
+        Math.floor(
+            (
+                Date.now() -
+                new Date(value).getTime()
+            ) /
+            60000
+        );
+
+
+    if (
+        minutes < 1
+    ) {
+
+        return "just now";
+    }
+
+
+    if (
+        minutes < 60
+    ) {
+
+        return `${minutes} min ago`;
+    }
+
+
+    if (
+        minutes < 24 * 60
+    ) {
+
+        return `${Math.floor(minutes / 60)} h ago`;
+    }
+
+
+    return formatShortDateTime(
+        value
+    );
+}
+
+
+/*
+The Task's Projects in list order, each with its map data.
+Map data is downloaded only for Projects in needMapIds(items).
+*/
+async function fetchGalleryProjects(
+    taskId,
+    needMapIds = items =>
+        items.map(
+            item =>
+                item.id
+        )
+) {
+
+    const items =
+        await fetchTaskProjects(
+            taskId
+        );
+
+
+    const ids =
+        needMapIds(
+            items
+        );
+
+
+    const maps =
+        new Map();
+
+
+    if (
+        ids.length
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await sb
+                .from(
+                    "submissions"
+                )
+                .select(
+                    "id,updated_at,map_data"
+                )
+                .in(
+                    "id",
+                    ids
+                );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        (data || []).forEach(
+            row =>
+                maps.set(
+                    row.id,
+                    row
+                )
+        );
+    }
+
+
+    return {
+        items,
+        maps
+    };
+}
+
+
+function createGalleryTile(
+    submission
+) {
+
+    const entry = {
+        submission,
+        signature:
+            "",
+        mapUpdatedAt:
+            null,
+        tile:
+            document.createElement(
+                "button"
+            ),
+        map:
+            document.createElement(
+                "div"
+            ),
+        empty:
+            document.createElement(
+                "div"
+            ),
+        name:
+            document.createElement(
+                "strong"
+            ),
+        status:
+            document.createElement(
+                "div"
+            ),
+        meta:
+            document.createElement(
+                "span"
+            )
+    };
+
+
+    entry.tile.type =
+        "button";
+
+
+    entry.tile.className =
+        "gallery-tile";
+
+
+    entry.tile.addEventListener(
+        "click",
+        () =>
+            openSubmissionReview(
+                entry.submission.id,
+                {
+                    fromGallery:
+                        true
+                }
+            )
+    );
+
+    entry.map.className =
+        "gallery-tile-map";
+
+    entry.empty.className =
+        "gallery-tile-empty";
+
+    entry.empty.textContent =
+        "Nothing drawn yet";
+
+
+    const info =
+        document.createElement(
+            "div"
+        );
+
+    info.className =
+        "gallery-tile-info";
+
+    info.append(
+        entry.name,
+        entry.status,
+        entry.meta
+    );
+
+
+    entry.tile.append(
+        entry.map,
+        info
+    );
+
+
+    fillGalleryTileLabels(
+        entry
+    );
+
+
+    return entry;
+}
+
+
+function fillGalleryTileLabels(
+    entry
+) {
+
+    const submission =
+        entry.submission;
+
+
+    const status =
+        galleryStatus(
+            submission
+        );
+
+
+    const name =
+        submission.group_name ||
+        submission.student_name ||
+        "";
+
+
+    entry.name.textContent =
+        name;
+
+
+    entry.tile.title =
+        `Open ${name}'s map`;
+
+    entry.status.className =
+        `status-pill ${status.className}`;
+
+    entry.status.textContent =
+        status.label;
+
+
+    updateGalleryTileTime(
+        entry
+    );
+}
+
+
+function updateGalleryTileTime(
+    entry
+) {
+
+    const submission =
+        entry.submission;
+
+
+    const text =
+        [
+            submission.class_name,
+            formatTimeAgo(
+                submission.updated_at
+            )
+        ]
+            .filter(Boolean)
+            .join(" · ");
+
+
+    // Leave the text alone when unchanged, so nothing flickers.
+    if (
+        entry.meta.textContent !==
+        text
+    ) {
+
+        entry.meta.textContent =
+            text;
+    }
+}
+
+
+function drawGalleryTileMap(
+    entry,
+    mapRow
+) {
+
+    const mapData =
+        mapRow.map_data ||
+        {};
+
+
+    renderMapPreview(
+        entry.map,
+        mapData
+    );
+
+
+    if (
+        !mapDataHasFeatures(
+            mapData
+        )
+    ) {
+
+        entry.map.appendChild(
+            entry.empty
+        );
+    }
+
+
+    entry.mapUpdatedAt =
+        mapRow.updated_at;
+}
+
+
+function galleryClassSection(
+    className
+) {
+
+    let classSection =
+        galleryClassSections.get(
+            className
+        );
+
+
+    if (!classSection) {
+
+        const section =
+            document.createElement(
+                "section"
+            );
+
+        section.className =
+            "gallery-class";
+
+
+        const heading =
+            document.createElement(
+                "h2"
+            );
+
+        heading.textContent =
+            className ||
+            "No Class";
+
+
+        const grid =
+            document.createElement(
+                "div"
+            );
+
+        grid.className =
+            "gallery-grid";
+
+
+        section.append(
+            heading,
+            grid
+        );
+
+
+        classSection = {
+            section,
+            grid
+        };
+    }
+
+
+    return classSection;
+}
+
+
+/*
+Bring the tiles in line with items (already in list order).
+Untouched tiles keep their elements; new tiles are put in place.
+*/
+function renderGallery(
+    items,
+    maps,
+    highlightChanges = false
+) {
+
+    if (
+        !items.length
+    ) {
+
+        // Already showing the message: leave it, so nothing flickers.
+        if (
+            galleryContent.querySelector(
+                ".gallery-empty-message"
+            )
+        ) {
+
+            return;
+        }
+
+
+        galleryEntries =
+            new Map();
+
+        galleryClassSections =
+            new Map();
+
+        galleryContent.innerHTML =
+            `
+<p class="helper-text gallery-empty-message">
+No student saves yet.
+</p>
+`;
+
+        return;
+    }
+
+
+    // Drop any message left from an empty or failed load.
+    Array.from(
+        galleryContent.children
+    ).forEach(
+        child => {
+
+            if (
+                !child.classList.contains(
+                    "gallery-class"
+                )
+            ) {
+
+                child.remove();
+            }
+        }
+    );
+
+
+    const nextEntries =
+        new Map();
+
+    const nextSections =
+        new Map();
+
+
+    let sectionAnchor =
+        galleryContent.firstElementChild;
+
+    let tileAnchor =
+        null;
+
+    let currentClass =
+        null;
+
+
+    items.forEach(
+        submission => {
+
+            const className =
+                submission.class_name ||
+                "";
+
+
+            if (
+                !nextSections.has(
+                    className
+                )
+            ) {
+
+                const classSection =
+                    galleryClassSection(
+                        className
+                    );
+
+
+                nextSections.set(
+                    className,
+                    classSection
+                );
+
+
+                if (
+                    classSection.section ===
+                    sectionAnchor
+                ) {
+
+                    sectionAnchor =
+                        sectionAnchor.nextElementSibling;
+                }
+
+                else {
+
+                    galleryContent.insertBefore(
+                        classSection.section,
+                        sectionAnchor
+                    );
+                }
+
+
+                currentClass =
+                    classSection;
+
+                tileAnchor =
+                    classSection.grid.firstElementChild;
+            }
+
+
+            const signature =
+                submissionRowSignature(
+                    submission
+                );
+
+
+            let entry =
+                galleryEntries.get(
+                    submission.id
+                );
+
+
+            if (!entry) {
+
+                entry =
+                    createGalleryTile(
+                        submission
+                    );
+
+
+                if (highlightChanges) {
+
+                    flashSubmissionRow(
+                        entry.tile
+                    );
+                }
+            }
+
+            else if (
+                entry.signature !==
+                signature
+            ) {
+
+                const becameSubmitted =
+                    entry.submission.status !== "submitted" &&
+                    submission.status === "submitted";
+
+
+                entry.submission =
+                    submission;
+
+                fillGalleryTileLabels(
+                    entry
+                );
+
+
+                if (
+                    highlightChanges &&
+                    becameSubmitted
+                ) {
+
+                    flashSubmissionRow(
+                        entry.tile
+                    );
+                }
+            }
+
+            else {
+
+                entry.submission =
+                    submission;
+
+                updateGalleryTileTime(
+                    entry
+                );
+            }
+
+
+            entry.submission =
+                submission;
+
+            entry.signature =
+                signature;
+
+
+            const mapRow =
+                maps.get(
+                    submission.id
+                );
+
+
+            if (mapRow) {
+
+                drawGalleryTileMap(
+                    entry,
+                    mapRow
+                );
+            }
+
+
+            nextEntries.set(
+                submission.id,
+                entry
+            );
+
+
+            if (
+                entry.tile === tileAnchor
+            ) {
+
+                tileAnchor =
+                    tileAnchor.nextElementSibling;
+            }
+
+            else {
+
+                currentClass.grid.insertBefore(
+                    entry.tile,
+                    tileAnchor
+                );
+            }
+        }
+    );
+
+
+    galleryEntries.forEach(
+        (entry, id) => {
+
+            if (
+                !nextEntries.has(id)
+            ) {
+
+                entry.tile.remove();
+            }
+        }
+    );
+
+
+    galleryClassSections.forEach(
+        (classSection, className) => {
+
+            if (
+                !nextSections.has(className)
+            ) {
+
+                classSection.section.remove();
+            }
+        }
+    );
+
+
+    galleryEntries =
+        nextEntries;
+
+    galleryClassSections =
+        nextSections;
+}
+
+
+async function loadGallery() {
+
+    const taskId =
+        galleryTaskId;
+
+
+    let result;
+
+
+    galleryLoading =
+        true;
+
+
+    try {
+
+        result =
+            await fetchGalleryProjects(
+                taskId
+            );
+    }
+
+    catch (error) {
+
+        galleryEntries =
+            new Map();
+
+        galleryClassSections =
+            new Map();
+
+        galleryContent.innerHTML =
+            `
+<p class="helper-text">
+${escapeHtml(error.message || "Could not load student maps.")}
+</p>
+`;
+
+        return;
+    }
+
+    finally {
+
+        galleryLoading =
+            false;
+
+        // Keep checking even after a failed load, so it can recover.
+        if (
+            isShowingGallery()
+        ) {
+
+            galleryWatcher.start();
+        }
+    }
+
+
+    // The Teacher may have left the Gallery while we waited.
+    if (
+        galleryTaskId !==
+        taskId
+    ) {
+
+        return;
+    }
+
+
+    renderGallery(
+        result.items,
+        result.maps
+    );
+}
+
+
+function isShowingGallery() {
+
+    return (
+        appMode === "teacher-dashboard" &&
+        !teacherGallery.hidden &&
+        galleryTaskId !== null &&
+        selectedTeacherTask?.id ===
+        galleryTaskId
+    );
+}
+
+
+const galleryWatcher =
+    createLiveCheck(
+        isShowingGallery,
+        checkForGalleryUpdates
+    );
+
+
+/*
+Download map data only for Projects that are new or whose
+last-changed time moved since their tile was drawn.
+*/
+async function checkForGalleryUpdates() {
+
+    const taskId =
+        galleryTaskId;
+
+
+    // Let loadGallery finish the first draw.
+    if (
+        galleryLoading
+    ) {
+
+        return;
+    }
+
+
+    const {
+        items,
+        maps
+    } =
+        await fetchGalleryProjects(
+
+            taskId,
+
+            projects =>
+                projects
+                    .filter(
+                        item =>
+                            galleryEntries.get(
+                                item.id
+                            )?.mapUpdatedAt !==
+                            item.updated_at
+                    )
+                    .map(
+                        item =>
+                            item.id
+                    )
+        );
+
+
+    if (
+        !isShowingGallery() ||
+        galleryTaskId !== taskId ||
+        galleryLoading
+    ) {
+
+        return;
+    }
+
+
+    // After a failed first load, draw quietly rather than flash every tile.
+    const galleryWasDrawn =
+        Boolean(
+            galleryContent.querySelector(
+                ".gallery-class, .gallery-empty-message"
+            )
+        );
+
+
+    renderGallery(
+        items,
+        maps,
+        galleryWasDrawn
+    );
+}
+
+
+async function openGallery() {
+
+    if (
+        !selectedTeacherTask
+    ) {
+
+        return;
+    }
+
+
+    galleryTaskId =
+        selectedTeacherTask.id;
+
+    galleryEntries =
+        new Map();
+
+    galleryClassSections =
+        new Map();
+
+    galleryHeading.textContent =
+        selectedTeacherTask.title ||
+        "Gallery";
+
+    galleryContent.innerHTML =
+        `
+<p class="helper-text">
+Loading student maps…
+</p>
+`;
+
+
+    submissionsWatcher.stop();
+
+    teacherDashboard.hidden =
+        true;
+
+    teacherGallery.hidden =
+        false;
+
+    window.scrollTo(
+        0,
+        0
+    );
+
+
+    await loadGallery();
+}
+
+
+function closeGallery() {
+
+    galleryWatcher.stop();
+
+    galleryTaskId =
+        null;
+
+    teacherGallery.hidden =
+        true;
+
+    teacherDashboard.hidden =
+        false;
+
+
+    // Catch up on Student Maps that changed while in the Gallery.
+    submissionsWatcher.start();
+
+    submissionsWatcher.runNow();
+}
+
+
+openGalleryButton.addEventListener(
+    "click",
+    openGallery
+);
+
+
+galleryBackButton.addEventListener(
+    "click",
+    closeGallery
+);
+
+
+/* =========================================================
 TEACHER REVIEW
 ========================================================= */
 
 async function openSubmissionReview(
-    id
+    id,
+    {
+        fromGallery = false
+    } = {}
 ) {
 
     const submissionResult =
@@ -19514,7 +20946,18 @@ updated_at
         "teacher-review";
 
 
+    reviewOpenedFromGallery =
+        fromGallery;
+
+
+    galleryWatcher.stop();
+
+
     teacherDashboard.hidden =
+        true;
+
+
+    teacherGallery.hidden =
         true;
 
 
@@ -19527,6 +20970,10 @@ updated_at
 
 
     teacherReviewToolbar.hidden =
+        false;
+
+
+    backToDashboardButton.hidden =
         false;
 
 
@@ -19560,7 +21007,7 @@ updated_at
 
 
     taskInstructions.textContent =
-        "Teacher review copy — red ink and comments are stored separately from the student's map.";
+        "";
 
 
     taskMembers.textContent =
@@ -19604,6 +21051,10 @@ backToDashboardButton.addEventListener(
             true;
 
 
+        backToDashboardButton.hidden =
+            true;
+
+
         teacherFeedbackPanel.hidden =
             true;
 
@@ -19626,6 +21077,35 @@ backToDashboardButton.addEventListener(
 
         reviewSubmission =
             null;
+
+
+        if (
+            reviewOpenedFromGallery &&
+            galleryTaskId !== null
+        ) {
+
+
+            reviewOpenedFromGallery =
+                false;
+
+
+            teacherDashboard.hidden =
+                true;
+
+
+            teacherGallery.hidden =
+                false;
+
+
+            // Catch up on what changed while the Teacher was reviewing.
+            galleryWatcher.start();
+
+
+            galleryWatcher.runNow();
+
+
+            return;
+        }
 
 
         await loadSubmissions();

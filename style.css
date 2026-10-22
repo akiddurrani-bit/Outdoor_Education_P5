@@ -407,6 +407,47 @@ line-height:.9;
 margin-top:-2px;
 }
 
+
+/* =========================================================
+MAP PREVIEW
+========================================================= */
+
+.map-preview {
+position:relative;
+aspect-ratio:1600 / 675;
+overflow:hidden;
+background:#fff;
+border:1px solid #d9d8d0;
+border-radius:8px;
+}
+
+.map-preview svg {
+display:block;
+width:100%;
+height:100%;
+pointer-events:none;
+}
+
+.map-preview-north {
+position:absolute;
+top:4px;
+right:4px;
+display:flex;
+flex-direction:column;
+align-items:center;
+padding:1px 4px;
+border-radius:5px;
+background:rgba(255,253,248,.9);
+font-size:13px;
+line-height:.95;
+transform-origin:center;
+pointer-events:none;
+}
+
+.map-preview-north strong {
+font-size:8px;
+}
+
 .north-control-label {
 margin-top:2px;
 color:var(--forest-dark);
@@ -1376,6 +1417,94 @@ box-shadow:0 0 0 3px #e4efe6;
 animation:none;
 border-color:var(--forest);
 }
+}
+
+
+/* =========================================================
+GALLERY
+========================================================= */
+
+.teacher-section-buttons {
+display:flex;
+gap:8px;
+}
+
+.gallery-class + .gallery-class {
+margin-top:22px;
+}
+
+.gallery-class h2 {
+margin:0 0 10px;
+font-size:18px;
+}
+
+.gallery-grid {
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(280px,1fr));
+gap:12px;
+}
+
+.gallery-tile {
+display:flex;
+flex-direction:column;
+gap:8px;
+min-width:0;
+padding:8px;
+border:1px solid #dedcd3;
+border-radius:12px;
+background:#fff;
+text-align:left;
+font:inherit;
+color:inherit;
+cursor:pointer;
+}
+
+.gallery-tile:hover,
+.gallery-tile:focus-visible {
+border-color:var(--forest);
+}
+
+.gallery-tile-map {
+position:relative;
+}
+
+.gallery-tile-empty {
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+color:var(--muted);
+font-size:13px;
+font-weight:700;
+pointer-events:none;
+}
+
+.gallery-tile-info {
+display:grid;
+grid-template-columns:minmax(0,1fr) auto;
+gap:2px 8px;
+align-items:center;
+}
+
+.gallery-tile-info strong {
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+.gallery-tile-info .status-pill {
+grid-row:span 2;
+}
+
+.gallery-tile-info span {
+color:var(--muted);
+font-size:11px;
+}
+
+.status-pill.marked {
+background:#e5edf7;
+color:#2a5384;
 }
 
 /* Who is being reviewed | written feedback | save. */
@@ -2369,4 +2498,8 @@ line-height:1.4;
 flex-direction:column;
 align-items:stretch;
 }
+}
+.task-intro-back {
+flex-shrink:0;
+align-self:center;
 }

@@ -216,6 +216,16 @@ Abstract Mapping
 <p id="taskMembers" class="task-members"></p>
 </div>
 
+
+<button
+id="backToDashboardButton"
+class="mode-button task-intro-back"
+type="button"
+hidden
+>
+← Dashboard
+</button>
+
 </section>
 
 <section
@@ -753,13 +763,7 @@ type="button"
 Clear Ink
 </button>
 
-<button
-id="backToDashboardButton"
-class="review-tool"
-type="button"
->
-← Dashboard
-</button>
+
 
 </div>
 
@@ -1034,6 +1038,48 @@ No projects yet.
 
 </div>
 </div>
+</section>
+
+<section
+id="teacherGallery"
+class="teacher-dashboard teacher-gallery"
+hidden
+>
+
+<div class="teacher-dashboard-head">
+
+<div>
+<div class="eyebrow">
+GALLERY
+</div>
+
+<h1 id="galleryHeading">
+Gallery
+</h1>
+
+<p>
+Every Project for this Task, updating as students draw.
+</p>
+</div>
+
+<div class="teacher-head-actions">
+
+<button
+id="galleryBackButton"
+class="mode-button"
+type="button"
+>
+← Student Maps
+</button>
+
+</div>
+</div>
+
+<div
+id="galleryContent"
+class="gallery-content"
+></div>
+
 </section>
 
 <section
@@ -1363,6 +1409,16 @@ Student Maps
 </h3>
 </div>
 
+<div class="teacher-section-buttons">
+
+<button
+id="openGalleryButton"
+class="quiet-button"
+type="button"
+>
+Gallery
+</button>
+
 <button
 id="refreshSubmissionsButton"
 class="quiet-button"
@@ -1370,6 +1426,8 @@ type="button"
 >
 Refresh
 </button>
+
+</div>
 
 </div>
 
@@ -1730,6 +1788,27 @@ class="modal-overlay"
 >
 
 <div class="object-modal student-login-modal">
+
+<div
+id="continueTeacherStep"
+hidden
+>
+
+<button
+id="continueTeacherButton"
+class="modal-primary-button full-width-button"
+type="button"
+>
+Continue as Teacher
+</button>
+
+<div class="login-divider">
+<span>
+or start as a student
+</span>
+</div>
+
+</div>
 
 <div class="modal-step-label">
 STUDENT LOGIN
