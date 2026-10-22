@@ -3492,7 +3492,7 @@ function setTool(
             "Draw your road. You will name it after drawing.",
 
         hazard:
-            "Tap the map where the hazard is."
+            "Tap or click on an area of the map to mark a hazard ⚠"
     };
 
 
