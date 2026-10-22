@@ -744,6 +744,14 @@ const openGalleryButton =
 const galleryBackButton =
     $("galleryBackButton");
 
+
+const continueTeacherStep =
+    $("continueTeacherStep");
+
+
+const continueTeacherButton =
+    $("continueTeacherButton");
+
 const teacherFeedbackPanel =
     $("teacherFeedbackPanel");
 
@@ -10529,12 +10537,19 @@ function showStartupCodeStep() {
 
 async function prepareStudentLogin() {
 
+
     showStartupCodeStep();
+
 
     startupTaskCode.value =
         "";
 
+
     resumeGuestButton.hidden =
+        true;
+
+
+    continueTeacherStep.hidden =
         true;
 
 
@@ -10567,17 +10582,38 @@ async function prepareStudentLogin() {
 
     try {
 
-        await ensureAnonymousStudentSession();
 
-        await detectResumeGuestSession();
+        // A signed-in Teacher keeps their session until a student
+        // actually starts (Task Code or Guest), or they sign out.
+        const teacherUser =
+            await signedInTeacherUser();
+
+
+        if (teacherUser) {
+
+
+            continueTeacherButton.textContent =
+                `Continue as ${teacherUser.email || "Teacher"}`;
+
+
+            continueTeacherStep.hidden =
+                false;
+        }
+
+
+        else {
+
+
+            await ensureAnonymousStudentSession();
+
+
+            await detectResumeGuestSession();
+        }
     }
-
     catch (error) {
-
         console.error(
             error
         );
-
         startupError.textContent =
             error.message ||
             "Could not start signing in.";
@@ -15321,6 +15357,162 @@ teacherGoogleButton.addEventListener(
 
 
 // Returns true when this page load was the return from Google.
+/* The Teacher signed in on this browser, or null. */
+async function signedInTeacherUser() {
+
+
+    const {
+        data: {
+            session
+        }
+    } =
+        await sb
+            .auth
+            .getSession();
+
+
+    return (
+        session?.user &&
+        !session.user.is_anonymous
+    )
+        ? session.user
+        : null;
+}
+
+
+continueTeacherButton.addEventListener(
+    "click",
+    async () => {
+
+
+        continueTeacherButton.disabled =
+            true;
+
+
+        startupError.hidden =
+            true;
+
+
+        try {
+
+
+            const user =
+                await signedInTeacherUser();
+
+
+            // Signed out elsewhere since the page loaded.
+            if (!user) {
+
+
+                await prepareStudentLogin();
+
+
+                return;
+            }
+
+
+            startupModal.hidden =
+                true;
+
+
+            await finishTeacherSignIn(
+                user
+            );
+        }
+
+
+        catch (error) {
+
+
+            console.error(
+                error
+            );
+
+
+            startupModal.hidden =
+                false;
+
+
+            startupError.textContent =
+                error.message ||
+                "Could not continue as Teacher.";
+
+
+            startupError.hidden =
+                false;
+        }
+
+
+        finally {
+
+
+            continueTeacherButton.disabled =
+                false;
+        }
+    }
+);
+
+
+const LAST_TEACHER_TASK_KEY =
+    "oeMapMakerLastTeacherTaskV1";
+
+
+function rememberTeacherTask(
+    taskId
+) {
+
+
+    try {
+
+
+        if (taskId) {
+
+
+            sessionStorage.setItem(
+                LAST_TEACHER_TASK_KEY,
+                taskId
+            );
+        }
+
+
+        else {
+
+
+            sessionStorage.removeItem(
+                LAST_TEACHER_TASK_KEY
+            );
+        }
+    }
+
+
+    catch (error) {
+
+
+        // Storage can be blocked; the Task is simply not remembered.
+    }
+}
+
+
+function rememberedTeacherTaskId() {
+
+
+    try {
+
+
+        return sessionStorage.getItem(
+            LAST_TEACHER_TASK_KEY
+        );
+    }
+
+
+    catch (error) {
+
+
+        return null;
+    }
+}
+
+
 async function resumeGoogleTeacherSignIn() {
 
     if (
@@ -15580,9 +15772,31 @@ async function openTeacherDashboard() {
 
 
     await loadTeacherClasses();
-
-
     await loadTeacherTasks();
+
+
+    // After a refresh, reopen the Task this tab last had selected.
+    if (
+        !selectedTeacherTask
+    ) {
+
+
+        const lastTask =
+            teacherTasks.find(
+                task =>
+                    task.id ===
+                    rememberedTeacherTaskId()
+            );
+
+
+        if (lastTask) {
+
+
+            await selectTeacherTask(
+                lastTask
+            );
+        }
+    }
 }
 
 
@@ -15604,6 +15818,11 @@ teacherSignOutButton.addEventListener(
 
         currentTeacherUser =
             null;
+
+
+        rememberTeacherTask(
+            null
+        );
 
 
         window.location.reload();
@@ -18033,8 +18252,14 @@ async function selectTeacherTask(
     task
 ) {
 
+
     selectedTeacherTask =
         task;
+
+
+    rememberTeacherTask(
+        task.id
+    );
 
 
     noTaskSelected.hidden =
