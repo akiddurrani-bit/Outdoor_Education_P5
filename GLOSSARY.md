@@ -92,6 +92,10 @@ _Avoid_: Key
 
 ### Teacher feedback
 
+**Gallery**:
+A page, for Teachers only, showing every Project for one Task side by side as small maps, each labelled with its Group or student name, Class and state. It changes as students draw, so a Teacher can see the whole lesson's work at a glance. Students never see the Gallery.
+_Avoid_: Overview, grid, wall, thumbnails, review all
+
 **Review**:
 A teacher's written feedback together with their free-form red-pen ink, laid over one Submitted Project without changing the student's map. A teacher can watch a Project while it is being drawn but can only Review it once it is Submitted. A Project has at most one Review; the teacher saves it, and saving again updates it rather than adding another. Students see a Review only once it is saved.
 _Avoid_: Marking, comments, annotation, submitting (for teachers)
