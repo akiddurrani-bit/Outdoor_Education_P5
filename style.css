@@ -1456,6 +1456,12 @@ background:#fff;
 text-align:left;
 font:inherit;
 color:inherit;
+cursor:pointer;
+}
+
+.gallery-tile:hover,
+.gallery-tile:focus-visible {
+border-color:var(--forest);
 }
 
 .gallery-tile-map {

@@ -724,6 +724,26 @@ const clearAnnotationsButton =
 const backToDashboardButton =
     $("backToDashboardButton");
 
+
+const teacherGallery =
+    $("teacherGallery");
+
+
+const galleryHeading =
+    $("galleryHeading");
+
+
+const galleryContent =
+    $("galleryContent");
+
+
+const openGalleryButton =
+    $("openGalleryButton");
+
+
+const galleryBackButton =
+    $("galleryBackButton");
+
 const teacherFeedbackPanel =
     $("teacherFeedbackPanel");
 
@@ -833,6 +853,31 @@ let referenceHoldActive = false;
 let colourBeforeState = null;
 
 let saveTimer = null;
+
+
+// Gallery: the Task it shows, or null when it is closed.
+let galleryTaskId =
+    null;
+
+
+// True while the first Gallery load for galleryTaskId is in flight.
+let galleryLoading =
+    false;
+
+
+// True when the open Review screen was opened from a Gallery tile.
+let reviewOpenedFromGallery =
+    false;
+
+
+// Project id → { submission, signature, mapUpdatedAt, tile, ... }
+let galleryEntries =
+    new Map();
+
+
+// Class name → { section, grid }
+let galleryClassSections =
+    new Map();
 
 let toolbarWakeTimer = null;
 
@@ -15486,6 +15531,14 @@ async function openTeacherDashboard() {
         false;
 
 
+    teacherGallery.hidden =
+        true;
+
+
+    galleryTaskId =
+        null;
+
+
     startupModal.hidden =
         true;
 
@@ -19587,37 +19640,6 @@ Every Project for the selected Task, side by side as small
 maps, for Teachers only. It has no actions of its own.
 ========================================================= */
 
-const teacherGallery =
-    $("teacherGallery");
-
-const galleryHeading =
-    $("galleryHeading");
-
-const galleryContent =
-    $("galleryContent");
-
-const openGalleryButton =
-    $("openGalleryButton");
-
-const galleryBackButton =
-    $("galleryBackButton");
-
-
-let galleryTaskId =
-    null;
-
-// True while the first load for galleryTaskId is in flight.
-let galleryLoading =
-    false;
-
-// Project id → { submission, signature, mapUpdatedAt, tile, ... }
-let galleryEntries =
-    new Map();
-
-// Class name → { section, grid }
-let galleryClassSections =
-    new Map();
-
 
 function galleryStatus(
     submission
@@ -19786,7 +19808,7 @@ function createGalleryTile(
             null,
         tile:
             document.createElement(
-                "div"
+                "button"
             ),
         map:
             document.createElement(
@@ -19811,8 +19833,25 @@ function createGalleryTile(
     };
 
 
+    entry.tile.type =
+        "button";
+
+
     entry.tile.className =
         "gallery-tile";
+
+
+    entry.tile.addEventListener(
+        "click",
+        () =>
+            openSubmissionReview(
+                entry.submission.id,
+                {
+                    fromGallery:
+                        true
+                }
+            )
+    );
 
     entry.map.className =
         "gallery-tile-map";
@@ -19868,9 +19907,18 @@ function fillGalleryTileLabels(
         );
 
 
-    entry.name.textContent =
+    const name =
+        submission.group_name ||
         submission.student_name ||
         "";
+
+
+    entry.name.textContent =
+        name;
+
+
+    entry.tile.title =
+        `Open ${name}'s map`;
 
     entry.status.className =
         `status-pill ${status.className}`;
@@ -19896,7 +19944,6 @@ function updateGalleryTileTime(
     const text =
         [
             submission.class_name,
-            submission.group_name,
             formatTimeAgo(
                 submission.updated_at
             )
@@ -20523,7 +20570,10 @@ TEACHER REVIEW
 ========================================================= */
 
 async function openSubmissionReview(
-    id
+    id,
+    {
+        fromGallery = false
+    } = {}
 ) {
 
     const submissionResult =
@@ -20654,7 +20704,18 @@ updated_at
         "teacher-review";
 
 
+    reviewOpenedFromGallery =
+        fromGallery;
+
+
+    galleryWatcher.stop();
+
+
     teacherDashboard.hidden =
+        true;
+
+
+    teacherGallery.hidden =
         true;
 
 
@@ -20766,6 +20827,35 @@ backToDashboardButton.addEventListener(
 
         reviewSubmission =
             null;
+
+
+        if (
+            reviewOpenedFromGallery &&
+            galleryTaskId !== null
+        ) {
+
+
+            reviewOpenedFromGallery =
+                false;
+
+
+            teacherDashboard.hidden =
+                true;
+
+
+            teacherGallery.hidden =
+                false;
+
+
+            // Catch up on what changed while the Teacher was reviewing.
+            galleryWatcher.start();
+
+
+            galleryWatcher.runNow();
+
+
+            return;
+        }
 
 
         await loadSubmissions();
