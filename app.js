@@ -14569,6 +14569,10 @@ async function loadStudentProject(
             true;
 
 
+        backToDashboardButton.hidden =
+            true;
+
+
         teacherFeedbackPanel.hidden =
             true;
 
@@ -15544,6 +15548,10 @@ async function openTeacherDashboard() {
 
 
     teacherReviewToolbar.hidden =
+        true;
+
+
+    backToDashboardButton.hidden =
         true;
 
 
@@ -20740,6 +20748,10 @@ updated_at
         false;
 
 
+    backToDashboardButton.hidden =
+        false;
+
+
     teacherFeedbackPanel.hidden =
         false;
 
@@ -20811,6 +20823,10 @@ backToDashboardButton.addEventListener(
 
 
         teacherReviewToolbar.hidden =
+            true;
+
+
+        backToDashboardButton.hidden =
             true;
 
 

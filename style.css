@@ -2499,3 +2499,7 @@ flex-direction:column;
 align-items:stretch;
 }
 }
+.task-intro-back {
+flex-shrink:0;
+align-self:center;
+}
