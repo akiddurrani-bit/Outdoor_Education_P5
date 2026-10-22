@@ -8147,11 +8147,34 @@ RENDER SHAPES
 
 function renderShapes() {
 
-    shapeLayer.innerHTML =
+    drawShapes(
+
+        shapeLayer,
+
+        shapes,
+
+        selectedItem?.kind === "shape"
+            ? selectedItem.id
+            : null
+    );
+}
+
+
+/*
+Draw Landmarks into any SVG layer. Shared by the editor and
+by map previews, so both always draw Landmarks the same way.
+*/
+function drawShapes(
+    layer,
+    shapeList,
+    selectedShapeId = null
+) {
+
+    layer.innerHTML =
         "";
 
 
-    shapes.forEach(
+    shapeList.forEach(
 
         shape => {
 
@@ -8236,12 +8259,9 @@ function renderShapes() {
 
 
             if (
-
-                selectedItem?.kind === "shape" &&
-
-                selectedItem.id ===
+                selectedShapeId !== null &&
+                selectedShapeId ===
                 shape.id
-
             ) {
 
                 element.classList.add(
@@ -8262,7 +8282,7 @@ ${centre.y}
             );
 
 
-            shapeLayer.appendChild(
+            layer.appendChild(
                 element
             );
 
@@ -8276,7 +8296,8 @@ ${centre.y}
             ) {
 
                 renderWrappedLabel(
-                    shape
+                    shape,
+                    layer
                 );
             }
         }
@@ -8324,7 +8345,8 @@ function calculateLabelFontSize(
 
 
 function renderWrappedLabel(
-    shape
+    shape,
+    layer = shapeLayer
 ) {
 
     const bounds =
@@ -8503,7 +8525,7 @@ function renderWrappedLabel(
     );
 
 
-    shapeLayer.appendChild(
+    layer.appendChild(
         foreignObject
     );
 }
@@ -8555,11 +8577,27 @@ function routePolyline(
 
 function renderRoutes() {
 
-    routeLayer.innerHTML =
+    drawRoutes(
+        routeLayer,
+        routes
+    );
+}
+
+
+/*
+Draw Routes into any SVG layer. Shared by the editor and by
+map previews, so both always draw Routes the same way.
+*/
+function drawRoutes(
+    layer,
+    routeList
+) {
+
+    layer.innerHTML =
         "";
 
 
-    routes.forEach(
+    routeList.forEach(
 
         route => {
 
@@ -8772,10 +8810,175 @@ function renderRoutes() {
             }
 
 
-            routeLayer.appendChild(
+            layer.appendChild(
                 group
             );
         }
+    );
+}
+
+
+/* =========================================================
+MAP PREVIEW
+========================================================= */
+
+function mapDataHasFeatures(
+    mapData
+) {
+
+    const data =
+        mapData ||
+        {};
+
+
+    return (
+
+        (
+            Array.isArray(
+                data.shapes
+            ) &&
+            data.shapes.length > 0
+        ) ||
+
+        (
+            Array.isArray(
+                data.routes
+            ) &&
+            data.routes.some(
+                route =>
+                    route.kind !==
+                    "boundary"
+            )
+        )
+    );
+}
+
+
+/*
+Draw one Project's map, read-only, into a container: the whole
+canvas scaled to fit, with its North Arrow. No Legend, Reference
+Map, selection or Review ink. Never touches the editor's state.
+*/
+function renderMapPreview(
+    container,
+    mapData
+) {
+
+    const data =
+        mapData ||
+        {};
+
+
+    const svg =
+        document.createElementNS(
+            SVG_NS,
+            "svg"
+        );
+
+    svg.setAttribute(
+        "viewBox",
+        "0 0 1600 675"
+    );
+
+    svg.setAttribute(
+        "preserveAspectRatio",
+        "xMidYMid meet"
+    );
+
+    svg.setAttribute(
+        "aria-hidden",
+        "true"
+    );
+
+
+    const background =
+        document.createElementNS(
+            SVG_NS,
+            "rect"
+        );
+
+    background.setAttribute(
+        "width",
+        "1600"
+    );
+
+    background.setAttribute(
+        "height",
+        "675"
+    );
+
+    background.setAttribute(
+        "class",
+        "canvas-background"
+    );
+
+
+    const previewShapeLayer =
+        document.createElementNS(
+            SVG_NS,
+            "g"
+        );
+
+    const previewRouteLayer =
+        document.createElementNS(
+            SVG_NS,
+            "g"
+        );
+
+
+    svg.append(
+        background,
+        previewShapeLayer,
+        previewRouteLayer
+    );
+
+
+    drawShapes(
+
+        previewShapeLayer,
+
+        Array.isArray(
+            data.shapes
+        )
+            ? data.shapes
+            : []
+    );
+
+
+    drawRoutes(
+
+        previewRouteLayer,
+
+        Array.isArray(
+            data.routes
+        )
+            ? data.routes
+            : []
+    );
+
+
+    const north =
+        document.createElement(
+            "div"
+        );
+
+    north.className =
+        "map-preview-north";
+
+    north.innerHTML =
+        `<strong>N</strong><span>↑</span>`;
+
+    north.style.transform =
+        `rotate(${Number(data.northAngle) || 0}deg)`;
+
+
+    container.classList.add(
+        "map-preview"
+    );
+
+    container.replaceChildren(
+        svg,
+        north
     );
 }
 
