@@ -873,6 +873,11 @@ let galleryLoading =
     false;
 
 
+// Counts Gallery loads, so an older load that finishes late is ignored.
+let galleryLoadCount =
+    0;
+
+
 // True when the open Review screen was opened from a Gallery tile.
 let reviewOpenedFromGallery =
     false;
@@ -20230,7 +20235,7 @@ function drawGalleryTileMap(
 }
 
 
-function galleryClassSection(
+function getOrCreateGalleryClassSection(
     className
 ) {
 
@@ -20287,6 +20292,25 @@ function galleryClassSection(
 }
 
 
+/* Clear every tile and show a message in their place. */
+function resetGallery(
+    html
+) {
+
+
+    galleryEntries =
+        new Map();
+
+
+    galleryClassSections =
+        new Map();
+
+
+    galleryContent.innerHTML =
+        html;
+}
+
+
 /*
 Bring the tiles in line with items (already in list order).
 Untouched tiles keep their elements; new tiles are put in place.
@@ -20312,18 +20336,13 @@ function renderGallery(
         }
 
 
-        galleryEntries =
-            new Map();
-
-        galleryClassSections =
-            new Map();
-
-        galleryContent.innerHTML =
+        resetGallery(
             `
 <p class="helper-text gallery-empty-message">
 No student saves yet.
 </p>
-`;
+`
+        );
 
         return;
     }
@@ -20379,7 +20398,7 @@ No student saves yet.
             ) {
 
                 const classSection =
-                    galleryClassSection(
+                    getOrCreateGalleryClassSection(
                         className
                     );
 
@@ -20457,6 +20476,7 @@ No student saves yet.
                 entry.submission =
                     submission;
 
+
                 fillGalleryTileLabels(
                     entry
                 );
@@ -20475,17 +20495,16 @@ No student saves yet.
 
             else {
 
+
                 entry.submission =
                     submission;
+
 
                 updateGalleryTileTime(
                     entry
                 );
             }
 
-
-            entry.submission =
-                submission;
 
             entry.signature =
                 signature;
@@ -20571,6 +20590,10 @@ async function loadGallery() {
         galleryTaskId;
 
 
+    const loadId =
+        ++galleryLoadCount;
+
+
     let result;
 
 
@@ -20580,50 +20603,73 @@ async function loadGallery() {
 
     try {
 
+
         result =
             await fetchGalleryProjects(
                 taskId
             );
     }
 
+
     catch (error) {
 
-        galleryEntries =
-            new Map();
 
-        galleryClassSections =
-            new Map();
+        // A newer load (the Gallery was reopened) owns the page now.
+        if (
+            loadId !==
+            galleryLoadCount
+        ) {
 
-        galleryContent.innerHTML =
+
+            return;
+        }
+
+
+        resetGallery(
             `
 <p class="helper-text">
 ${escapeHtml(error.message || "Could not load student maps.")}
 </p>
-`;
+`
+        );
+
 
         return;
     }
 
+
     finally {
 
-        galleryLoading =
-            false;
 
-        // Keep checking even after a failed load, so it can recover.
         if (
-            isShowingGallery()
+            loadId ===
+            galleryLoadCount
         ) {
 
-            galleryWatcher.start();
+
+            galleryLoading =
+                false;
+
+            // Keep checking even after a failed load, so it can recover.
+            if (
+                isShowingGallery()
+            ) {
+
+
+                galleryWatcher.start();
+            }
         }
     }
 
 
-    // The Teacher may have left the Gallery while we waited.
+    // The Teacher may have left or reopened the Gallery while we waited.
     if (
+        loadId !==
+        galleryLoadCount ||
         galleryTaskId !==
         taskId
     ) {
+
 
         return;
     }
@@ -20670,8 +20716,15 @@ async function checkForGalleryUpdates() {
         galleryLoading
     ) {
 
+
         return;
     }
+
+
+    // Move the "last changed" times on, even if this check then fails.
+    galleryEntries.forEach(
+        updateGalleryTileTime
+    );
 
 
     const {
@@ -20738,22 +20791,18 @@ async function openGallery() {
     galleryTaskId =
         selectedTeacherTask.id;
 
-    galleryEntries =
-        new Map();
-
-    galleryClassSections =
-        new Map();
-
     galleryHeading.textContent =
         selectedTeacherTask.title ||
         "Gallery";
 
-    galleryContent.innerHTML =
+
+    resetGallery(
         `
 <p class="helper-text">
 Loading student maps…
 </p>
-`;
+`
+    );
 
 
     submissionsWatcher.stop();
