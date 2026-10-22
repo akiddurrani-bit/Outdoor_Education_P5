@@ -101,6 +101,9 @@ const DEFAULT_ALLOWED_TOOLS = {
 
     layers: true,
 
+    // Off unless the Teacher switches it on, so existing Tasks are unchanged.
+    hazard: false,
+
     reference: true,
 
     download: true
@@ -246,6 +249,9 @@ const shapeLayer =
 const routeLayer =
     $("routeLayer");
 
+const hazardLayer =
+    $("hazardLayer");
+
 const annotationLayer =
     $("annotationLayer");
 
@@ -289,6 +295,9 @@ const pathMenuButton =
 
 const roadMenuButton =
     $("roadMenuButton");
+
+const hazardTool =
+    $("hazardTool");
 
 const transformTool =
     $("transformTool");
@@ -536,6 +545,30 @@ const discardRouteButton =
     $("discardRouteButton");
 
 
+const hazardModal =
+    $("hazardModal");
+
+const hazardModalLabel =
+    $("hazardModalLabel");
+
+const hazardModalTitle =
+    $("hazardModalTitle");
+
+const hazardNameInput =
+    $("hazardNameInput");
+
+const hazardNoteInput =
+    $("hazardNoteInput");
+
+const hazardError =
+    $("hazardError");
+
+const saveHazardButton =
+    $("saveHazardButton");
+
+const discardHazardButton =
+    $("discardHazardButton");
+
 const editModal =
     $("editModal");
 
@@ -704,6 +737,9 @@ const permissionInputs = {
     layers:
         $("allowLayers"),
 
+    hazard:
+        $("allowHazard"),
+
     reference:
         $("allowReference"),
 
@@ -814,9 +850,17 @@ let routes = [];
 
 let annotations = [];
 
+let hazards = [];
+
 let nextShapeId = 1;
 
 let nextRouteId = 1;
+
+let nextHazardId = 1;
+
+// The Hazard the Hazard dialog is for: { x, y } for a new one, or
+// { id } for an existing one being edited. Null when it is closed.
+let pendingHazard = null;
 
 let selectedItem = null;
 
@@ -871,6 +915,11 @@ let galleryTaskId =
 // True while the first Gallery load for galleryTaskId is in flight.
 let galleryLoading =
     false;
+
+
+// Counts Gallery loads, so an older load that finishes late is ignored.
+let galleryLoadCount =
+    0;
 
 
 // True when the open Review screen was opened from a Gallery tile.
@@ -1546,9 +1595,13 @@ function captureMapState() {
 
         routes,
 
+        hazards,
+
         nextShapeId,
 
         nextRouteId,
+
+        nextHazardId,
 
         selectedItem,
 
@@ -1586,6 +1639,13 @@ function restoreMapState(
         );
 
 
+    hazards =
+        deepClone(
+            state.hazards ||
+            []
+        );
+
+
     nextShapeId =
         state.nextShapeId ||
         1;
@@ -1593,6 +1653,11 @@ function restoreMapState(
 
     nextRouteId =
         state.nextRouteId ||
+        1;
+
+
+    nextHazardId =
+        state.nextHazardId ||
         1;
 
 
@@ -1783,9 +1848,16 @@ function serialiseMap() {
                 )
             ),
 
+        hazards:
+            deepClone(
+                hazards
+            ),
+
         nextShapeId,
 
         nextRouteId,
+
+        nextHazardId,
 
         northAngle
     };
@@ -1830,6 +1902,19 @@ function loadMapData(
             : [];
 
 
+    // Maps saved before Hazards existed simply have none.
+    hazards =
+        Array.isArray(
+            stored.hazards
+        )
+
+            ? deepClone(
+                stored.hazards
+            )
+
+            : [];
+
+
     nextShapeId =
 
         Number(
@@ -1861,6 +1946,25 @@ function loadMapData(
             ...routes.map(
                 route =>
                     Number(route.id) ||
+                    0
+            )
+        ) +
+
+        1;
+
+
+    nextHazardId =
+
+        Number(
+            stored.nextHazardId
+        ) ||
+
+        Math.max(
+            0,
+
+            ...hazards.map(
+                hazard =>
+                    Number(hazard.id) ||
                     0
             )
         ) +
@@ -3122,6 +3226,10 @@ function applyToolPermissions() {
         !settings.road;
 
 
+    hazardTool.hidden =
+        !settings.hazard;
+
+
     transformTool.hidden =
         !settings.transform;
 
@@ -3323,6 +3431,17 @@ function updateToolbarActiveState() {
     }
 
     else if (
+        currentTool === "hazard"
+    ) {
+
+        hazardTool
+            .classList
+            .add(
+                "active"
+            );
+    }
+
+    else if (
         currentTool === "transform"
     ) {
 
@@ -3370,7 +3489,10 @@ function setTool(
             "Draw your path. You will name it after drawing.",
 
         road:
-            "Draw your road. You will name it after drawing."
+            "Draw your road. You will name it after drawing.",
+
+        hazard:
+            "Tap or click on an area of the map to mark a hazard ⚠"
     };
 
 
@@ -3387,6 +3509,7 @@ function setTool(
             "freehand",
             "path",
             "road",
+            "hazard",
             ...FIXED_SHAPES
         ].includes(tool)
 
@@ -3471,6 +3594,26 @@ roadMenuButton.addEventListener(
 
             toggleFlyout(
                 roadFlyout
+            );
+        }
+    }
+);
+
+
+hazardTool.addEventListener(
+
+    "click",
+
+    () => {
+
+        if (
+            !blockWhileDraftExists()
+        ) {
+
+            closeFlyouts();
+
+            setTool(
+                "hazard"
             );
         }
     }
@@ -4261,6 +4404,36 @@ function getSelectedRoute() {
 }
 
 
+function findHazard(
+    id
+) {
+
+    return hazards.find(
+
+        hazard =>
+            hazard.id ===
+            id
+
+    ) || null;
+}
+
+
+function getSelectedHazard() {
+
+    return (
+
+        selectedItem?.kind === "hazard"
+
+    )
+
+        ? findHazard(
+            selectedItem.id
+        )
+
+        : null;
+}
+
+
 function getVisualBounds(
     shape
 ) {
@@ -4534,6 +4707,39 @@ function moveSelectedItem(
 ) {
 
     if (!selectedItem) {
+        return;
+    }
+
+
+    if (
+        selectedItem.kind === "hazard"
+    ) {
+
+        const hazard =
+            getSelectedHazard();
+
+
+        if (!hazard) {
+            return;
+        }
+
+
+        hazard.x =
+            clamp(
+                hazard.x + dx,
+                0,
+                CANVAS_WIDTH
+            );
+
+
+        hazard.y =
+            clamp(
+                hazard.y + dy,
+                0,
+                CANVAS_HEIGHT
+            );
+
+
         return;
     }
 
@@ -6072,6 +6278,24 @@ canvas.addEventListener(
 
 
         if (
+            currentTool === "hazard"
+        ) {
+
+            openHazardModal({
+
+                x:
+                    point.x,
+
+                y:
+                    point.y
+            });
+
+
+            return;
+        }
+
+
+        if (
             currentTool === "select"
         ) {
 
@@ -6085,6 +6309,56 @@ canvas.addEventListener(
                 event.target.closest(
                     ".map-shape"
                 );
+
+
+            // Hazards are drawn on top, so they are picked first.
+            const hazardTarget =
+                event.target.closest(
+                    "[data-hazard-id]"
+                );
+
+
+            if (hazardTarget) {
+
+                selectedItem = {
+
+                    kind:
+                        "hazard",
+
+                    id:
+                        Number(
+                            hazardTarget.dataset.hazardId
+                        )
+                };
+
+
+                if (
+                    allowedTools.move
+                ) {
+
+                    interactionBeforeState =
+                        captureMapState();
+
+
+                    pointerActive =
+                        true;
+
+
+                    lastMovePoint =
+                        point;
+
+
+                    canvas.setPointerCapture(
+                        event.pointerId
+                    );
+                }
+
+
+                renderAll();
+
+
+                return;
+            }
 
 
             if (routeTarget) {
@@ -7096,6 +7370,261 @@ discardRouteButton.addEventListener(
 
 
 /* =========================================================
+HAZARD MODAL
+========================================================= */
+
+/*
+Open the Hazard dialog, either for a new Hazard at { x, y } or
+for an existing Hazard ({ id }) whose name and note can be changed.
+*/
+function openHazardModal(
+    target
+) {
+
+    const existing =
+
+        target.id !== undefined
+
+            ? findHazard(
+                target.id
+            )
+
+            : null;
+
+
+    pendingHazard = {
+
+        ...target,
+
+        before:
+            captureMapState()
+    };
+
+
+    hazardModalLabel.textContent =
+
+        existing
+
+            ? "EDIT HAZARD"
+
+            : "HAZARD";
+
+
+    hazardModalTitle.textContent =
+
+        existing
+
+            ? "Edit this hazard"
+
+            : "Name this hazard";
+
+
+    saveHazardButton.textContent =
+
+        existing
+
+            ? "Save"
+
+            : "Add to Map";
+
+
+    discardHazardButton.textContent =
+
+        existing
+
+            ? "Cancel"
+
+            : "Discard";
+
+
+    hazardNameInput.value =
+        existing?.name ||
+        "";
+
+
+    hazardNoteInput.value =
+        existing?.note ||
+        "";
+
+
+    hazardError.hidden =
+        true;
+
+
+    hazardModal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    setTimeout(
+
+        () =>
+            hazardNameInput.focus(),
+
+        20
+    );
+}
+
+
+function closeHazardModal() {
+
+    pendingHazard =
+        null;
+
+
+    hazardModal.hidden =
+        true;
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+}
+
+
+saveHazardButton.addEventListener(
+
+    "click",
+
+    () => {
+
+        if (!pendingHazard) {
+
+            closeHazardModal();
+
+            return;
+        }
+
+
+        const name =
+            hazardNameInput
+                .value
+                .trim();
+
+
+        if (!name) {
+
+            hazardError.hidden =
+                false;
+
+            return;
+        }
+
+
+        const note =
+            hazardNoteInput
+                .value
+                .trim();
+
+
+        const {
+            before
+        } =
+            pendingHazard;
+
+
+        let hazard =
+
+            pendingHazard.id !== undefined
+
+                ? findHazard(
+                    pendingHazard.id
+                )
+
+                : null;
+
+
+        const isNew =
+            !hazard;
+
+
+        if (hazard) {
+
+            hazard.name =
+                name;
+
+            hazard.note =
+                note;
+        }
+
+        else {
+
+            hazard = {
+
+                id:
+                    nextHazardId++,
+
+                name,
+
+                note,
+
+                x:
+                    pendingHazard.x,
+
+                y:
+                    pendingHazard.y
+            };
+
+
+            hazards.push(
+                hazard
+            );
+        }
+
+
+        closeHazardModal();
+
+
+        selectedItem = {
+
+            kind:
+                "hazard",
+
+            id:
+                hazard.id
+        };
+
+
+        commitHistory(
+            before
+        );
+
+
+        setTool(
+            "select"
+        );
+
+
+        statusBar.textContent =
+
+            isNew
+
+                ? `Hazard "${name}" added to your map.`
+
+                : `Hazard "${name}" updated.`;
+    }
+);
+
+
+discardHazardButton.addEventListener(
+
+    "click",
+
+    () => {
+
+        closeHazardModal();
+
+
+        renderAll();
+    }
+);
+
+
+/* =========================================================
 COLOUR
 ========================================================= */
 
@@ -7245,6 +7774,22 @@ EDIT / DUPLICATE / DELETE / LAYERS
 ========================================================= */
 
 function openEditModal() {
+
+    const hazard =
+        getSelectedHazard();
+
+
+    if (hazard) {
+
+        openHazardModal({
+            id:
+                hazard.id
+        });
+
+
+        return;
+    }
+
 
     const shape =
         getSelectedShape();
@@ -7662,6 +8207,19 @@ function deleteSelectedItem() {
             );
     }
 
+    else if (
+        selectedItem.kind === "hazard"
+    ) {
+
+        hazards =
+            hazards.filter(
+
+                hazard =>
+                    hazard.id !==
+                    selectedItem.id
+            );
+    }
+
     else {
 
         routes =
@@ -7731,6 +8289,10 @@ clearButton.addEventListener(
             [];
 
 
+        hazards =
+            [];
+
+
         selectedItem =
             null;
 
@@ -7748,6 +8310,10 @@ clearButton.addEventListener(
 
 
         nextRouteId =
+            1;
+
+
+        nextHazardId =
             1;
 
 
@@ -8872,6 +9438,368 @@ function drawRoutes(
 
 
 /* =========================================================
+RENDER HAZARDS
+========================================================= */
+
+const HAZARD_RED =
+    "#d7191c";
+
+
+function renderHazards() {
+
+    drawHazards(
+
+        hazardLayer,
+
+        hazards,
+
+        selectedItem?.kind === "hazard"
+            ? selectedItem.id
+            : null
+    );
+}
+
+
+/*
+Draw the red ⚠ Hazard triangle into an SVG group, centred on (x, y).
+Colours are set inline so they survive the PNG download, which
+does not carry the page's CSS.
+*/
+function appendHazardSymbol(
+    group,
+    x,
+    y,
+    size
+) {
+
+    const half =
+        size / 2;
+
+
+    const triangle =
+        document.createElementNS(
+            SVG_NS,
+            "polygon"
+        );
+
+
+    triangle.setAttribute(
+
+        "points",
+
+        pointArrayToString([
+
+            [
+                x,
+                y - half
+            ],
+
+            [
+                x + half,
+                y + half * .8
+            ],
+
+            [
+                x - half,
+                y + half * .8
+            ]
+        ])
+    );
+
+
+    triangle.setAttribute(
+        "fill",
+        HAZARD_RED
+    );
+
+
+    triangle.setAttribute(
+        "stroke",
+        "#ffffff"
+    );
+
+
+    triangle.setAttribute(
+        "stroke-width",
+        size / 14
+    );
+
+
+    triangle.setAttribute(
+        "stroke-linejoin",
+        "round"
+    );
+
+
+    triangle.setAttribute(
+        "class",
+        "hazard-symbol"
+    );
+
+
+    const mark =
+        document.createElementNS(
+            SVG_NS,
+            "text"
+        );
+
+
+    mark.setAttribute(
+        "x",
+        x
+    );
+
+
+    mark.setAttribute(
+        "y",
+        y + half * .62
+    );
+
+
+    mark.setAttribute(
+        "text-anchor",
+        "middle"
+    );
+
+
+    mark.setAttribute(
+        "font-size",
+        size * .62
+    );
+
+
+    mark.setAttribute(
+        "font-weight",
+        "900"
+    );
+
+
+    mark.setAttribute(
+        "font-family",
+        "Arial, sans-serif"
+    );
+
+
+    mark.setAttribute(
+        "fill",
+        "#ffffff"
+    );
+
+
+    mark.textContent =
+        "!";
+
+
+    group.append(
+        triangle,
+        mark
+    );
+}
+
+
+/*
+Draw Hazards into any SVG layer. Shared by the editor and by map
+previews, so both always draw Hazards the same way.
+*/
+function drawHazards(
+    layer,
+    hazardList,
+    selectedHazardId = null
+) {
+
+    layer.innerHTML =
+        "";
+
+
+    hazardList.forEach(
+
+        hazard => {
+
+            const group =
+                document.createElementNS(
+                    SVG_NS,
+                    "g"
+                );
+
+
+            group.setAttribute(
+                "class",
+                "map-hazard"
+            );
+
+
+            group.dataset.hazardId =
+                hazard.id;
+
+
+            const title =
+                document.createElementNS(
+                    SVG_NS,
+                    "title"
+                );
+
+
+            title.textContent =
+
+                hazard.note
+
+                    ? `⚠ ${hazard.name}: ${hazard.note}`
+
+                    : `⚠ ${hazard.name}`;
+
+
+            group.appendChild(
+                title
+            );
+
+
+            if (
+                hazard.id ===
+                selectedHazardId
+            ) {
+
+                const ring =
+                    document.createElementNS(
+                        SVG_NS,
+                        "circle"
+                    );
+
+
+                ring.setAttribute(
+                    "cx",
+                    hazard.x
+                );
+
+
+                ring.setAttribute(
+                    "cy",
+                    hazard.y
+                );
+
+
+                ring.setAttribute(
+                    "r",
+                    34
+                );
+
+
+                ring.setAttribute(
+                    "fill",
+                    "none"
+                );
+
+
+                ring.setAttribute(
+                    "class",
+                    "hazard-selected"
+                );
+
+
+                group.appendChild(
+                    ring
+                );
+            }
+
+
+            appendHazardSymbol(
+                group,
+                hazard.x,
+                hazard.y,
+                44
+            );
+
+
+            const label =
+                document.createElementNS(
+                    SVG_NS,
+                    "text"
+                );
+
+
+            label.setAttribute(
+                "x",
+                hazard.x
+            );
+
+
+            label.setAttribute(
+                "y",
+                hazard.y + 42
+            );
+
+
+            label.setAttribute(
+                "text-anchor",
+                "middle"
+            );
+
+
+            label.setAttribute(
+                "font-size",
+                16
+            );
+
+
+            label.setAttribute(
+                "font-weight",
+                "800"
+            );
+
+
+            label.setAttribute(
+                "font-family",
+                "Arial, sans-serif"
+            );
+
+
+            label.setAttribute(
+                "fill",
+                HAZARD_RED
+            );
+
+
+            label.setAttribute(
+                "stroke",
+                "#ffffff"
+            );
+
+
+            label.setAttribute(
+                "stroke-width",
+                4
+            );
+
+
+            label.setAttribute(
+                "paint-order",
+                "stroke"
+            );
+
+
+            label.setAttribute(
+                "class",
+                "hazard-label"
+            );
+
+
+            label.textContent =
+                hazard.name;
+
+
+            group.appendChild(
+                label
+            );
+
+
+            layer.appendChild(
+                group
+            );
+        }
+    );
+}
+
+
+/* =========================================================
 MAP PREVIEW
 ========================================================= */
 
@@ -8902,6 +9830,13 @@ function mapDataHasFeatures(
                     route.kind !==
                     "boundary"
             )
+        ) ||
+
+        (
+            Array.isArray(
+                data.hazards
+            ) &&
+            data.hazards.length > 0
         )
     );
 }
@@ -8979,10 +9914,18 @@ function renderMapPreview(
         );
 
 
+    const previewHazardLayer =
+        document.createElementNS(
+            SVG_NS,
+            "g"
+        );
+
+
     svg.append(
         background,
         previewShapeLayer,
-        previewRouteLayer
+        previewRouteLayer,
+        previewHazardLayer
     );
 
 
@@ -9006,6 +9949,18 @@ function renderMapPreview(
             data.routes
         )
             ? data.routes
+            : []
+    );
+
+
+    drawHazards(
+
+        previewHazardLayer,
+
+        Array.isArray(
+            data.hazards
+        )
+            ? data.hazards
             : []
     );
 
@@ -9839,7 +10794,9 @@ function renderLegend() {
 
         !completedShapes.length &&
 
-        !completedRoutes.length
+        !completedRoutes.length &&
+
+        !hazards.length
 
     ) {
 
@@ -9966,6 +10923,157 @@ Your map symbols will appear here automatically.
             );
         }
     );
+
+
+    renderLegendHazards();
+}
+
+
+/*
+Hazards get their own section at the end of the Legend, each with
+its name and, when there is one, why it is dangerous.
+*/
+function renderLegendHazards() {
+
+    if (
+        !hazards.length
+    ) {
+
+        return;
+    }
+
+
+    const section =
+        document.createElement(
+            "div"
+        );
+
+
+    section.className =
+        "legend-section legend-hazards";
+
+
+    const title =
+        document.createElement(
+            "div"
+        );
+
+
+    title.className =
+        "legend-section-title";
+
+
+    title.textContent =
+        "Hazards";
+
+
+    section.appendChild(
+        title
+    );
+
+
+    hazards.forEach(
+
+        hazard => {
+
+            const preview =
+                document.createElementNS(
+                    SVG_NS,
+                    "svg"
+                );
+
+
+            preview.setAttribute(
+                "viewBox",
+                "0 0 31 24"
+            );
+
+
+            preview.setAttribute(
+                "class",
+                "legend-preview"
+            );
+
+
+            appendHazardSymbol(
+                preview,
+                15.5,
+                12.5,
+                22
+            );
+
+
+            const row =
+                document.createElement(
+                    "div"
+                );
+
+
+            row.className =
+                "legend-item";
+
+
+            const text =
+                document.createElement(
+                    "div"
+                );
+
+
+            text.className =
+                "legend-text";
+
+
+            const name =
+                document.createElement(
+                    "div"
+                );
+
+
+            name.className =
+                "legend-object-name";
+
+
+            name.textContent =
+                hazard.name;
+
+
+            const note =
+                document.createElement(
+                    "div"
+                );
+
+
+            note.className =
+                "legend-category";
+
+
+            note.textContent =
+                hazard.note ||
+                "Hazard";
+
+
+            text.append(
+                name,
+                note
+            );
+
+
+            row.append(
+                preview,
+                text
+            );
+
+
+            section.appendChild(
+                row
+            );
+        }
+    );
+
+
+    legendList.appendChild(
+        section
+    );
 }
 
 
@@ -10034,7 +11142,9 @@ function updateMoreButtons() {
 
         !getSelectedShape() &&
 
-        !getSelectedRoute();
+        !getSelectedRoute() &&
+
+        !getSelectedHazard();
 
 
     submitButton.hidden =
@@ -10049,6 +11159,8 @@ function renderAll() {
     renderShapes();
 
     renderRoutes();
+
+    renderHazards();
 
     renderAnnotations();
 
@@ -20230,7 +21342,7 @@ function drawGalleryTileMap(
 }
 
 
-function galleryClassSection(
+function getOrCreateGalleryClassSection(
     className
 ) {
 
@@ -20287,6 +21399,25 @@ function galleryClassSection(
 }
 
 
+/* Clear every tile and show a message in their place. */
+function resetGallery(
+    html
+) {
+
+
+    galleryEntries =
+        new Map();
+
+
+    galleryClassSections =
+        new Map();
+
+
+    galleryContent.innerHTML =
+        html;
+}
+
+
 /*
 Bring the tiles in line with items (already in list order).
 Untouched tiles keep their elements; new tiles are put in place.
@@ -20312,18 +21443,13 @@ function renderGallery(
         }
 
 
-        galleryEntries =
-            new Map();
-
-        galleryClassSections =
-            new Map();
-
-        galleryContent.innerHTML =
+        resetGallery(
             `
 <p class="helper-text gallery-empty-message">
 No student saves yet.
 </p>
-`;
+`
+        );
 
         return;
     }
@@ -20379,7 +21505,7 @@ No student saves yet.
             ) {
 
                 const classSection =
-                    galleryClassSection(
+                    getOrCreateGalleryClassSection(
                         className
                     );
 
@@ -20457,6 +21583,7 @@ No student saves yet.
                 entry.submission =
                     submission;
 
+
                 fillGalleryTileLabels(
                     entry
                 );
@@ -20475,17 +21602,16 @@ No student saves yet.
 
             else {
 
+
                 entry.submission =
                     submission;
+
 
                 updateGalleryTileTime(
                     entry
                 );
             }
 
-
-            entry.submission =
-                submission;
 
             entry.signature =
                 signature;
@@ -20571,6 +21697,10 @@ async function loadGallery() {
         galleryTaskId;
 
 
+    const loadId =
+        ++galleryLoadCount;
+
+
     let result;
 
 
@@ -20580,50 +21710,73 @@ async function loadGallery() {
 
     try {
 
+
         result =
             await fetchGalleryProjects(
                 taskId
             );
     }
 
+
     catch (error) {
 
-        galleryEntries =
-            new Map();
 
-        galleryClassSections =
-            new Map();
+        // A newer load (the Gallery was reopened) owns the page now.
+        if (
+            loadId !==
+            galleryLoadCount
+        ) {
 
-        galleryContent.innerHTML =
+
+            return;
+        }
+
+
+        resetGallery(
             `
 <p class="helper-text">
 ${escapeHtml(error.message || "Could not load student maps.")}
 </p>
-`;
+`
+        );
+
 
         return;
     }
 
+
     finally {
 
-        galleryLoading =
-            false;
 
-        // Keep checking even after a failed load, so it can recover.
         if (
-            isShowingGallery()
+            loadId ===
+            galleryLoadCount
         ) {
 
-            galleryWatcher.start();
+
+            galleryLoading =
+                false;
+
+            // Keep checking even after a failed load, so it can recover.
+            if (
+                isShowingGallery()
+            ) {
+
+
+                galleryWatcher.start();
+            }
         }
     }
 
 
-    // The Teacher may have left the Gallery while we waited.
+    // The Teacher may have left or reopened the Gallery while we waited.
     if (
+        loadId !==
+        galleryLoadCount ||
         galleryTaskId !==
         taskId
     ) {
+
 
         return;
     }
@@ -20670,8 +21823,15 @@ async function checkForGalleryUpdates() {
         galleryLoading
     ) {
 
+
         return;
     }
+
+
+    // Move the "last changed" times on, even if this check then fails.
+    galleryEntries.forEach(
+        updateGalleryTileTime
+    );
 
 
     const {
@@ -20738,22 +21898,18 @@ async function openGallery() {
     galleryTaskId =
         selectedTeacherTask.id;
 
-    galleryEntries =
-        new Map();
-
-    galleryClassSections =
-        new Map();
-
     galleryHeading.textContent =
         selectedTeacherTask.title ||
         "Gallery";
 
-    galleryContent.innerHTML =
+
+    resetGallery(
         `
 <p class="helper-text">
 Loading student maps…
 </p>
-`;
+`
+    );
 
 
     submissionsWatcher.stop();
@@ -21387,6 +22543,17 @@ function buildExportSvg() {
             "#temporaryLayer"
         )
         ?.remove();
+
+
+    // A selected Hazard's ring is drawn with it, not in selectionLayer.
+    clone
+        .querySelectorAll(
+            ".hazard-selected"
+        )
+        .forEach(
+            ring =>
+                ring.remove()
+        );
 
 
     if (

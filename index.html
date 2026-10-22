@@ -253,6 +253,7 @@ class="canvas-background"
 <g id="gridLayer"></g>
 <g id="shapeLayer"></g>
 <g id="routeLayer"></g>
+<g id="hazardLayer"></g>
 <g id="annotationLayer"></g>
 <g id="selectionLayer"></g>
 <g id="temporaryLayer"></g>
@@ -358,6 +359,16 @@ aria-label="Draw road"
 >
 <span class="toolbar-icon">═</span>
 <span class="toolbar-tooltip">Road</span>
+</button>
+
+<button
+type="button"
+id="hazardTool"
+class="toolbar-button"
+aria-label="Mark a hazard"
+>
+<span class="toolbar-icon">⚠</span>
+<span class="toolbar-tooltip">Hazard</span>
 </button>
 
 <button
@@ -1337,6 +1348,11 @@ Bring forward / send backward
 </label>
 
 <label>
+<input id="allowHazard" type="checkbox">
+Hazards ⚠
+</label>
+
+<label>
 <input id="allowReference" type="checkbox">
 Reference map
 </label>
@@ -2260,6 +2276,83 @@ Discard
 
 <button
 id="saveRouteDetailsButton"
+class="modal-primary-button"
+type="button"
+>
+Add to Map
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="hazardModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div
+id="hazardModalLabel"
+class="modal-step-label"
+>
+HAZARD
+</div>
+
+<h2 id="hazardModalTitle">
+Name this hazard
+</h2>
+
+<p class="modal-description">
+Say what could be dangerous here. It will be shown on the map in red and added to the legend.
+</p>
+
+<label for="hazardNameInput">
+Name
+</label>
+
+<input
+type="text"
+id="hazardNameInput"
+placeholder="e.g. Wet floor near canteen"
+maxlength="50"
+autocomplete="off"
+>
+
+<label for="hazardNoteInput">
+Why is it dangerous? (optional)
+</label>
+
+<input
+type="text"
+id="hazardNoteInput"
+placeholder="e.g. Slippery after rain"
+maxlength="120"
+autocomplete="off"
+>
+
+<div
+id="hazardError"
+class="modal-error"
+hidden
+>
+Please enter a name.
+</div>
+
+<div class="modal-actions">
+
+<button
+id="discardHazardButton"
+class="modal-secondary-button"
+type="button"
+>
+Discard
+</button>
+
+<button
+id="saveHazardButton"
 class="modal-primary-button"
 type="button"
 >

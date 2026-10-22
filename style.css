@@ -1051,6 +1051,43 @@ font-size:10px;
 margin-top:3px;
 }
 
+.legend-section {
+grid-column:1 / -1;
+display:grid;
+grid-template-columns:
+repeat(
+auto-fit,
+minmax(210px,1fr)
+);
+gap:8px 12px;
+}
+
+.legend-section-title {
+grid-column:1 / -1;
+margin-top:4px;
+color:#b3161a;
+font-size:11px;
+font-weight:800;
+letter-spacing:.06em;
+text-transform:uppercase;
+}
+
+.legend-hazards .legend-item {
+border-color:#f1c4c4;
+background:#fff6f5;
+}
+
+.map-hazard {
+cursor:grab;
+}
+
+.hazard-selected {
+fill:none;
+stroke:#2e6eb6;
+stroke-width:3;
+stroke-dasharray:6 4;
+}
+
 .empty-legend {
 color:#858984;
 font-size:12px;

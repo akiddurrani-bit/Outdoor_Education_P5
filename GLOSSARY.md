@@ -14,6 +14,10 @@ _Avoid_: Admin, staff, owner
 An activity a teacher sets for one or more Classes, with instructions, the tools students may use, and optionally a Reference Map.
 _Avoid_: Activity, assignment, lesson
 
+**Follow-on Task**:
+A Task that builds on one earlier Task. Each Project for it starts as a copy of the map the same students made for the earlier Task, which stays exactly as it was, along with its Review. The two Projects are separate from then on: each is Submitted and Marked on its own.
+_Avoid_: Task 2, part 2, continuation, resubmission
+
 **Task Code**:
 The short code students enter to open a Task.
 _Avoid_: Join code, PIN
@@ -49,7 +53,7 @@ The state of a Project that has been handed to the teacher. Any one member of th
 _Avoid_: Final, completed
 
 **Group**:
-The set of students from one Class sharing one Project for one Task, chosen by whichever member opens the Task first. A student working alone is a Group of one; Groups do not carry over between Tasks.
+The set of students from one Class sharing one Project for one Task, chosen by whichever member opens the Task first. A student working alone is a Group of one. Groups do not carry over between Tasks, except into a Follow-on Task, which keeps the earlier Task's Groups. No one leaves a Group there, but a student who had no Project in the earlier Task can be added to one.
 _Avoid_: Team, pair
 
 **Editor**:
@@ -82,12 +86,16 @@ _Avoid_: Walkway, trail
 A Route drawn as a solid double-edged line, representing a road for vehicles.
 _Avoid_: Street
 
+**Hazard**:
+A bright red warning symbol (⚠) placed at one spot on the map to mark a potential safety danger, with a short name and an optional note on why it is dangerous. Hazards are listed in their own section of the Legend.
+_Avoid_: Danger, risk, warning, Landmark (a Hazard is not a kind of Landmark)
+
 **North Arrow**:
 The arrow a student rotates to show which way is north on their map.
 _Avoid_: Compass
 
 **Legend**:
-The key listing every Landmark and Route on the map, built automatically from them.
+The key listing every Landmark, Route and Hazard on the map, built automatically from them.
 _Avoid_: Key
 
 ### Teacher feedback
