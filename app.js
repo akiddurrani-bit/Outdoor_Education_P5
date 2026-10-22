@@ -8922,7 +8922,7 @@ function renderMapPreview(
 
     svg.setAttribute(
         "viewBox",
-        "0 0 1600 675"
+        `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`
     );
 
     svg.setAttribute(
@@ -8944,12 +8944,12 @@ function renderMapPreview(
 
     background.setAttribute(
         "width",
-        "1600"
+        CANVAS_WIDTH
     );
 
     background.setAttribute(
         "height",
-        "675"
+        CANVAS_HEIGHT
     );
 
     background.setAttribute(
@@ -20475,10 +20475,19 @@ async function checkForGalleryUpdates() {
     }
 
 
+    // After a failed first load, draw quietly rather than flash every tile.
+    const galleryWasDrawn =
+        Boolean(
+            galleryContent.querySelector(
+                ".gallery-class, .gallery-empty-message"
+            )
+        );
+
+
     renderGallery(
         items,
         maps,
-        true
+        galleryWasDrawn
     );
 }
 
