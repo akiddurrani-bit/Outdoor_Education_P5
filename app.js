@@ -19582,6 +19582,801 @@ refreshSubmissionsButton.addEventListener(
 
 
 /* =========================================================
+GALLERY
+Every Project for the selected Task, side by side as small
+maps, for Teachers only. It has no actions of its own.
+========================================================= */
+
+const teacherGallery =
+    $("teacherGallery");
+
+const galleryHeading =
+    $("galleryHeading");
+
+const galleryContent =
+    $("galleryContent");
+
+const openGalleryButton =
+    $("openGalleryButton");
+
+const galleryBackButton =
+    $("galleryBackButton");
+
+
+let galleryTaskId =
+    null;
+
+// Project id → { submission, signature, mapUpdatedAt, tile, ... }
+let galleryEntries =
+    new Map();
+
+// Class name → { section, grid }
+let galleryClassSections =
+    new Map();
+
+
+function galleryStatus(
+    submission
+) {
+
+    if (
+        submission.reviewed_at
+    ) {
+
+        return {
+            label:
+                "Marked",
+            className:
+                "marked"
+        };
+    }
+
+
+    if (
+        submission.status === "submitted"
+    ) {
+
+        return {
+            label:
+                "Submitted",
+            className:
+                "submitted"
+        };
+    }
+
+
+    return {
+        label:
+            "Drawing",
+        className:
+            ""
+    };
+}
+
+
+function formatTimeAgo(
+    value
+) {
+
+    const minutes =
+        Math.floor(
+            (
+                Date.now() -
+                new Date(value).getTime()
+            ) /
+            60000
+        );
+
+
+    if (
+        minutes < 1
+    ) {
+
+        return "just now";
+    }
+
+
+    if (
+        minutes < 60
+    ) {
+
+        return `${minutes} min ago`;
+    }
+
+
+    if (
+        minutes < 24 * 60
+    ) {
+
+        return `${Math.floor(minutes / 60)} h ago`;
+    }
+
+
+    return formatShortDateTime(
+        value
+    );
+}
+
+
+/*
+The Task's Projects in list order, each with its map data.
+Map data is downloaded only for Projects in needMapIds(items).
+*/
+async function fetchGalleryProjects(
+    taskId,
+    needMapIds = items =>
+        items.map(
+            item =>
+                item.id
+        )
+) {
+
+    const items =
+        await fetchTaskProjects(
+            taskId
+        );
+
+
+    const ids =
+        needMapIds(
+            items
+        );
+
+
+    const maps =
+        new Map();
+
+
+    if (
+        ids.length
+    ) {
+
+        const {
+            data,
+            error
+        } =
+            await sb
+                .from(
+                    "submissions"
+                )
+                .select(
+                    "id,updated_at,map_data"
+                )
+                .in(
+                    "id",
+                    ids
+                );
+
+
+        if (error) {
+            throw error;
+        }
+
+
+        (data || []).forEach(
+            row =>
+                maps.set(
+                    row.id,
+                    row
+                )
+        );
+    }
+
+
+    return {
+        items,
+        maps
+    };
+}
+
+
+function createGalleryTile(
+    submission
+) {
+
+    const entry = {
+        submission,
+        signature:
+            "",
+        mapUpdatedAt:
+            null,
+        tile:
+            document.createElement(
+                "div"
+            ),
+        map:
+            document.createElement(
+                "div"
+            ),
+        empty:
+            document.createElement(
+                "div"
+            ),
+        name:
+            document.createElement(
+                "strong"
+            ),
+        status:
+            document.createElement(
+                "div"
+            ),
+        meta:
+            document.createElement(
+                "span"
+            )
+    };
+
+
+    entry.tile.className =
+        "gallery-tile";
+
+    entry.map.className =
+        "gallery-tile-map";
+
+    entry.empty.className =
+        "gallery-tile-empty";
+
+    entry.empty.textContent =
+        "Nothing drawn yet";
+
+
+    const info =
+        document.createElement(
+            "div"
+        );
+
+    info.className =
+        "gallery-tile-info";
+
+    info.append(
+        entry.name,
+        entry.status,
+        entry.meta
+    );
+
+
+    entry.tile.append(
+        entry.map,
+        info
+    );
+
+
+    fillGalleryTileLabels(
+        entry
+    );
+
+
+    return entry;
+}
+
+
+function fillGalleryTileLabels(
+    entry
+) {
+
+    const submission =
+        entry.submission;
+
+
+    const status =
+        galleryStatus(
+            submission
+        );
+
+
+    entry.name.textContent =
+        submission.student_name ||
+        "";
+
+    entry.status.className =
+        `status-pill ${status.className}`;
+
+    entry.status.textContent =
+        status.label;
+
+
+    updateGalleryTileTime(
+        entry
+    );
+}
+
+
+function updateGalleryTileTime(
+    entry
+) {
+
+    const submission =
+        entry.submission;
+
+
+    const text =
+        [
+            submission.class_name,
+            submission.group_name,
+            formatTimeAgo(
+                submission.updated_at
+            )
+        ]
+            .filter(Boolean)
+            .join(" · ");
+
+
+    // Leave the text alone when unchanged, so nothing flickers.
+    if (
+        entry.meta.textContent !==
+        text
+    ) {
+
+        entry.meta.textContent =
+            text;
+    }
+}
+
+
+function drawGalleryTileMap(
+    entry,
+    mapRow
+) {
+
+    const mapData =
+        mapRow.map_data ||
+        {};
+
+
+    renderMapPreview(
+        entry.map,
+        mapData
+    );
+
+
+    if (
+        !mapDataHasFeatures(
+            mapData
+        )
+    ) {
+
+        entry.map.appendChild(
+            entry.empty
+        );
+    }
+
+
+    entry.mapUpdatedAt =
+        mapRow.updated_at;
+}
+
+
+function galleryClassSection(
+    className
+) {
+
+    let classSection =
+        galleryClassSections.get(
+            className
+        );
+
+
+    if (!classSection) {
+
+        const section =
+            document.createElement(
+                "section"
+            );
+
+        section.className =
+            "gallery-class";
+
+
+        const heading =
+            document.createElement(
+                "h2"
+            );
+
+        heading.textContent =
+            className ||
+            "No Class";
+
+
+        const grid =
+            document.createElement(
+                "div"
+            );
+
+        grid.className =
+            "gallery-grid";
+
+
+        section.append(
+            heading,
+            grid
+        );
+
+
+        classSection = {
+            section,
+            grid
+        };
+    }
+
+
+    return classSection;
+}
+
+
+/*
+Bring the tiles in line with items (already in list order).
+Untouched tiles keep their elements; new tiles are put in place.
+*/
+function renderGallery(
+    items,
+    maps
+) {
+
+    if (
+        !items.length
+    ) {
+
+        galleryEntries =
+            new Map();
+
+        galleryClassSections =
+            new Map();
+
+        galleryContent.innerHTML =
+            `
+<p class="helper-text">
+No student saves yet.
+</p>
+`;
+
+        return;
+    }
+
+
+    // Drop any message left from an empty or failed load.
+    Array.from(
+        galleryContent.children
+    ).forEach(
+        child => {
+
+            if (
+                !child.classList.contains(
+                    "gallery-class"
+                )
+            ) {
+
+                child.remove();
+            }
+        }
+    );
+
+
+    const nextEntries =
+        new Map();
+
+    const nextSections =
+        new Map();
+
+
+    let sectionAnchor =
+        galleryContent.firstElementChild;
+
+    let tileAnchor =
+        null;
+
+    let currentClass =
+        null;
+
+
+    items.forEach(
+        submission => {
+
+            const className =
+                submission.class_name ||
+                "";
+
+
+            if (
+                !nextSections.has(
+                    className
+                )
+            ) {
+
+                const classSection =
+                    galleryClassSection(
+                        className
+                    );
+
+
+                nextSections.set(
+                    className,
+                    classSection
+                );
+
+
+                if (
+                    classSection.section ===
+                    sectionAnchor
+                ) {
+
+                    sectionAnchor =
+                        sectionAnchor.nextElementSibling;
+                }
+
+                else {
+
+                    galleryContent.insertBefore(
+                        classSection.section,
+                        sectionAnchor
+                    );
+                }
+
+
+                currentClass =
+                    classSection;
+
+                tileAnchor =
+                    classSection.grid.firstElementChild;
+            }
+
+
+            const signature =
+                submissionRowSignature(
+                    submission
+                );
+
+
+            let entry =
+                galleryEntries.get(
+                    submission.id
+                );
+
+
+            if (!entry) {
+
+                entry =
+                    createGalleryTile(
+                        submission
+                    );
+            }
+
+            else if (
+                entry.signature !==
+                signature
+            ) {
+
+                entry.submission =
+                    submission;
+
+                fillGalleryTileLabels(
+                    entry
+                );
+            }
+
+            else {
+
+                entry.submission =
+                    submission;
+
+                updateGalleryTileTime(
+                    entry
+                );
+            }
+
+
+            entry.submission =
+                submission;
+
+            entry.signature =
+                signature;
+
+
+            const mapRow =
+                maps.get(
+                    submission.id
+                );
+
+
+            if (mapRow) {
+
+                drawGalleryTileMap(
+                    entry,
+                    mapRow
+                );
+            }
+
+
+            nextEntries.set(
+                submission.id,
+                entry
+            );
+
+
+            if (
+                entry.tile === tileAnchor
+            ) {
+
+                tileAnchor =
+                    tileAnchor.nextElementSibling;
+            }
+
+            else {
+
+                currentClass.grid.insertBefore(
+                    entry.tile,
+                    tileAnchor
+                );
+            }
+        }
+    );
+
+
+    galleryEntries.forEach(
+        (entry, id) => {
+
+            if (
+                !nextEntries.has(id)
+            ) {
+
+                entry.tile.remove();
+            }
+        }
+    );
+
+
+    galleryClassSections.forEach(
+        (classSection, className) => {
+
+            if (
+                !nextSections.has(className)
+            ) {
+
+                classSection.section.remove();
+            }
+        }
+    );
+
+
+    galleryEntries =
+        nextEntries;
+
+    galleryClassSections =
+        nextSections;
+}
+
+
+async function loadGallery() {
+
+    const taskId =
+        galleryTaskId;
+
+
+    let result;
+
+
+    try {
+
+        result =
+            await fetchGalleryProjects(
+                taskId
+            );
+    }
+
+    catch (error) {
+
+        galleryEntries =
+            new Map();
+
+        galleryClassSections =
+            new Map();
+
+        galleryContent.innerHTML =
+            `
+<p class="helper-text">
+${escapeHtml(error.message || "Could not load student maps.")}
+</p>
+`;
+
+        return;
+    }
+
+
+    // The Teacher may have left the Gallery while we waited.
+    if (
+        galleryTaskId !==
+        taskId
+    ) {
+
+        return;
+    }
+
+
+    renderGallery(
+        result.items,
+        result.maps
+    );
+}
+
+
+async function openGallery() {
+
+    if (
+        !selectedTeacherTask
+    ) {
+
+        return;
+    }
+
+
+    galleryTaskId =
+        selectedTeacherTask.id;
+
+    galleryEntries =
+        new Map();
+
+    galleryClassSections =
+        new Map();
+
+    galleryHeading.textContent =
+        selectedTeacherTask.title ||
+        "Gallery";
+
+    galleryContent.innerHTML =
+        `
+<p class="helper-text">
+Loading student maps…
+</p>
+`;
+
+
+    teacherDashboard.hidden =
+        true;
+
+    teacherGallery.hidden =
+        false;
+
+    window.scrollTo(
+        0,
+        0
+    );
+
+
+    await loadGallery();
+}
+
+
+function closeGallery() {
+
+    galleryTaskId =
+        null;
+
+    teacherGallery.hidden =
+        true;
+
+    teacherDashboard.hidden =
+        false;
+
+
+    // Catch up on Student Maps that changed while in the Gallery.
+    submissionsWatcher.start();
+
+    submissionsWatcher.runNow();
+}
+
+
+openGalleryButton.addEventListener(
+    "click",
+    openGallery
+);
+
+
+galleryBackButton.addEventListener(
+    "click",
+    closeGallery
+);
+
+
+/* =========================================================
 TEACHER REVIEW
 ========================================================= */
 

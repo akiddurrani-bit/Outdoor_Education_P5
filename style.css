@@ -1419,6 +1419,88 @@ border-color:var(--forest);
 }
 }
 
+
+/* =========================================================
+GALLERY
+========================================================= */
+
+.teacher-section-buttons {
+display:flex;
+gap:8px;
+}
+
+.gallery-class + .gallery-class {
+margin-top:22px;
+}
+
+.gallery-class h2 {
+margin:0 0 10px;
+font-size:18px;
+}
+
+.gallery-grid {
+display:grid;
+grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+gap:12px;
+}
+
+.gallery-tile {
+display:flex;
+flex-direction:column;
+gap:8px;
+min-width:0;
+padding:8px;
+border:1px solid #dedcd3;
+border-radius:12px;
+background:#fff;
+text-align:left;
+font:inherit;
+color:inherit;
+}
+
+.gallery-tile-map {
+position:relative;
+}
+
+.gallery-tile-empty {
+position:absolute;
+inset:0;
+display:flex;
+align-items:center;
+justify-content:center;
+color:var(--muted);
+font-size:13px;
+font-weight:700;
+pointer-events:none;
+}
+
+.gallery-tile-info {
+display:grid;
+grid-template-columns:minmax(0,1fr) auto;
+gap:2px 8px;
+align-items:center;
+}
+
+.gallery-tile-info strong {
+overflow:hidden;
+text-overflow:ellipsis;
+white-space:nowrap;
+}
+
+.gallery-tile-info .status-pill {
+grid-row:span 2;
+}
+
+.gallery-tile-info span {
+color:var(--muted);
+font-size:11px;
+}
+
+.status-pill.marked {
+background:#e5edf7;
+color:#2a5384;
+}
+
 /* Who is being reviewed | written feedback | save. */
 .teacher-feedback-panel {
 display:grid;
