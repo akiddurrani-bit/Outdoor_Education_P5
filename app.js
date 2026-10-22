@@ -19606,6 +19606,10 @@ const galleryBackButton =
 let galleryTaskId =
     null;
 
+// True while the first load for galleryTaskId is in flight.
+let galleryLoading =
+    false;
+
 // Project id → { submission, signature, mapUpdatedAt, tile, ... }
 let galleryEntries =
     new Map();
@@ -20009,12 +20013,24 @@ Untouched tiles keep their elements; new tiles are put in place.
 */
 function renderGallery(
     items,
-    maps
+    maps,
+    highlightChanges = false
 ) {
 
     if (
         !items.length
     ) {
+
+        // Already showing the message: leave it, so nothing flickers.
+        if (
+            galleryContent.querySelector(
+                ".gallery-empty-message"
+            )
+        ) {
+
+            return;
+        }
+
 
         galleryEntries =
             new Map();
@@ -20024,7 +20040,7 @@ function renderGallery(
 
         galleryContent.innerHTML =
             `
-<p class="helper-text">
+<p class="helper-text gallery-empty-message">
 No student saves yet.
 </p>
 `;
@@ -20138,6 +20154,14 @@ No student saves yet.
                     createGalleryTile(
                         submission
                     );
+
+
+                if (highlightChanges) {
+
+                    flashSubmissionRow(
+                        entry.tile
+                    );
+                }
             }
 
             else if (
@@ -20145,12 +20169,28 @@ No student saves yet.
                 signature
             ) {
 
+                const becameSubmitted =
+                    entry.submission.status !== "submitted" &&
+                    submission.status === "submitted";
+
+
                 entry.submission =
                     submission;
 
                 fillGalleryTileLabels(
                     entry
                 );
+
+
+                if (
+                    highlightChanges &&
+                    becameSubmitted
+                ) {
+
+                    flashSubmissionRow(
+                        entry.tile
+                    );
+                }
             }
 
             else {
@@ -20254,6 +20294,10 @@ async function loadGallery() {
     let result;
 
 
+    galleryLoading =
+        true;
+
+
     try {
 
         result =
@@ -20280,6 +20324,20 @@ ${escapeHtml(error.message || "Could not load student maps.")}
         return;
     }
 
+    finally {
+
+        galleryLoading =
+            false;
+
+        // Keep checking even after a failed load, so it can recover.
+        if (
+            isShowingGallery()
+        ) {
+
+            galleryWatcher.start();
+        }
+    }
+
 
     // The Teacher may have left the Gallery while we waited.
     if (
@@ -20294,6 +20352,86 @@ ${escapeHtml(error.message || "Could not load student maps.")}
     renderGallery(
         result.items,
         result.maps
+    );
+}
+
+
+function isShowingGallery() {
+
+    return (
+        appMode === "teacher-dashboard" &&
+        !teacherGallery.hidden &&
+        galleryTaskId !== null &&
+        selectedTeacherTask?.id ===
+        galleryTaskId
+    );
+}
+
+
+const galleryWatcher =
+    createLiveCheck(
+        isShowingGallery,
+        checkForGalleryUpdates
+    );
+
+
+/*
+Download map data only for Projects that are new or whose
+last-changed time moved since their tile was drawn.
+*/
+async function checkForGalleryUpdates() {
+
+    const taskId =
+        galleryTaskId;
+
+
+    // Let loadGallery finish the first draw.
+    if (
+        galleryLoading
+    ) {
+
+        return;
+    }
+
+
+    const {
+        items,
+        maps
+    } =
+        await fetchGalleryProjects(
+
+            taskId,
+
+            projects =>
+                projects
+                    .filter(
+                        item =>
+                            galleryEntries.get(
+                                item.id
+                            )?.mapUpdatedAt !==
+                            item.updated_at
+                    )
+                    .map(
+                        item =>
+                            item.id
+                    )
+        );
+
+
+    if (
+        !isShowingGallery() ||
+        galleryTaskId !== taskId ||
+        galleryLoading
+    ) {
+
+        return;
+    }
+
+
+    renderGallery(
+        items,
+        maps,
+        true
     );
 }
 
@@ -20329,6 +20467,8 @@ Loading student maps…
 `;
 
 
+    submissionsWatcher.stop();
+
     teacherDashboard.hidden =
         true;
 
@@ -20346,6 +20486,8 @@ Loading student maps…
 
 
 function closeGallery() {
+
+    galleryWatcher.stop();
 
     galleryTaskId =
         null;
