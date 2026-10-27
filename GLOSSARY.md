@@ -7,8 +7,12 @@ A tool for Outdoor Education lessons in which students build abstract maps of a 
 ### Setting work
 
 **Teacher**:
-Anyone who signs in with an email address and password, or with a Google account. A Teacher sees and manages only the Classes they are a Teacher of, along with those Classes' Tasks, Projects and Reviews. All Teachers of a Class are equal.
+Anyone who signs in with an email address and password, or with a Google account. Only an MOE school account (an @moe.edu.sg address) can become a new Teacher; Teachers who joined before this rule keep their accounts. A Teacher sees and manages only the Classes they are a Teacher of, along with those Classes' Tasks, Projects and Reviews. All Teachers of a Class are equal.
 _Avoid_: Admin, staff, owner
+
+**Teacher Name**:
+The name a Teacher chooses to be called in the app, such as "Amos". It is suggested from their email address when they first sign in, and they can change it at any time. Only the Teacher themselves sees it.
+_Avoid_: Display name, username
 
 **Task**:
 An activity a teacher sets for one or more Classes, with instructions, the tools students may use, and optionally a Reference Map.
