@@ -526,6 +526,46 @@ const editTeacherNameButton =
     $("editTeacherNameButton");
 
 
+const appFeedbackButton =
+    $("appFeedbackButton");
+
+const appFeedbackModal =
+    $("appFeedbackModal");
+
+const appFeedbackForm =
+    $("appFeedbackForm");
+
+const appFeedbackMessage =
+    $("appFeedbackMessage");
+
+const appFeedbackCount =
+    $("appFeedbackCount");
+
+const appFeedbackFiles =
+    $("appFeedbackFiles");
+
+const appFeedbackPreviews =
+    $("appFeedbackPreviews");
+
+const appFeedbackAttached =
+    $("appFeedbackAttached");
+
+const appFeedbackError =
+    $("appFeedbackError");
+
+const cancelAppFeedbackButton =
+    $("cancelAppFeedbackButton");
+
+const sendAppFeedbackButton =
+    $("sendAppFeedbackButton");
+
+const appFeedbackSent =
+    $("appFeedbackSent");
+
+const closeAppFeedbackButton =
+    $("closeAppFeedbackButton");
+
+
 const objectModal =
     $("objectModal");
 
@@ -16271,6 +16311,15 @@ function refreshRoleIndicator() {
         detail;
 
 
+    // App Feedback is for signed-in Teachers only, on every Teacher screen.
+    appFeedbackButton.hidden =
+        !(
+            role === "teacher" &&
+            currentTeacherUser &&
+            teacherLoginModal.hidden
+        );
+
+
     roleIndicator.title =
         `Using the app as a ${role === "teacher" ? "Teacher" : "Student"}: ${detail}`;
 
@@ -16807,6 +16856,562 @@ editTeacherNameButton.addEventListener(
             canCancel:
                 true
         })
+);
+
+
+/* =========================================================
+APP FEEDBACK
+A Teacher's message to the people who build the app, with up
+to three screenshots. Teachers can send it but never read it.
+========================================================= */
+
+const APP_FEEDBACK_MAX_LENGTH =
+    2000;
+
+const APP_FEEDBACK_MAX_SCREENSHOTS =
+    3;
+
+const APP_FEEDBACK_MAX_BYTES =
+    5 * 1024 * 1024;
+
+// Allowed screenshot types, and the file ending each is stored with.
+const APP_FEEDBACK_IMAGE_TYPES = {
+    "image/png":
+        "png",
+    "image/jpeg":
+        "jpg"
+};
+
+
+// { file, url } for each screenshot waiting to be sent.
+let appFeedbackScreenshots =
+    [];
+
+
+// Why this file cannot be added, or null if it can.
+function appFeedbackScreenshotProblem(
+    file,
+    alreadyAdded
+) {
+
+    if (
+        alreadyAdded >= APP_FEEDBACK_MAX_SCREENSHOTS
+    ) {
+
+        return `You can add up to ${APP_FEEDBACK_MAX_SCREENSHOTS} screenshots.`;
+    }
+
+
+    if (
+        !APP_FEEDBACK_IMAGE_TYPES[file.type]
+    ) {
+
+        return `"${file.name}" is not a PNG or JPG image.`;
+    }
+
+
+    if (
+        file.size > APP_FEEDBACK_MAX_BYTES
+    ) {
+
+        return `"${file.name}" is bigger than 5 MB.`;
+    }
+
+
+    return null;
+}
+
+
+// Where the Teacher is now, for the App Feedback record.
+function currentAppFeedbackContext() {
+
+    const screen =
+
+        appMode === "teacher-review"
+
+            ? "Review"
+
+            : !teacherGallery.hidden
+
+            ? "Gallery"
+
+            : !teacherDashboard.hidden
+
+            ? (
+                teacherClassesPanel.hidden
+                    ? "Dashboard: Tasks"
+                    : "Dashboard: Classes"
+            )
+
+            : appMode;
+
+
+    return {
+        screen,
+        taskId:
+            selectedTeacherTask?.id ||
+            null,
+        taskTitle:
+            selectedTeacherTask?.title ||
+            null
+    };
+}
+
+
+function showAppFeedbackError(
+    text
+) {
+
+    appFeedbackError.textContent =
+        text;
+
+    appFeedbackError.hidden =
+        !text;
+}
+
+
+function renderAppFeedbackScreenshots() {
+
+    appFeedbackPreviews.replaceChildren(
+
+        ...appFeedbackScreenshots.map(
+            (shot, index) => {
+
+                const preview =
+                    document.createElement(
+                        "div"
+                    );
+
+                preview.className =
+                    "app-feedback-preview";
+
+
+                const image =
+                    document.createElement(
+                        "img"
+                    );
+
+                image.src =
+                    shot.url;
+
+                image.alt =
+                    `Screenshot ${index + 1}`;
+
+
+                const remove =
+                    document.createElement(
+                        "button"
+                    );
+
+                remove.type =
+                    "button";
+
+                remove.textContent =
+                    "✕";
+
+                remove.setAttribute(
+                    "aria-label",
+                    `Remove screenshot ${index + 1}`
+                );
+
+                remove.addEventListener(
+                    "click",
+                    () => {
+
+                        URL.revokeObjectURL(
+                            shot.url
+                        );
+
+                        appFeedbackScreenshots.splice(
+                            index,
+                            1
+                        );
+
+                        showAppFeedbackError(
+                            ""
+                        );
+
+                        renderAppFeedbackScreenshots();
+                    }
+                );
+
+
+                preview.append(
+                    image,
+                    remove
+                );
+
+                return preview;
+            }
+        )
+    );
+}
+
+
+function addAppFeedbackScreenshots(
+    files
+) {
+
+    const problems =
+        [];
+
+
+    for (
+        const file of files
+    ) {
+
+        const problem =
+            appFeedbackScreenshotProblem(
+                file,
+                appFeedbackScreenshots.length
+            );
+
+
+        if (problem) {
+
+            problems.push(
+                problem
+            );
+
+            continue;
+        }
+
+
+        appFeedbackScreenshots.push({
+            file,
+            url:
+                URL.createObjectURL(
+                    file
+                )
+        });
+    }
+
+
+    renderAppFeedbackScreenshots();
+
+
+    showAppFeedbackError(
+        [...new Set(problems)].join(" ")
+    );
+}
+
+
+function updateAppFeedbackCount() {
+
+    appFeedbackCount.textContent =
+        `${appFeedbackMessage.value.length} / ${APP_FEEDBACK_MAX_LENGTH}`;
+}
+
+
+function resetAppFeedbackForm() {
+
+    appFeedbackMessage.value =
+        "";
+
+    appFeedbackScreenshots.forEach(
+        shot =>
+            URL.revokeObjectURL(
+                shot.url
+            )
+    );
+
+    appFeedbackScreenshots =
+        [];
+
+    renderAppFeedbackScreenshots();
+
+    showAppFeedbackError(
+        ""
+    );
+
+    updateAppFeedbackCount();
+}
+
+
+function openAppFeedback() {
+
+    const context =
+        currentAppFeedbackContext();
+
+
+    const where =
+        context.taskTitle
+            ? `this screen (${context.screen}) and Task (${context.taskTitle})`
+            : `this screen (${context.screen})`;
+
+
+    appFeedbackAttached.textContent =
+        `We'll also send: your email (${currentTeacherUser?.email || "unknown"}) and name, the time, ${where}, and your browser and device.`;
+
+
+    appFeedbackForm.hidden =
+        false;
+
+    appFeedbackSent.hidden =
+        true;
+
+    appFeedbackModal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    updateAppFeedbackCount();
+
+    appFeedbackMessage.focus();
+}
+
+
+function closeAppFeedback() {
+
+    appFeedbackModal.hidden =
+        true;
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+}
+
+
+async function sendAppFeedback() {
+
+    const message =
+        appFeedbackMessage.value.trim();
+
+
+    if (
+        !message
+    ) {
+
+        showAppFeedbackError(
+            "Please type a message."
+        );
+
+        return;
+    }
+
+
+    if (
+        message.length > APP_FEEDBACK_MAX_LENGTH
+    ) {
+
+        showAppFeedbackError(
+            `Please keep your message under ${APP_FEEDBACK_MAX_LENGTH} characters.`
+        );
+
+        return;
+    }
+
+
+    showAppFeedbackError(
+        ""
+    );
+
+    sendAppFeedbackButton.disabled =
+        true;
+
+    sendAppFeedbackButton.textContent =
+        "Sending…";
+
+
+    try {
+
+        const feedbackId =
+            crypto.randomUUID();
+
+
+        const context =
+            currentAppFeedbackContext();
+
+
+        // Screenshots first: the message is only saved once all have arrived.
+        const screenshotPaths =
+            [];
+
+
+        for (
+            const [index, shot] of appFeedbackScreenshots.entries()
+        ) {
+
+            const path =
+                `${currentTeacherUser.id}/${feedbackId}/${index + 1}.${APP_FEEDBACK_IMAGE_TYPES[shot.file.type]}`;
+
+
+            const {
+                error
+            } =
+                await sb
+                    .storage
+                    .from(
+                        "app-feedback"
+                    )
+                    .upload(
+                        path,
+                        shot.file,
+                        {
+                            contentType:
+                                shot.file.type
+                        }
+                    );
+
+
+            if (error) {
+
+                throw error;
+            }
+
+
+            screenshotPaths.push(
+                path
+            );
+        }
+
+
+        // No .select(): Teachers may add App Feedback but not read it back.
+        const {
+            error
+        } =
+            await sb
+                .from(
+                    "app_feedback"
+                )
+                .insert({
+                    id:
+                        feedbackId,
+                    teacher_id:
+                        currentTeacherUser.id,
+                    teacher_email:
+                        currentTeacherUser.email ||
+                        null,
+                    teacher_name:
+                        currentTeacherName,
+                    message,
+                    screen:
+                        context.screen,
+                    task_id:
+                        context.taskId,
+                    task_title:
+                        context.taskTitle,
+                    // Without the query or #part, which can hold sign-in tokens.
+                    page_url:
+                        window.location.origin +
+                        window.location.pathname,
+                    user_agent:
+                        navigator.userAgent,
+                    screenshot_paths:
+                        screenshotPaths
+                });
+
+
+        if (error) {
+
+            throw error;
+        }
+
+
+        resetAppFeedbackForm();
+
+
+        appFeedbackForm.hidden =
+            true;
+
+        appFeedbackSent.hidden =
+            false;
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        showAppFeedbackError(
+            "Could not send your App Feedback. Please check your connection and try again."
+        );
+    }
+
+    finally {
+
+        sendAppFeedbackButton.disabled =
+            false;
+
+        sendAppFeedbackButton.textContent =
+            "Send";
+    }
+}
+
+
+appFeedbackButton.addEventListener(
+    "click",
+    openAppFeedback
+);
+
+
+appFeedbackMessage.addEventListener(
+    "input",
+    updateAppFeedbackCount
+);
+
+
+appFeedbackFiles.addEventListener(
+    "change",
+    () => {
+
+        addAppFeedbackScreenshots(
+            [...appFeedbackFiles.files]
+        );
+
+
+        // Lets the same file be chosen again after removing it.
+        appFeedbackFiles.value =
+            "";
+    }
+);
+
+
+// Paste a screenshot anywhere while the form is open.
+appFeedbackModal.addEventListener(
+    "paste",
+    event => {
+
+        const pasted =
+            [...(event.clipboardData?.files || [])];
+
+
+        if (
+            pasted.length
+        ) {
+
+            event.preventDefault();
+
+            addAppFeedbackScreenshots(
+                pasted
+            );
+        }
+    }
+);
+
+
+sendAppFeedbackButton.addEventListener(
+    "click",
+    sendAppFeedback
+);
+
+
+cancelAppFeedbackButton.addEventListener(
+    "click",
+    closeAppFeedback
+);
+
+
+closeAppFeedbackButton.addEventListener(
+    "click",
+    closeAppFeedback
 );
 
 
@@ -17355,6 +17960,12 @@ teacherSignOutButton.addEventListener(
 
         currentTeacherName =
             null;
+
+
+        // An unsent message must not be left for the next person.
+        resetAppFeedbackForm();
+
+        closeAppFeedback();
 
 
         rememberTeacherTask(

@@ -80,6 +80,15 @@ Signing in
 </div>
 
 <button
+id="appFeedbackButton"
+class="mode-button"
+type="button"
+hidden
+>
+Send App Feedback
+</button>
+
+<button
 id="studentModeButton"
 class="mode-button"
 type="button"
@@ -2149,6 +2158,122 @@ type="button"
 Sign In
 </button>
 
+</div>
+</div>
+</div>
+
+<div
+id="appFeedbackModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal app-feedback-card">
+
+<div class="modal-step-label">
+APP FEEDBACK
+</div>
+
+<h2>
+Send App Feedback
+</h2>
+
+<div id="appFeedbackForm">
+
+<p class="modal-description">
+Tell the people who build this app about a problem, an idea or anything you need.
+This is not feedback on a student's map.
+</p>
+
+<label for="appFeedbackMessage">
+Your message
+</label>
+
+<textarea
+id="appFeedbackMessage"
+rows="5"
+maxlength="2000"
+></textarea>
+
+<div
+id="appFeedbackCount"
+class="app-feedback-count"
+>
+0 / 2000
+</div>
+
+<label for="appFeedbackFiles">
+Screenshots (optional, up to 3)
+</label>
+
+<input
+id="appFeedbackFiles"
+type="file"
+accept="image/png,image/jpeg"
+multiple
+>
+
+<p class="app-feedback-hint">
+PNG or JPG, up to 5 MB each. You can also paste a screenshot here.
+</p>
+
+<div
+id="appFeedbackPreviews"
+class="app-feedback-previews"
+></div>
+
+<p
+id="appFeedbackAttached"
+class="app-feedback-hint"
+></p>
+
+<div
+id="appFeedbackError"
+class="modal-error"
+hidden
+></div>
+
+<div class="modal-actions">
+
+<button
+id="cancelAppFeedbackButton"
+class="modal-secondary-button"
+type="button"
+>
+Cancel
+</button>
+
+<button
+id="sendAppFeedbackButton"
+class="modal-primary-button"
+type="button"
+>
+Send
+</button>
+
+</div>
+</div>
+
+<div
+id="appFeedbackSent"
+hidden
+>
+
+<p class="modal-description">
+Thanks, your App Feedback was sent.
+</p>
+
+<div class="modal-actions">
+
+<button
+id="closeAppFeedbackButton"
+class="modal-primary-button"
+type="button"
+>
+Close
+</button>
+
+</div>
 </div>
 </div>
 </div>
