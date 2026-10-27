@@ -11462,19 +11462,57 @@ async function ensureAnonymousStudentSession() {
             .getSession();
 
 
+    let userIsGone =
+        false;
+
+
     if (
         session?.user?.is_anonymous
     ) {
 
-        return session.user;
+        // The browser remembers this sign-in, but its user may have been
+        // deleted in Supabase since; ask the server before reusing it.
+        const {
+            error: userError
+        } =
+            await sb
+                .auth
+                .getUser();
+
+
+        userIsGone =
+            userError?.status >= 400 &&
+            userError.status < 500;
+
+
+        if (
+            !userIsGone
+        ) {
+
+            return session.user;
+        }
+
+
+        console.warn(
+            "Remembered student sign-in no longer exists; starting a fresh one.",
+            userError
+        );
     }
 
 
     if (session) {
 
+        // A deleted user's sign-in can only be forgotten on this device.
         await sb
             .auth
-            .signOut();
+            .signOut(
+                userIsGone
+                    ? {
+                        scope:
+                            "local"
+                    }
+                    : undefined
+            );
     }
 
 
@@ -11507,9 +11545,26 @@ async function createFreshAnonymousSession() {
     }
 
 
-    await sb
-        .auth
-        .signOut();
+    const {
+        error: signOutError
+    } =
+        await sb
+            .auth
+            .signOut();
+
+
+    // The server may refuse (e.g. the user was deleted); forget it here anyway.
+    if (
+        signOutError
+    ) {
+
+        await sb
+            .auth
+            .signOut({
+                scope:
+                    "local"
+            });
+    }
 
 
     const {
@@ -12403,19 +12458,47 @@ async function loginStudentProfile() {
         await ensureRegisteredStudentSession();
 
 
-        const {
+        const selectProfile =
+            () =>
+                sb.rpc(
+
+                    "student_select_profile",
+
+                    {
+                        p_student_id:
+                            studentId
+                    }
+                );
+
+
+        let {
             data,
             error
         } =
-            await sb.rpc(
+            await selectProfile();
 
-                "student_select_profile",
 
-                {
-                    p_student_id:
-                        studentId
-                }
+        // 23503: this device's sign-in belongs to a user deleted in
+        // Supabase. Start a fresh sign-in and try once more.
+        if (
+            error?.code === "23503"
+        ) {
+
+            console.warn(
+                "Student sign-in pointed at a deleted user; starting a fresh one.",
+                error
             );
+
+
+            await createFreshAnonymousSession();
+
+
+            ({
+                data,
+                error
+            } =
+                await selectProfile());
+        }
 
 
         if (error) {
