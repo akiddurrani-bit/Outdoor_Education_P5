@@ -1118,6 +1118,14 @@ Manage classes, create tasks and review student work.
 <div class="teacher-head-actions">
 
 <button
+id="editTeacherNameButton"
+class="mode-button"
+type="button"
+>
+Edit name
+</button>
+
+<button
 id="teacherSignOutButton"
 class="mode-button"
 type="button"
@@ -2139,6 +2147,70 @@ class="modal-primary-button"
 type="button"
 >
 Sign In
+</button>
+
+</div>
+</div>
+</div>
+
+<div
+id="teacherNameModal"
+class="modal-overlay"
+hidden
+>
+
+<div class="object-modal">
+
+<div class="modal-step-label">
+TEACHER NAME
+</div>
+
+<h2>
+What should we call you?
+</h2>
+
+<p class="modal-description">
+This name is shown on your own screens instead of your email. You can change it at any time.
+</p>
+
+<label for="teacherNameInput">
+Your name
+</label>
+
+<input
+id="teacherNameInput"
+type="text"
+maxlength="40"
+autocomplete="name"
+>
+
+<p
+id="teacherNameEmail"
+class="modal-description"
+></p>
+
+<div
+id="teacherNameError"
+class="modal-error"
+hidden
+></div>
+
+<div class="modal-actions">
+
+<button
+id="cancelTeacherNameButton"
+class="modal-secondary-button"
+type="button"
+>
+Cancel
+</button>
+
+<button
+id="saveTeacherNameButton"
+class="modal-primary-button"
+type="button"
+>
+Save
 </button>
 
 </div>

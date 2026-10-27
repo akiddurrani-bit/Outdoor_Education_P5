@@ -504,6 +504,28 @@ const cancelTeacherLogin =
     $("cancelTeacherLogin");
 
 
+const teacherNameModal =
+    $("teacherNameModal");
+
+const teacherNameInput =
+    $("teacherNameInput");
+
+const teacherNameEmail =
+    $("teacherNameEmail");
+
+const teacherNameError =
+    $("teacherNameError");
+
+const cancelTeacherNameButton =
+    $("cancelTeacherNameButton");
+
+const saveTeacherNameButton =
+    $("saveTeacherNameButton");
+
+const editTeacherNameButton =
+    $("editTeacherNameButton");
+
+
 const objectModal =
     $("objectModal");
 
@@ -985,6 +1007,10 @@ let allowedTools = {
 
 
 let currentTeacherUser =
+    null;
+
+// The signed-in Teacher's Teacher Name, or null until chosen.
+let currentTeacherName =
     null;
 
 let teacherTasks = [];
@@ -11705,7 +11731,7 @@ async function prepareStudentLogin() {
 
 
             continueTeacherButton.textContent =
-                `Continue as ${teacherUser.email || "Teacher"}`;
+                `Continue as ${await savedTeacherName(teacherUser).catch(() => null) || teacherUser.email || "Teacher"}`;
 
 
             continueTeacherStep.hidden =
@@ -16128,7 +16154,8 @@ function refreshRoleIndicator() {
                 currentTeacherUser &&
                 teacherLoginModal.hidden
 
-                    ? currentTeacherUser.email ||
+                    ? currentTeacherName ||
+                    currentTeacherUser.email ||
                     "Signed in"
 
                     : "Signing in"
@@ -16351,7 +16378,8 @@ async function finishTeacherSignIn(
         user;
 
 
-    const profile =
+    // Creates the profile if missing; never overwrites a saved name.
+    const created =
         await sb
             .from(
                 "teacher_profiles"
@@ -16359,25 +16387,29 @@ async function finishTeacherSignIn(
             .upsert(
                 {
                     id:
-                        user.id,
-                    display_name:
-                        user.email
+                        user.id
                 },
                 {
                     onConflict:
-                        "id"
+                        "id",
+                    ignoreDuplicates:
+                        true
                 }
-            )
-            .select()
-            .single();
+            );
 
 
     if (
-        profile.error
+        created.error
     ) {
 
-        throw profile.error;
+        throw created.error;
     }
+
+
+    currentTeacherName =
+        await savedTeacherName(
+            user
+        );
 
 
     teacherLoginModal.hidden =
@@ -16389,8 +16421,310 @@ async function finishTeacherSignIn(
     );
 
 
+    if (
+        !currentTeacherName
+    ) {
+
+        await askTeacherName({
+            canCancel:
+                false
+        });
+    }
+
+
+    refreshRoleIndicator();
+
+
     await openTeacherDashboard();
 }
+
+
+/* =========================================================
+TEACHER NAME
+Chosen by the Teacher at first sign-in, suggested from their
+email, and shown only on their own screens.
+========================================================= */
+
+const TEACHER_NAME_MAX_LENGTH =
+    40;
+
+
+// A saved name that is still an email address does not count.
+function isTeacherName(
+    name
+) {
+
+    return (
+        typeof name === "string" &&
+        name.trim() !== "" &&
+        !name.includes("@")
+    );
+}
+
+
+// "tan_mei_ling@moe.edu.sg" → "Tan Mei Ling"
+function suggestTeacherName(
+    email
+) {
+
+    return (email || "")
+        .split("@")[0]
+        .split(/[._\s]+/)
+        .filter(Boolean)
+        .map(
+            word =>
+                word.charAt(0).toUpperCase() +
+                word.slice(1).toLowerCase()
+        )
+        .join(" ")
+        .slice(
+            0,
+            TEACHER_NAME_MAX_LENGTH
+        )
+        .trim();
+}
+
+
+// The Teacher's saved Teacher Name, or null if they have none yet.
+async function savedTeacherName(
+    user
+) {
+
+    const {
+        data,
+        error
+    } =
+        await sb
+            .from(
+                "teacher_profiles"
+            )
+            .select(
+                "display_name"
+            )
+            .eq(
+                "id",
+                user.id
+            )
+            .maybeSingle();
+
+
+    if (error) {
+
+        throw error;
+    }
+
+
+    return isTeacherName(
+        data?.display_name
+    )
+        ? data.display_name.trim()
+        : null;
+}
+
+
+let resolveTeacherNameModal =
+    null;
+
+
+// Opens the name box; resolves once a name is saved or the box is cancelled.
+function askTeacherName({
+    canCancel
+}) {
+
+    teacherNameInput.value =
+        currentTeacherName ||
+        suggestTeacherName(
+            currentTeacherUser?.email
+        );
+
+
+    teacherNameEmail.textContent =
+        currentTeacherUser?.email
+            ? `Signed in as ${currentTeacherUser.email}`
+            : "";
+
+
+    teacherNameError.hidden =
+        true;
+
+
+    cancelTeacherNameButton.hidden =
+        !canCancel;
+
+
+    teacherNameModal.hidden =
+        false;
+
+
+    document.body.classList.add(
+        "modal-open"
+    );
+
+
+    teacherNameInput.focus();
+
+    teacherNameInput.select();
+
+
+    return new Promise(
+        resolve => {
+
+            resolveTeacherNameModal =
+                resolve;
+        }
+    );
+}
+
+
+function closeTeacherNameModal() {
+
+    teacherNameModal.hidden =
+        true;
+
+
+    document.body.classList.remove(
+        "modal-open"
+    );
+
+
+    resolveTeacherNameModal?.();
+
+    resolveTeacherNameModal =
+        null;
+}
+
+
+async function saveTeacherName() {
+
+    const name =
+        teacherNameInput.value.trim();
+
+
+    if (
+        !name
+    ) {
+
+        teacherNameError.textContent =
+            "Please type a name.";
+
+        teacherNameError.hidden =
+            false;
+
+        return;
+    }
+
+
+    if (
+        name.includes("@")
+    ) {
+
+        teacherNameError.textContent =
+            "Please type a name, not an email address.";
+
+        teacherNameError.hidden =
+            false;
+
+        return;
+    }
+
+
+    saveTeacherNameButton.disabled =
+        true;
+
+
+    try {
+
+        const {
+            error
+        } =
+            await sb
+                .from(
+                    "teacher_profiles"
+                )
+                .update({
+                    display_name:
+                        name
+                })
+                .eq(
+                    "id",
+                    currentTeacherUser.id
+                );
+
+
+        if (error) {
+
+            throw error;
+        }
+
+
+        currentTeacherName =
+            name;
+
+
+        refreshRoleIndicator();
+
+
+        closeTeacherNameModal();
+    }
+
+    catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        teacherNameError.textContent =
+            "Could not save your name. Please try again.";
+
+        teacherNameError.hidden =
+            false;
+    }
+
+    finally {
+
+        saveTeacherNameButton.disabled =
+            false;
+    }
+}
+
+
+saveTeacherNameButton.addEventListener(
+    "click",
+    saveTeacherName
+);
+
+
+teacherNameInput.addEventListener(
+    "keydown",
+    event => {
+
+        if (
+            event.key === "Enter"
+        ) {
+
+            event.preventDefault();
+
+            saveTeacherName();
+        }
+    }
+);
+
+
+cancelTeacherNameButton.addEventListener(
+    "click",
+    closeTeacherNameModal
+);
+
+
+editTeacherNameButton.addEventListener(
+    "click",
+    () =>
+        askTeacherName({
+            canCancel:
+                true
+        })
+);
 
 
 teacherGoogleButton.addEventListener(
@@ -16716,7 +17050,12 @@ async function resumeGoogleTeacherSignIn() {
 
     teacherLoginError.textContent =
 
-        googleError
+        // Supabase refused a new non-MOE Teacher; its message says why.
+        googleError?.includes("@moe.edu.sg")
+
+            ? "Only MOE school email accounts (@moe.edu.sg) can sign in as a Teacher."
+
+            : googleError
 
             ? `Google sign-in did not finish: ${googleError}`
 
@@ -16929,6 +17268,9 @@ teacherSignOutButton.addEventListener(
 
 
         currentTeacherUser =
+            null;
+
+        currentTeacherName =
             null;
 
 
