@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: proposed · sign-up part superseded by [0002](0002-new-teachers-need-moe-account.md)
 ---
 
 # Teachers sign up freely, but only see the Classes they teach
