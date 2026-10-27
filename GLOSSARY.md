@@ -115,3 +115,9 @@ _Avoid_: Marking, comments, annotation, submitting (for teachers)
 **Marked**:
 The state of a Project once a teacher has saved a Review for it. A Marked Project is final: students can read the Review but change nothing. There is no hidden draft Review.
 _Avoid_: Graded, checked, returned
+
+### Improving the app
+
+**App Feedback**:
+A message a Teacher sends to the people who build the app, about a problem, an idea or anything else, optionally with screenshots. It is about the app itself, never about a student's work.
+_Avoid_: Feedback (on its own), bug report, ticket, Review
