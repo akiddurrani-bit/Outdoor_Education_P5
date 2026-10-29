@@ -8548,3 +8548,12 @@ transform:none !important;
 
 }
 }
+/* =========================================================
+FULL-WIDTH CURRENT TASK FOLDER
+========================================================= */
+
+.profile-start-card[hidden] + .profile-history-card {
+    grid-column: 1 / -1;
+    width: 100%;
+    max-width: none;
+}
