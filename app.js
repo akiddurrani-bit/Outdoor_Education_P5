@@ -177,6 +177,7 @@ const handOverButton =
 
 const notNowButton =
     $("notNowButton");
+
 const studentProfilePage =
     $("studentProfilePage");
 
@@ -998,6 +999,7 @@ let galleryEntries =
 let galleryClassSections =
     new Map();
 
+
 let toolbarWakeTimer = null;
 
 let annotationDrawing = false;
@@ -1129,6 +1131,7 @@ let viewOnlyChecks =
 // Submitted or Marked: locked for students (see HANDED IN IS FINAL).
 let projectHandedIn =
     false;
+
 let editLockHeartbeatTimer =
     null;
 
@@ -9929,15 +9932,18 @@ function renderMapPreview(
             "svg"
         );
 
+
     svg.setAttribute(
         "viewBox",
         `0 0 ${CANVAS_WIDTH} ${CANVAS_HEIGHT}`
     );
 
+
     svg.setAttribute(
         "preserveAspectRatio",
         "xMidYMid meet"
     );
+
 
     svg.setAttribute(
         "aria-hidden",
@@ -9951,15 +9957,18 @@ function renderMapPreview(
             "rect"
         );
 
+
     background.setAttribute(
         "width",
         CANVAS_WIDTH
     );
 
+
     background.setAttribute(
         "height",
         CANVAS_HEIGHT
     );
+
 
     background.setAttribute(
         "class",
@@ -9972,6 +9981,7 @@ function renderMapPreview(
             SVG_NS,
             "g"
         );
+
 
     const previewRouteLayer =
         document.createElementNS(
@@ -9997,9 +10007,7 @@ function renderMapPreview(
 
     drawShapes(
 
-        previewShapeLayer,
-
-        Array.isArray(
+        previewShapeLayer,        Array.isArray(
             data.shapes
         )
             ? data.shapes
@@ -11768,6 +11776,71 @@ function showStartupCodeStep() {
 }
 
 
+/*
+ * Route a task code through the live task-code gate.
+ * corrections-improvements.js replaces the visible profile controls
+ * after app.js loads so existing tasks open their task folder instead
+ * of jumping straight into the latest submission.
+ */
+async function routeSignedInTaskCode(
+    code
+) {
+
+    const normalizedCode =
+        String(
+            code ||
+            ""
+        )
+            .trim()
+            .toUpperCase();
+
+
+    if (
+        !normalizedCode
+    ) {
+
+        return;
+    }
+
+
+    const liveTaskCodeInput =
+        document.getElementById(
+            "studentTaskCode"
+        );
+
+
+    if (
+        liveTaskCodeInput
+    ) {
+
+        liveTaskCodeInput.value =
+            normalizedCode;
+    }
+
+
+    // The corrections layer owns task-folder navigation when present.
+    if (
+        typeof window.oeOpenTaskFolderFromCode ===
+        "function"
+    ) {
+
+        await window.oeOpenTaskFolderFromCode(
+            normalizedCode
+        );
+
+        return;
+    }
+
+
+    // Safe fallback if app.js is ever used without the corrections layer.
+    studentTaskCode.value =
+        normalizedCode;
+
+
+    await openTaskFromCode();
+}
+
+
 async function prepareStudentLogin() {
 
 
@@ -11985,10 +12058,6 @@ async function openGuestProfile(
         "";
 
 
-    studentTaskCode.value =
-        signInTaskCode;
-
-
     studentTaskError.hidden =
         true;
 
@@ -11997,13 +12066,19 @@ async function openGuestProfile(
         signInTaskCode
     ) {
 
-        await openTaskFromCode();
+        await routeSignedInTaskCode(
+            signInTaskCode
+        );
 
         return;
     }
 
 
-    studentTaskCode.focus();
+    document
+        .getElementById(
+            "studentTaskCode"
+        )
+        ?.focus();
 }
 
 
@@ -12640,15 +12715,13 @@ async function loginStudentProfile() {
             "";
 
 
-        studentTaskCode.value =
-            signInTaskCode;
-
-
         studentTaskError.hidden =
             true;
 
 
-        await openTaskFromCode();
+        await routeSignedInTaskCode(
+            signInTaskCode
+        );
     }
 
     catch (error) {
@@ -15771,6 +15844,7 @@ async function loadStudentProject(
 
         currentGroupSize =
             members.length;
+
         resetStudentReviewState();
 
 
@@ -18933,6 +19007,7 @@ async function findClassProjectIds(
 
 deleteClassButton.addEventListener(
     "click",
+
     async () => {
 
         if (
@@ -19932,6 +20007,7 @@ addStudentButton.addEventListener(
                         released.error.message
                     );
 
+
                     return;
                 }
             }
@@ -19966,6 +20042,7 @@ addStudentButton.addEventListener(
                             requestedRegister ||
                             maxRegister +
                             1,
+
                         student_name:
                             name,
 
@@ -21384,10 +21461,13 @@ async function loadSubmissions() {
         return;
     }
 
+
     const taskId =
         selectedTeacherTask.id;
 
+
     let items;
+
 
     try {
 
@@ -21402,11 +21482,14 @@ async function loadSubmissions() {
         submissionRowEntries =
             new Map();
 
+
         submissionListSignature =
             "";
 
+
         renderedSubmissionsTaskId =
             null;
+
 
         submissionList.innerHTML =
             `
@@ -21415,32 +21498,41 @@ ${escapeHtml(error.message || "Could not load student maps.")}
 </p>
 `;
 
+
         submissionsWatcher.start();
+
 
         return;
     }
+
 
     // Another Task may have been selected while we waited.
     if (
         selectedTeacherTask?.id !==
         taskId
     ) {
+
         return;
     }
+
 
     submissionRowEntries =
         new Map();
 
+
     submissionList.innerHTML =
         "";
+
 
     renderSubmissionList(
         items,
         false
     );
 
+
     renderedSubmissionsTaskId =
         taskId;
+
 
     submissionsWatcher.start();
 }
@@ -21474,16 +21566,21 @@ submitted_at
                 taskId
             );
 
+
     if (error) {
+
         throw error;
     }
+
 
     const items =
         data ||
         [];
 
+
     const markedAt =
         new Map();
+
 
     if (
         items.length
@@ -21510,13 +21607,20 @@ updated_at
                     )
                 );
 
+
         if (
             reviews.error
         ) {
+
             throw reviews.error;
         }
 
-        (reviews.data || []).forEach(
+
+        (
+            reviews.data ||
+            []
+        ).forEach(
+
             review => {
 
                 // An emptied Review does not count as Marked.
@@ -21524,6 +21628,7 @@ updated_at
                     normaliseTeacherReviewSnapshot(
                         review
                     );
+
 
                 if (snapshot) {
 
@@ -21536,9 +21641,12 @@ updated_at
         );
     }
 
+
     return items
         .map(
+
             item => ({
+
                 ...item,
 
                 reviewed_at:
@@ -21560,6 +21668,7 @@ function compareSubmissionsForList(
 ) {
 
     const options = {
+
         numeric:
             true,
 
@@ -21567,20 +21676,44 @@ function compareSubmissionsForList(
             "base"
     };
 
+
     return (
-        String(first.class_name || "").localeCompare(
-            String(second.class_name || ""),
+
+        String(
+            first.class_name ||
+            ""
+        ).localeCompare(
+
+            String(
+                second.class_name ||
+                ""
+            ),
+
             undefined,
+
             options
         ) ||
 
-        String(first.group_name || first.student_name || "").localeCompare(
-            String(second.group_name || second.student_name || ""),
+        String(
+            first.group_name ||
+            first.student_name ||
+            ""
+        ).localeCompare(
+
+            String(
+                second.group_name ||
+                second.student_name ||
+                ""
+            ),
+
             undefined,
+
             options
         ) ||
 
-        String(first.id).localeCompare(
+        String(
+            first.id
+        ).localeCompare(
             String(second.id)
         )
     );
@@ -21592,13 +21725,21 @@ function submissionRowSignature(
 ) {
 
     return stateString([
+
         submission.id,
+
         submission.student_name,
+
         submission.class_name,
+
         submission.group_name,
+
         submission.status,
+
         submission.updated_at,
+
         submission.submitted_at,
+
         submission.reviewed_at
     ]);
 }
@@ -21611,7 +21752,9 @@ function formatShortDateTime(
     return new Date(
         value
     ).toLocaleString(
+
         undefined,
+
         {
             dateStyle:
                 "short",
@@ -21635,8 +21778,10 @@ function renderSubmissionList(
         submissionRowEntries =
             new Map();
 
+
         submissionListSignature =
             stateString([]);
+
 
         submissionList.innerHTML =
             `
@@ -21645,13 +21790,16 @@ No student saves yet.
 </p>
 `;
 
+
         return;
     }
+
 
     // Drop any message left from an empty or failed load.
     Array.from(
         submissionList.children
     ).forEach(
+
         child => {
 
             if (
@@ -21659,18 +21807,23 @@ No student saves yet.
                     "submission-row"
                 )
             ) {
+
                 child.remove();
             }
         }
     );
 
+
     const nextEntries =
         new Map();
+
 
     let anchor =
         submissionList.firstElementChild;
 
+
     items.forEach(
+
         submission => {
 
             const signature =
@@ -21678,10 +21831,12 @@ No student saves yet.
                     submission
                 );
 
+
             let entry =
                 submissionRowEntries.get(
                     submission.id
                 );
+
 
             if (!entry) {
 
@@ -21690,7 +21845,10 @@ No student saves yet.
                         submission
                     );
 
-                if (highlightChanges) {
+
+                if (
+                    highlightChanges
+                ) {
 
                     flashSubmissionRow(
                         entry.row
@@ -21707,18 +21865,19 @@ No student saves yet.
                     entry.submission.status !== "submitted" &&
                     submission.status === "submitted";
 
+
                 entry.submission =
                     submission;
+
 
                 fillSubmissionRow(
                     entry
                 );
 
+
                 if (
                     highlightChanges &&
-                    (
-                        becameSubmitted
-                    )
+                    becameSubmitted
                 ) {
 
                     flashSubmissionRow(
@@ -21727,16 +21886,20 @@ No student saves yet.
                 }
             }
 
+
             entry.submission =
                 submission;
 
+
             entry.signature =
                 signature;
+
 
             nextEntries.set(
                 submission.id,
                 entry
             );
+
 
             if (
                 entry.row === anchor
@@ -21756,22 +21919,31 @@ No student saves yet.
         }
     );
 
+
     submissionRowEntries.forEach(
-        (entry, id) => {
+
+        (
+            entry,
+            id
+        ) => {
 
             if (
                 !nextEntries.has(id)
             ) {
+
                 entry.row.remove();
             }
         }
     );
 
+
     submissionRowEntries =
         nextEntries;
 
+
     submissionListSignature =
         stateString(
+
             items.map(
                 submissionRowSignature
             )
@@ -21784,6 +21956,7 @@ function createSubmissionRow(
 ) {
 
     const entry = {
+
         submission,
 
         signature:
@@ -21800,50 +21973,66 @@ function createSubmissionRow(
             )
     };
 
+
     entry.row.className =
         "submission-row";
 
+
     entry.actions.className =
         "submission-actions";
+
 
     const reviewButton =
         document.createElement(
             "button"
         );
 
+
     reviewButton.type =
         "button";
+
 
     reviewButton.className =
         "quiet-button";
 
+
     reviewButton.textContent =
         "Review";
 
+
     reviewButton.addEventListener(
+
         "click",
+
         () =>
             openSubmissionReview(
                 entry.submission.id
             )
     );
 
+
     const deleteProgressButton =
         document.createElement(
             "button"
         );
 
+
     deleteProgressButton.type =
         "button";
+
 
     deleteProgressButton.className =
         "danger-outline-button";
 
+
     deleteProgressButton.textContent =
         "Delete";
 
+
     deleteProgressButton.addEventListener(
+
         "click",
+
         () =>
             deleteStudentSubmissionProgress(
                 entry.submission,
@@ -21851,18 +22040,22 @@ function createSubmissionRow(
             )
     );
 
+
     entry.actions.append(
         reviewButton,
         deleteProgressButton
     );
 
+
     entry.row.appendChild(
         entry.actions
     );
 
+
     fillSubmissionRow(
         entry
     );
+
 
     return entry;
 }
@@ -21875,21 +22068,27 @@ function fillSubmissionRow(
     const submission =
         entry.submission;
 
+
     Array.from(
         entry.row.children
     ).forEach(
+
         child => {
 
             if (
                 child !== entry.actions
             ) {
+
                 child.remove();
             }
         }
     );
 
+
     entry.row.insertAdjacentHTML(
+
         "afterbegin",
+
         `
 <div class="submission-name">
 <strong>
@@ -21935,8 +22134,10 @@ function flashSubmissionRow(
         "submission-row-updated"
     );
 
+
     // Force a reflow so the highlight can replay.
     void row.offsetWidth;
+
 
     row.classList.add(
         "submission-row-updated"
@@ -21947,13 +22148,16 @@ function flashSubmissionRow(
 function isShowingTaskSubmissions() {
 
     return (
+
         appMode === "teacher-dashboard" &&
 
         !teacherDashboard.hidden &&
 
         !teacherTasksPanel.hidden &&
 
-        Boolean(selectedTeacherTask)
+        Boolean(
+            selectedTeacherTask
+        )
     );
 }
 
@@ -21970,37 +22174,52 @@ async function checkForSubmissionUpdates() {
     const taskId =
         selectedTeacherTask.id;
 
+
     // Let loadSubmissions finish the first draw for a new Task.
     if (
         renderedSubmissionsTaskId !==
         taskId
     ) {
+
         return;
     }
+
 
     const items =
         await fetchTaskProjects(
             taskId
         );
 
+
     if (
+
         !isShowingTaskSubmissions() ||
-        selectedTeacherTask.id !== taskId ||
-        renderedSubmissionsTaskId !== taskId
+
+        selectedTeacherTask.id !==
+        taskId ||
+
+        renderedSubmissionsTaskId !==
+        taskId
+
     ) {
+
         return;
     }
 
+
     if (
         stateString(
+
             items.map(
                 submissionRowSignature
             )
         ) ===
         submissionListSignature
     ) {
+
         return;
     }
+
 
     renderSubmissionList(
         items,
@@ -22031,8 +22250,10 @@ function galleryStatus(
     ) {
 
         return {
+
             label:
                 "Marked",
+
             className:
                 "marked"
         };
@@ -22044,8 +22265,10 @@ function galleryStatus(
     ) {
 
         return {
+
             label:
                 "Submitted",
+
             className:
                 "submitted"
         };
@@ -22053,8 +22276,10 @@ function galleryStatus(
 
 
     return {
+
         label:
             "Drawing",
+
         className:
             ""
     };
@@ -22067,10 +22292,12 @@ function formatTimeAgo(
 
     const minutes =
         Math.floor(
+
             (
                 Date.now() -
                 new Date(value).getTime()
             ) /
+
             60000
         );
 
@@ -22106,8 +22333,240 @@ function formatTimeAgo(
 
 
 /*
-The Task's Projects in list order, each with its map data.
-Map data is downloaded only for Projects in needMapIds(items).
+Gallery shows only the latest Project for each student / group.
+
+Submission 1 stays available in the normal Teacher submission
+list and for marking/history, but once Submission 2 exists the
+Gallery displays Submission 2 instead.
+
+Using submission_members prevents pupils with the same first
+name from accidentally being treated as the same student.
+*/
+async function latestProjectsForGallery(
+    projects
+) {
+
+    if (
+        !projects.length
+    ) {
+
+        return [];
+    }
+
+
+    const submissionIds =
+        projects.map(
+            project =>
+                project.id
+        );
+
+
+    const memberResult =
+        await sb
+            .from(
+                "submission_members"
+            )
+            .select(
+                `
+submission_id,
+student_id
+`
+            )
+            .in(
+                "submission_id",
+                submissionIds
+            );
+
+
+    if (
+        memberResult.error
+    ) {
+
+        throw memberResult.error;
+    }
+
+
+    const membersBySubmission =
+        new Map();
+
+
+    (
+        memberResult.data ||
+        []
+    )
+        .forEach(
+            row => {
+
+                if (
+                    !membersBySubmission.has(
+                        row.submission_id
+                    )
+                ) {
+
+                    membersBySubmission.set(
+                        row.submission_id,
+                        []
+                    );
+                }
+
+
+                membersBySubmission
+                    .get(
+                        row.submission_id
+                    )
+                    .push(
+                        String(
+                            row.student_id
+                        )
+                    );
+            }
+        );
+
+
+    const latestByOwner =
+        new Map();
+
+
+    projects.forEach(
+        project => {
+
+            const memberIds =
+                (
+                    membersBySubmission.get(
+                        project.id
+                    ) ||
+                    []
+                )
+                    .sort();
+
+
+            /*
+            Registered individual/group projects use their real
+            member IDs as the identity.
+
+            Older/guest Projects may not have submission_members,
+            so fall back to the visible class + group/student name.
+            */
+            const ownerKey =
+                memberIds.length
+
+                    ? `members:${memberIds.join(",")}`
+
+                    : [
+                        "fallback",
+                        String(
+                            project.class_name ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase(),
+
+                        String(
+                            project.group_name ||
+                            project.student_name ||
+                            ""
+                        )
+                            .trim()
+                            .toLowerCase()
+                    ]
+                        .join(
+                            ":"
+                        );
+
+
+            const existing =
+                latestByOwner.get(
+                    ownerKey
+                );
+
+
+            if (
+                !existing
+            ) {
+
+                latestByOwner.set(
+                    ownerKey,
+                    project
+                );
+
+                return;
+            }
+
+
+            const projectTime =
+                new Date(
+                    project.updated_at ||
+                    project.submitted_at ||
+                    0
+                )
+                    .getTime();
+
+
+            const existingTime =
+                new Date(
+                    existing.updated_at ||
+                    existing.submitted_at ||
+                    0
+                )
+                    .getTime();
+
+
+            if (
+                projectTime >
+                existingTime
+            ) {
+
+                latestByOwner.set(
+                    ownerKey,
+                    project
+                );
+
+                return;
+            }
+
+
+            /*
+            Extremely unlikely tie:
+            use the ID as a stable final tiebreaker.
+            */
+            if (
+                projectTime ===
+                    existingTime &&
+                String(
+                    project.id
+                )
+                    .localeCompare(
+                        String(
+                            existing.id
+                        )
+                    ) >
+                    0
+            ) {
+
+                latestByOwner.set(
+                    ownerKey,
+                    project
+                );
+            }
+        }
+    );
+
+
+    return [
+        ...latestByOwner.values()
+    ]
+        .sort(
+            compareSubmissionsForList
+        );
+}
+
+
+/*
+The Gallery's latest Projects in list order, each with its
+map data.
+
+Map data is downloaded only for Projects in
+needMapIds(items).
 */
 async function fetchGalleryProjects(
     taskId,
@@ -22118,9 +22577,15 @@ async function fetchGalleryProjects(
         )
 ) {
 
-    const items =
+    const allItems =
         await fetchTaskProjects(
             taskId
+        );
+
+
+    const items =
+        await latestProjectsForGallery(
+            allItems
         );
 
 
@@ -22155,18 +22620,25 @@ async function fetchGalleryProjects(
                 );
 
 
-        if (error) {
+        if (
+            error
+        ) {
+
             throw error;
         }
 
 
-        (data || []).forEach(
-            row =>
-                maps.set(
-                    row.id,
-                    row
-                )
-        );
+        (
+            data ||
+            []
+        )
+            .forEach(
+                row =>
+                    maps.set(
+                        row.id,
+                        row
+                    )
+            );
     }
 
 
@@ -22182,31 +22654,40 @@ function createGalleryTile(
 ) {
 
     const entry = {
+
         submission,
+
         signature:
             "",
+
         mapUpdatedAt:
             null,
+
         tile:
             document.createElement(
                 "button"
             ),
+
         map:
             document.createElement(
                 "div"
             ),
+
         empty:
             document.createElement(
                 "div"
             ),
+
         name:
             document.createElement(
                 "strong"
             ),
+
         status:
             document.createElement(
                 "div"
             ),
+
         meta:
             document.createElement(
                 "span"
@@ -22223,10 +22704,14 @@ function createGalleryTile(
 
 
     entry.tile.addEventListener(
+
         "click",
+
         () =>
             openSubmissionReview(
+
                 entry.submission.id,
+
                 {
                     fromGallery:
                         true
@@ -22234,11 +22719,14 @@ function createGalleryTile(
             )
     );
 
+
     entry.map.className =
         "gallery-tile-map";
 
+
     entry.empty.className =
         "gallery-tile-empty";
+
 
     entry.empty.textContent =
         "Nothing drawn yet";
@@ -22249,8 +22737,10 @@ function createGalleryTile(
             "div"
         );
 
+
     info.className =
         "gallery-tile-info";
+
 
     info.append(
         entry.name,
@@ -22301,8 +22791,10 @@ function fillGalleryTileLabels(
     entry.tile.title =
         `Open ${name}'s map`;
 
+
     entry.status.className =
         `status-pill ${status.className}`;
+
 
     entry.status.textContent =
         status.label;
@@ -22324,7 +22816,9 @@ function updateGalleryTileTime(
 
     const text =
         [
+
             submission.class_name,
+
             formatTimeAgo(
                 submission.updated_at
             )
@@ -22395,6 +22889,7 @@ function getOrCreateGalleryClassSection(
                 "section"
             );
 
+
         section.className =
             "gallery-class";
 
@@ -22403,6 +22898,7 @@ function getOrCreateGalleryClassSection(
             document.createElement(
                 "h2"
             );
+
 
         heading.textContent =
             className ||
@@ -22413,6 +22909,7 @@ function getOrCreateGalleryClassSection(
             document.createElement(
                 "div"
             );
+
 
         grid.className =
             "gallery-grid";
@@ -22425,7 +22922,9 @@ function getOrCreateGalleryClassSection(
 
 
         classSection = {
+
             section,
+
             grid
         };
     }
@@ -22487,6 +22986,7 @@ No student saves yet.
 `
         );
 
+
         return;
     }
 
@@ -22495,6 +22995,7 @@ No student saves yet.
     Array.from(
         galleryContent.children
     ).forEach(
+
         child => {
 
             if (
@@ -22512,6 +23013,7 @@ No student saves yet.
     const nextEntries =
         new Map();
 
+
     const nextSections =
         new Map();
 
@@ -22519,14 +23021,17 @@ No student saves yet.
     let sectionAnchor =
         galleryContent.firstElementChild;
 
+
     let tileAnchor =
         null;
+
 
     let currentClass =
         null;
 
 
     items.forEach(
+
         submission => {
 
             const className =
@@ -22573,6 +23078,7 @@ No student saves yet.
                 currentClass =
                     classSection;
 
+
                 tileAnchor =
                     classSection.grid.firstElementChild;
             }
@@ -22598,7 +23104,9 @@ No student saves yet.
                     );
 
 
-                if (highlightChanges) {
+                if (
+                    highlightChanges
+                ) {
 
                     flashSubmissionRow(
                         entry.tile
@@ -22694,7 +23202,11 @@ No student saves yet.
 
 
     galleryEntries.forEach(
-        (entry, id) => {
+
+        (
+            entry,
+            id
+        ) => {
 
             if (
                 !nextEntries.has(id)
@@ -22707,10 +23219,16 @@ No student saves yet.
 
 
     galleryClassSections.forEach(
-        (classSection, className) => {
+
+        (
+            classSection,
+            className
+        ) => {
 
             if (
-                !nextSections.has(className)
+                !nextSections.has(
+                    className
+                )
             ) {
 
                 classSection.section.remove();
@@ -22721,6 +23239,7 @@ No student saves yet.
 
     galleryEntries =
         nextEntries;
+
 
     galleryClassSections =
         nextSections;
@@ -22793,6 +23312,7 @@ ${escapeHtml(error.message || "Could not load student maps.")}
             galleryLoading =
                 false;
 
+
             // Keep checking even after a failed load, so it can recover.
             if (
                 isShowingGallery()
@@ -22807,10 +23327,13 @@ ${escapeHtml(error.message || "Could not load student maps.")}
 
     // The Teacher may have left or reopened the Gallery while we waited.
     if (
+
         loadId !==
         galleryLoadCount ||
+
         galleryTaskId !==
         taskId
+
     ) {
 
 
@@ -22828,9 +23351,13 @@ ${escapeHtml(error.message || "Could not load student maps.")}
 function isShowingGallery() {
 
     return (
+
         appMode === "teacher-dashboard" &&
+
         !teacherGallery.hidden &&
+
         galleryTaskId !== null &&
+
         selectedTeacherTask?.id ===
         galleryTaskId
     );
@@ -22881,6 +23408,7 @@ async function checkForGalleryUpdates() {
             projects =>
                 projects
                     .filter(
+
                         item =>
                             galleryEntries.get(
                                 item.id
@@ -22895,9 +23423,13 @@ async function checkForGalleryUpdates() {
 
 
     if (
+
         !isShowingGallery() ||
+
         galleryTaskId !== taskId ||
+
         galleryLoading
+
     ) {
 
         return;
@@ -22934,6 +23466,7 @@ async function openGallery() {
     galleryTaskId =
         selectedTeacherTask.id;
 
+
     galleryHeading.textContent =
         selectedTeacherTask.title ||
         "Gallery";
@@ -22950,11 +23483,14 @@ Loading student maps…
 
     submissionsWatcher.stop();
 
+
     teacherDashboard.hidden =
         true;
 
+
     teacherGallery.hidden =
         false;
+
 
     window.scrollTo(
         0,
@@ -22970,11 +23506,14 @@ function closeGallery() {
 
     galleryWatcher.stop();
 
+
     galleryTaskId =
         null;
 
+
     teacherGallery.hidden =
         true;
+
 
     teacherDashboard.hidden =
         false;
@@ -22982,6 +23521,7 @@ function closeGallery() {
 
     // Catch up on Student Maps that changed while in the Gallery.
     submissionsWatcher.start();
+
 
     submissionsWatcher.runNow();
 }
@@ -23336,6 +23876,7 @@ async function confirmNoNewerReview(
             latest.error
         );
 
+
         return confirm(
             "Could not check whether another Teacher changed this Review. Save anyway?"
         );
@@ -23351,6 +23892,7 @@ async function confirmNoNewerReview(
         latestSavedAt ===
         reviewLastSeenSavedAt
     ) {
+
         return true;
     }
 
