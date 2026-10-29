@@ -2,11 +2,7 @@
 
     "use strict";
 
-
-
     const PREFIX = "oe-corrections";
-
-
 
     /* =========================================================
 
@@ -14,11 +10,7 @@
 
     ========================================================= */
 
-
-
     const style = document.createElement("style");
-
-
 
     style.textContent = `
 
@@ -36,8 +28,6 @@
 
         }
 
-
-
         .${PREFIX}-actions[hidden],
 
         .${PREFIX}-ink-note[hidden],
@@ -50,8 +40,6 @@
 
         }
 
-
-
         .${PREFIX}-ink-note {
 
             margin: 10px 0 0;
@@ -63,8 +51,6 @@
             opacity: 0.82;
 
         }
-
-
 
         .${PREFIX}-correction-note {
 
@@ -82,8 +68,6 @@
 
         }
 
-
-
         .${PREFIX}-student-card-version {
 
             margin-top: 6px;
@@ -99,8 +83,6 @@
             opacity: 0.76;
 
         }
-
-
 
         .${PREFIX}-folder-hint {
 
@@ -122,15 +104,11 @@
 
         }
 
-
-
         .${PREFIX}-switch-task {
 
             white-space: nowrap;
 
         }
-
-
 
         .${PREFIX}-my-projects {
 
@@ -141,8 +119,6 @@
             white-space: nowrap;
 
         }
-
-
 
         .${PREFIX}-my-projects:not([hidden]) {
 
@@ -156,19 +132,13 @@
 
     `;
 
-
-
     document.head.appendChild(style);
-
-
 
     /* =========================================================
 
        PROFILE / TASK FOLDER ELEMENTS
 
     ========================================================= */
-
-
 
     const profileStartCard =
 
@@ -180,8 +150,6 @@
 
         null;
 
-
-
     const profileHistoryCard =
 
         studentProfilePage?.querySelector(
@@ -191,8 +159,6 @@
         ) ||
 
         null;
-
-
 
     const profileHistoryHead =
 
@@ -204,8 +170,6 @@
 
         null;
 
-
-
     const profileHistoryMiniLabel =
 
         profileHistoryHead?.querySelector(
@@ -215,8 +179,6 @@
         ) ||
 
         null;
-
-
 
     const profileHistoryHeading =
 
@@ -228,23 +190,17 @@
 
         null;
 
-
-
     const originalHistoryMiniLabel =
 
         profileHistoryMiniLabel?.textContent ||
 
         "MY PROJECTS";
 
-
-
     const originalHistoryHeading =
 
         profileHistoryHeading?.textContent ||
 
         "Past & current work";
-
-
 
     const switchTaskButton =
 
@@ -254,31 +210,21 @@
 
         );
 
-
-
     switchTaskButton.type =
 
         "button";
-
-
 
     switchTaskButton.className =
 
         `quiet-button ${PREFIX}-switch-task`;
 
-
-
     switchTaskButton.textContent =
 
         "Switch Task";
 
-
-
     switchTaskButton.hidden =
 
         true;
-
-
 
     if (
 
@@ -294,8 +240,6 @@
 
     }
 
-
-
     const folderHint =
 
         document.createElement(
@@ -304,25 +248,17 @@
 
         );
 
-
-
     folderHint.className =
 
         `${PREFIX}-folder-hint`;
-
-
 
     folderHint.hidden =
 
         true;
 
-
-
     folderHint.textContent =
 
         "Choose the submission you want to open. You can move between submissions for this task without entering the task code again.";
-
-
 
     if (
 
@@ -340,23 +276,17 @@
 
     }
 
-
-
     /* =========================================================
 
        STUDENT CORRECTIONS UI
 
     ========================================================= */
 
-
-
     const reviewTitle =
 
         studentReviewPanel?.querySelector("h2") ||
 
         null;
-
-
 
     const reviewCopy =
 
@@ -368,8 +298,6 @@
 
         null;
 
-
-
     const reviewActions =
 
         document.createElement(
@@ -378,19 +306,13 @@
 
         );
 
-
-
     reviewActions.className =
 
         `${PREFIX}-actions`;
 
-
-
     reviewActions.hidden =
 
         true;
-
-
 
     const startCorrectionsButton =
 
@@ -400,25 +322,17 @@
 
         );
 
-
-
     startCorrectionsButton.type =
 
         "button";
-
-
 
     startCorrectionsButton.className =
 
         "primary-button";
 
-
-
     startCorrectionsButton.textContent =
 
         "Start Corrections";
-
-
 
     const viewOriginalButton =
 
@@ -428,31 +342,21 @@
 
         );
 
-
-
     viewOriginalButton.type =
 
         "button";
-
-
 
     viewOriginalButton.className =
 
         "quiet-button";
 
-
-
     viewOriginalButton.textContent =
 
         "View Marked Submission 1";
 
-
-
     viewOriginalButton.hidden =
 
         true;
-
-
 
     reviewActions.append(
 
@@ -462,15 +366,11 @@
 
     );
 
-
-
     studentReviewPanel?.appendChild(
 
         reviewActions
 
     );
-
-
 
     const inkNote =
 
@@ -480,27 +380,19 @@
 
         );
 
-
-
     inkNote.className =
 
         `${PREFIX}-ink-note`;
 
-
-
     inkNote.hidden =
 
         true;
-
-
 
     reviewCopy?.appendChild(
 
         inkNote
 
     );
-
-
 
     const correctionNote =
 
@@ -510,19 +402,13 @@
 
         );
 
-
-
     correctionNote.className =
 
         `${PREFIX}-correction-note`;
 
-
-
     correctionNote.hidden =
 
         true;
-
-
 
     reviewCopy?.appendChild(
 
@@ -530,47 +416,33 @@
 
     );
 
-
-
     /* =========================================================
 
        STATE
 
     ========================================================= */
 
-
-
     const revisionCache =
 
         new Map();
-
-
 
     let currentRevisionInfo =
 
         null;
 
-
-
     let parentReviewForCorrections =
 
         null;
 
-
-
     let correctionUiRequest =
 
         0;
-
-
 
     /*
 
     activeTaskScope is the task folder currently unlocked by a
 
     valid task code.
-
-
 
     null = the pupil is at the task-code gate and cannot browse
 
@@ -582,15 +454,11 @@
 
         null;
 
-
-
     /* =========================================================
 
        HELPERS
 
     ========================================================= */
-
-
 
     const integerVersion =
 
@@ -603,8 +471,6 @@
                     value
 
                 );
-
-
 
             return (
 
@@ -624,8 +490,6 @@
 
         };
 
-
-
     const isPointComment =
 
         annotation =>
@@ -644,8 +508,6 @@
 
             );
 
-
-
     const pointComments =
 
         review =>
@@ -663,8 +525,6 @@
                 )
 
                 : [];
-
-
 
     const inkCount =
 
@@ -696,8 +556,6 @@
 
                 : 0;
 
-
-
     const projectVersion =
 
         () =>
@@ -714,8 +572,6 @@
 
             );
 
-
-
     const isCorrectionProject =
 
         () =>
@@ -723,8 +579,6 @@
             projectVersion() >=
 
             2;
-
-
 
     function projectMatchesActiveTask(
 
@@ -744,8 +598,6 @@
 
         }
 
-
-
         if (
 
             activeTaskScope.id &&
@@ -759,8 +611,6 @@
             return true;
 
         }
-
-
 
         return (
 
@@ -792,8 +642,6 @@
 
     }
 
-
-
     function scopedProjects() {
 
         if (
@@ -806,8 +654,6 @@
 
         }
 
-
-
         return currentStudentProjects.filter(
 
             projectMatchesActiveTask
@@ -815,8 +661,6 @@
         );
 
     }
-
-
 
     function normaliseTaskScope(
 
@@ -834,8 +678,6 @@
 
         }
 
-
-
         return {
 
             id:
@@ -846,8 +688,6 @@
 
                 null,
 
-
-
             title:
 
                 task.title ||
@@ -855,8 +695,6 @@
                 task.task_title ||
 
                 "Mapping Activity",
-
-
 
             task_code:
 
@@ -876,8 +714,6 @@
 
     }
 
-
-
     function syncProfileScopeUI() {
 
         const hasScope =
@@ -887,8 +723,6 @@
                 activeTaskScope
 
             );
-
-
 
         if (
 
@@ -902,8 +736,6 @@
 
         }
 
-
-
         if (
 
             profileHistoryCard
@@ -916,19 +748,13 @@
 
         }
 
-
-
         switchTaskButton.hidden =
 
             !hasScope;
 
-
-
         folderHint.hidden =
 
             !hasScope;
-
-
 
         if (
 
@@ -946,8 +772,6 @@
 
         }
 
-
-
         if (
 
             profileHistoryHeading
@@ -963,8 +787,6 @@
                     : originalHistoryHeading;
 
         }
-
-
 
         if (
 
@@ -988,8 +810,6 @@ Enter a task code above to open a task.
 
     }
 
-
-
     function unlockTaskFolder(
 
         task
@@ -1004,13 +824,9 @@ Enter a task code above to open a task.
 
             );
 
-
-
         syncProfileScopeUI();
 
     }
-
-
 
     function lockTaskFolders() {
 
@@ -1018,25 +834,17 @@ Enter a task code above to open a task.
 
             null;
 
-
-
         hideProjectsNotice();
-
-
 
         syncProfileScopeUI();
 
     }
-
-
 
     /* =========================================================
 
        REVISION INFO
 
     ========================================================= */
-
-
 
     async function fetchRevisionInfo(
 
@@ -1062,8 +870,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         if (
 
             !force &&
@@ -1084,11 +890,7 @@ Enter a task code above to open a task.
 
         }
 
-
-
         let result;
-
-
 
         if (
 
@@ -1116,8 +918,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         else {
 
             result =
@@ -1132,8 +932,6 @@ Enter a task code above to open a task.
 
                             submissionId,
 
-
-
                         p_student_id:
 
                             currentStudentProfile
@@ -1146,8 +944,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         if (
 
             result.error
@@ -1157,8 +953,6 @@ Enter a task code above to open a task.
             throw result.error;
 
         }
-
-
 
         const row =
 
@@ -1171,8 +965,6 @@ Enter a task code above to open a task.
                 ? result.data[0]
 
                 : result.data;
-
-
 
         const info =
 
@@ -1190,8 +982,6 @@ Enter a task code above to open a task.
 
                         ),
 
-
-
                     parent_submission_id:
 
                         row
@@ -1199,8 +989,6 @@ Enter a task code above to open a task.
                             .parent_submission_id ||
 
                         null,
-
-
 
                     correction_submission_id:
 
@@ -1214,8 +1002,6 @@ Enter a task code above to open a task.
 
                 : null;
 
-
-
         revisionCache.set(
 
             submissionId,
@@ -1224,13 +1010,9 @@ Enter a task code above to open a task.
 
         );
 
-
-
         return info;
 
     }
-
-
 
     function setCurrentRevisionInfo(
 
@@ -1241,8 +1023,6 @@ Enter a task code above to open a task.
         currentRevisionInfo =
 
             info;
-
-
 
         if (
 
@@ -1264,8 +1044,6 @@ Enter a task code above to open a task.
 
                 );
 
-
-
             currentSubmission
 
                 .parent_submission_id =
@@ -1275,8 +1053,6 @@ Enter a task code above to open a task.
                     .parent_submission_id ||
 
                 null;
-
-
 
             currentSubmission
 
@@ -1292,15 +1068,11 @@ Enter a task code above to open a task.
 
     }
 
-
-
     /* =========================================================
 
        REVIEW PANEL MODES
 
     ========================================================= */
-
-
 
     function restoreSubmissionOneReviewUI() {
 
@@ -1308,25 +1080,17 @@ Enter a task code above to open a task.
 
             null;
 
-
-
         correctionNote.hidden =
 
             true;
-
-
 
         inkNote.hidden =
 
             true;
 
-
-
         viewOriginalButton.hidden =
 
             true;
-
-
 
         if (
 
@@ -1339,8 +1103,6 @@ Enter a task code above to open a task.
                 "Marked work";
 
         }
-
-
 
         if (
 
@@ -1364,8 +1126,6 @@ Enter a task code above to open a task.
 
     }
 
-
-
     function renderCorrectionReference(
 
         review
@@ -1378,8 +1138,6 @@ Enter a task code above to open a task.
 
             null;
 
-
-
         if (
 
             !review
@@ -1390,19 +1148,13 @@ Enter a task code above to open a task.
 
                 true;
 
-
-
             reviewActions.hidden =
 
                 true;
 
-
-
             return;
 
         }
-
-
 
         applyStudentReviewSnapshot(
 
@@ -1410,23 +1162,15 @@ Enter a task code above to open a task.
 
         );
 
-
-
         annotations =
 
             [];
-
-
 
         studentReviewVisible =
 
             false;
 
-
-
         renderAnnotations();
-
-
 
         if (
 
@@ -1440,25 +1184,17 @@ Enter a task code above to open a task.
 
         }
 
-
-
         studentReviewPanel.hidden =
 
             false;
-
-
 
         toggleStudentMarkedWorkButton.hidden =
 
             true;
 
-
-
         correctionNote.hidden =
 
             false;
-
-
 
         if (
 
@@ -1478,8 +1214,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         else {
 
             correctionNote.textContent =
@@ -1490,8 +1224,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         const strokes =
 
             inkCount(
@@ -1499,8 +1231,6 @@ Enter a task code above to open a task.
                 review
 
             );
-
-
 
         if (
 
@@ -1512,8 +1242,6 @@ Enter a task code above to open a task.
 
                 false;
 
-
-
             inkNote.textContent =
 
                 `Your teacher also added ${strokes} red-pen marking${strokes === 1 ? "" : "s"}. ` +
@@ -1521,8 +1249,6 @@ Enter a task code above to open a task.
                 "Open the marked Submission 1 below to see exactly where they were drawn.";
 
         }
-
-
 
         else {
 
@@ -1532,8 +1258,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         const comments =
 
             pointComments(
@@ -1541,8 +1265,6 @@ Enter a task code above to open a task.
                 review
 
             );
-
-
 
         if (
 
@@ -1560,31 +1282,21 @@ Enter a task code above to open a task.
 
         }
 
-
-
         reviewActions.hidden =
 
             false;
-
-
 
         startCorrectionsButton.hidden =
 
             true;
 
-
-
         viewOriginalButton.hidden =
 
             false;
 
-
-
         syncCorrectionLockBanner();
 
     }
-
-
 
     function renderMarkedCorrection(
 
@@ -1596,8 +1308,6 @@ Enter a task code above to open a task.
 
             null;
 
-
-
         if (
 
             !review
@@ -1608,21 +1318,15 @@ Enter a task code above to open a task.
 
         }
 
-
-
         applyStudentReviewSnapshot(
 
             review
 
         );
 
-
-
         studentReviewVisible =
 
             true;
-
-
 
         annotations =
 
@@ -1634,11 +1338,7 @@ Enter a task code above to open a task.
 
             );
 
-
-
         renderAnnotations();
-
-
 
         if (
 
@@ -1652,45 +1352,31 @@ Enter a task code above to open a task.
 
         }
 
-
-
         correctionNote.hidden =
 
             false;
-
-
 
         correctionNote.textContent =
 
             "This is your teacher's feedback on Submission 2 — Corrected Work.";
 
-
-
         inkNote.hidden =
 
             true;
-
-
 
         reviewActions.hidden =
 
             false;
 
-
-
         startCorrectionsButton.hidden =
 
             true;
-
-
 
         viewOriginalButton.hidden =
 
             !currentRevisionInfo
 
                 ?.parent_submission_id;
-
-
 
         toggleStudentMarkedWorkButton.hidden =
 
@@ -1702,21 +1388,15 @@ Enter a task code above to open a task.
 
             );
 
-
-
         syncCorrectionLockBanner();
 
     }
-
-
 
     /* =========================================================
 
        VERSION LABELS / BANNERS
 
     ========================================================= */
-
-
 
     function syncVersionLabels() {
 
@@ -1732,13 +1412,9 @@ Enter a task code above to open a task.
 
         }
 
-
-
         const version =
 
             projectVersion();
-
-
 
         submitButton.textContent =
 
@@ -1747,8 +1423,6 @@ Enter a task code above to open a task.
                 ? "Submit Corrected Work"
 
                 : "Submit to teacher";
-
-
 
         if (
 
@@ -1770,8 +1444,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         if (
 
             taskMembers
@@ -1788,8 +1460,6 @@ Enter a task code above to open a task.
 
                 "";
 
-
-
             taskMembers.textContent =
 
                 version >= 2
@@ -1801,8 +1471,6 @@ Enter a task code above to open a task.
         }
 
     }
-
-
 
     function syncCorrectionLockBanner() {
 
@@ -1822,8 +1490,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         if (
 
             parentReviewForCorrections
@@ -1834,25 +1500,17 @@ Enter a task code above to open a task.
 
                 "SUBMISSION 2";
 
-
-
             editLockTitle.textContent =
 
                 "Corrected work handed in — waiting for your teacher.";
-
-
 
             editLockMessage.textContent =
 
                 "Submission 2 is locked. Submission 1 feedback remains below for reference while you wait for your teacher to mark the corrected work.";
 
-
-
             return;
 
         }
-
-
 
         if (
 
@@ -1864,13 +1522,9 @@ Enter a task code above to open a task.
 
                 "MARKED";
 
-
-
             editLockTitle.textContent =
 
                 "Your teacher has marked Submission 2.";
-
-
 
             editLockMessage.textContent =
 
@@ -1879,8 +1533,6 @@ Enter a task code above to open a task.
         }
 
     }
-
-
 
     function syncSubmissionOneActions() {
 
@@ -1900,19 +1552,13 @@ Enter a task code above to open a task.
 
                 true;
 
-
-
             reviewActions.hidden =
 
                 viewOriginalButton.hidden;
 
-
-
             return;
 
         }
-
-
 
         const correctionId =
 
@@ -1922,13 +1568,9 @@ Enter a task code above to open a task.
 
             null;
 
-
-
         startCorrectionsButton.hidden =
 
             false;
-
-
 
         startCorrectionsButton.textContent =
 
@@ -1938,13 +1580,9 @@ Enter a task code above to open a task.
 
                 : "Start Corrections";
 
-
-
         viewOriginalButton.hidden =
 
             true;
-
-
 
         reviewActions.hidden =
 
@@ -1952,15 +1590,11 @@ Enter a task code above to open a task.
 
     }
 
-
-
     /* =========================================================
 
        REFRESH CURRENT CORRECTIONS STATE
 
     ========================================================= */
-
-
 
     async function refreshCurrentCorrectionsUI(
 
@@ -1976,13 +1610,9 @@ Enter a task code above to open a task.
 
             ++correctionUiRequest;
 
-
-
         const submissionId =
 
             currentSubmission?.id;
-
-
 
         if (
 
@@ -1998,13 +1628,9 @@ Enter a task code above to open a task.
 
         }
 
-
-
         let info =
 
             null;
-
-
 
         try {
 
@@ -2024,8 +1650,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         catch (
 
             error
@@ -2040,13 +1664,9 @@ Enter a task code above to open a task.
 
             );
 
-
-
             return;
 
         }
-
-
 
         if (
 
@@ -2064,19 +1684,13 @@ Enter a task code above to open a task.
 
         }
 
-
-
         setCurrentRevisionInfo(
 
             info
 
         );
 
-
-
         syncVersionLabels();
-
-
 
         if (
 
@@ -2096,8 +1710,6 @@ Enter a task code above to open a task.
 
                     ?.parent_submission_id;
 
-
-
             if (
 
                 !parentId
@@ -2108,13 +1720,9 @@ Enter a task code above to open a task.
 
             }
 
-
-
             let ownReview =
 
                 null;
-
-
 
             try {
 
@@ -2127,8 +1735,6 @@ Enter a task code above to open a task.
                     );
 
             }
-
-
 
             catch (
 
@@ -2146,8 +1752,6 @@ Enter a task code above to open a task.
 
             }
 
-
-
             if (
 
                 requestId !==
@@ -2164,8 +1768,6 @@ Enter a task code above to open a task.
 
             }
 
-
-
             if (
 
                 ownReview
@@ -2178,19 +1780,13 @@ Enter a task code above to open a task.
 
                 );
 
-
-
                 return;
 
             }
 
-
-
             let parentReview =
 
                 null;
-
-
 
             try {
 
@@ -2203,8 +1799,6 @@ Enter a task code above to open a task.
                     );
 
             }
-
-
 
             catch (
 
@@ -2222,8 +1816,6 @@ Enter a task code above to open a task.
 
             }
 
-
-
             if (
 
                 requestId !==
@@ -2240,39 +1832,27 @@ Enter a task code above to open a task.
 
             }
 
-
-
             renderCorrectionReference(
 
                 parentReview
 
             );
 
-
-
             return;
 
         }
 
-
-
         restoreSubmissionOneReviewUI();
-
-
 
         syncSubmissionOneActions();
 
     }
-
-
 
     /* =========================================================
 
        START / OPEN CORRECTIONS
 
     ========================================================= */
-
-
 
     async function startOrOpenCorrections() {
 
@@ -2290,13 +1870,9 @@ Enter a task code above to open a task.
 
         }
 
-
-
         startCorrectionsButton.disabled =
 
             true;
-
-
 
         const previousText =
 
@@ -2304,21 +1880,15 @@ Enter a task code above to open a task.
 
                 .textContent;
 
-
-
         startCorrectionsButton.textContent =
 
             "Opening…";
-
-
 
         try {
 
             const parentId =
 
                 currentSubmission.id;
-
-
 
             let correctionId =
 
@@ -2328,8 +1898,6 @@ Enter a task code above to open a task.
 
                 null;
 
-
-
             if (
 
                 !correctionId
@@ -2337,8 +1905,6 @@ Enter a task code above to open a task.
             ) {
 
                 let result;
-
-
 
                 if (
 
@@ -2366,8 +1932,6 @@ Enter a task code above to open a task.
 
                 }
 
-
-
                 else {
 
                     result =
@@ -2382,8 +1946,6 @@ Enter a task code above to open a task.
 
                                     parentId,
 
-
-
                                 p_student_id:
 
                                     currentStudentProfile
@@ -2396,8 +1958,6 @@ Enter a task code above to open a task.
 
                 }
 
-
-
                 if (
 
                     result.error
@@ -2408,15 +1968,11 @@ Enter a task code above to open a task.
 
                 }
 
-
-
                 correctionId =
 
                     result.data;
 
             }
-
-
 
             if (
 
@@ -2432,23 +1988,17 @@ Enter a task code above to open a task.
 
             }
 
-
-
             revisionCache.delete(
 
                 parentId
 
             );
 
-
-
             revisionCache.delete(
 
                 correctionId
 
             );
-
-
 
             await loadStudentProject(
 
@@ -2457,8 +2007,6 @@ Enter a task code above to open a task.
             );
 
         }
-
-
 
         catch (
 
@@ -2472,8 +2020,6 @@ Enter a task code above to open a task.
 
             );
 
-
-
             alert(
 
                 error.message ||
@@ -2484,15 +2030,11 @@ Enter a task code above to open a task.
 
         }
 
-
-
         finally {
 
             startCorrectionsButton.disabled =
 
                 false;
-
-
 
             startCorrectionsButton.textContent =
 
@@ -2502,8 +2044,6 @@ Enter a task code above to open a task.
 
     }
 
-
-
     startCorrectionsButton.addEventListener(
 
         "click",
@@ -2512,21 +2052,15 @@ Enter a task code above to open a task.
 
     );
 
-
-
     /* =========================================================
 
        VIEW ORIGINAL SUBMISSION
 
     ========================================================= */
 
-
-
     viewOriginalButton.addEventListener(
 
         "click",
-
-
 
         async () => {
 
@@ -2535,8 +2069,6 @@ Enter a task code above to open a task.
                 currentRevisionInfo
 
                     ?.parent_submission_id;
-
-
 
             if (
 
@@ -2548,13 +2080,9 @@ Enter a task code above to open a task.
 
             }
 
-
-
             viewOriginalButton.disabled =
 
                 true;
-
-
 
             const oldText =
 
@@ -2562,13 +2090,9 @@ Enter a task code above to open a task.
 
                     .textContent;
 
-
-
             viewOriginalButton.textContent =
 
                 "Opening…";
-
-
 
             try {
 
@@ -2594,8 +2118,6 @@ Enter a task code above to open a task.
 
                 }
 
-
-
                 await loadStudentProject(
 
                     parentId
@@ -2603,8 +2125,6 @@ Enter a task code above to open a task.
                 );
 
             }
-
-
 
             catch (
 
@@ -2618,8 +2138,6 @@ Enter a task code above to open a task.
 
                 );
 
-
-
                 alert(
 
                     error.message ||
@@ -2630,15 +2148,11 @@ Enter a task code above to open a task.
 
             }
 
-
-
             finally {
 
                 viewOriginalButton.disabled =
 
                     false;
-
-
 
                 viewOriginalButton.textContent =
 
@@ -2650,21 +2164,15 @@ Enter a task code above to open a task.
 
     );
 
-
-
     /* =========================================================
 
        SUBMISSION 2 CONFIRMATION
 
     ========================================================= */
 
-
-
     submitButton.addEventListener(
 
         "click",
-
-
 
         event => {
 
@@ -2680,19 +2188,11 @@ Enter a task code above to open a task.
 
             }
 
-
-
             event.preventDefault();
-
-
 
             event.stopImmediatePropagation();
 
-
-
             closeFlyouts();
-
-
 
             if (
 
@@ -2710,19 +2210,13 @@ Enter a task code above to open a task.
 
             }
 
-
-
             submitToTeacher();
 
         },
 
-
-
         true
 
     );
-
-
 
     /* =========================================================
 
@@ -2730,13 +2224,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalLoadStudentProject =
 
         loadStudentProject;
-
-
 
     loadStudentProject =
 
@@ -2760,25 +2250,17 @@ Enter a task code above to open a task.
 
             }
 
-
-
             currentRevisionInfo =
 
                 null;
-
-
 
             parentReviewForCorrections =
 
                 null;
 
-
-
             correctionUiRequest +=
 
                 1;
-
-
 
             const result =
 
@@ -2787,8 +2269,6 @@ Enter a task code above to open a task.
                     ...args
 
                 );
-
-
 
             if (
 
@@ -2802,13 +2282,9 @@ Enter a task code above to open a task.
 
             }
 
-
-
             return result;
 
         };
-
-
 
     /* =========================================================
 
@@ -2816,13 +2292,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const previousApplyStudentReviewSnapshot =
 
         applyStudentReviewSnapshot;
-
-
 
     applyStudentReviewSnapshot =
 
@@ -2839,8 +2311,6 @@ Enter a task code above to open a task.
                     ...args
 
                 );
-
-
 
             if (
 
@@ -2870,13 +2340,9 @@ Enter a task code above to open a task.
 
             }
 
-
-
             return result;
 
         };
-
-
 
     /* =========================================================
 
@@ -2884,13 +2350,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const previousResetStudentReviewState =
 
         resetStudentReviewState;
-
-
 
     resetStudentReviewState =
 
@@ -2908,43 +2370,29 @@ Enter a task code above to open a task.
 
                 );
 
-
-
             reviewActions.hidden =
 
                 true;
-
-
 
             startCorrectionsButton.hidden =
 
                 true;
 
-
-
             viewOriginalButton.hidden =
 
                 true;
-
-
 
             correctionNote.hidden =
 
                 true;
 
-
-
             inkNote.hidden =
 
                 true;
 
-
-
             return result;
 
         };
-
-
 
     /* =========================================================
 
@@ -2952,13 +2400,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalFetchStudentProjects =
 
         fetchStudentProjects;
-
-
 
     fetchStudentProjects =
 
@@ -2975,8 +2419,6 @@ Enter a task code above to open a task.
                     ...args
 
                 );
-
-
 
             await Promise.all(
 
@@ -2998,8 +2440,6 @@ Enter a task code above to open a task.
 
                         }
 
-
-
                         catch (
 
                             error
@@ -3014,8 +2454,6 @@ Enter a task code above to open a task.
 
                             );
 
-
-
                             project.revision_info =
 
                                 null;
@@ -3028,13 +2466,9 @@ Enter a task code above to open a task.
 
             );
 
-
-
             return projects;
 
         };
-
-
 
     /* =========================================================
 
@@ -3042,13 +2476,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalRenderStudentProjectHistory =
 
         renderStudentProjectHistory;
-
-
 
     renderStudentProjectHistory =
 
@@ -3059,8 +2489,6 @@ Enter a task code above to open a task.
         ) {
 
             syncProfileScopeUI();
-
-
 
             if (
 
@@ -3080,19 +2508,13 @@ Enter a task code above to open a task.
 
 `;
 
-
-
                 return;
 
             }
 
-
-
             const allProjects =
 
                 currentStudentProjects;
-
-
 
             const taskProjects =
 
@@ -3120,8 +2542,6 @@ Enter a task code above to open a task.
 
                                 );
 
-
-
                             const bv =
 
                                 integerVersion(
@@ -3134,21 +2554,15 @@ Enter a task code above to open a task.
 
                                 );
 
-
-
                             return av - bv;
 
                         }
 
                     );
 
-
-
             currentStudentProjects =
 
                 taskProjects;
-
-
 
             const result =
 
@@ -3158,13 +2572,9 @@ Enter a task code above to open a task.
 
                 );
 
-
-
             currentStudentProjects =
 
                 allProjects;
-
-
 
             const cards =
 
@@ -3179,8 +2589,6 @@ Enter a task code above to open a task.
                         )
 
                 );
-
-
 
             cards.forEach(
 
@@ -3200,8 +2608,6 @@ Enter a task code above to open a task.
 
                         ];
 
-
-
                     if (
 
                         !project
@@ -3211,8 +2617,6 @@ Enter a task code above to open a task.
                         return;
 
                     }
-
-
 
                     const version =
 
@@ -3226,27 +2630,13 @@ Enter a task code above to open a task.
 
                         );
 
-
-
-                    const heading =
+                    const title =
 
                         card.querySelector(
 
-                            ".student-project-card-head > div:first-child"
+                            ".student-project-card-head > div:first-child strong"
 
                         );
-
-
-
-                    const title =
-
-                        heading?.querySelector(
-
-                            "strong"
-
-                        );
-
-
 
                     if (
 
@@ -3256,219 +2646,93 @@ Enter a task code above to open a task.
 
                         title.textContent =
 
-                            `Submission ${version}`;
-
-                    }
-
-
-
-                    if (
-
-                        heading
-
-                    ) {
-
-                        heading
-
-                            .querySelector(
-
-                                `.${PREFIX}-student-card-version`
-
-                            )
-
-                            ?.remove();
-
-
-
-                        const versionText =
-
-                            document.createElement(
-
-                                "div"
-
-                            );
-
-
-
-                        versionText.className =
-
-                            `${PREFIX}-student-card-version`;
-
-
-
-                        versionText.textContent =
-
                             version >= 2
 
-                                ? "Corrected work"
+                                ? "Correction"
 
-                                : "Original work";
-
-
-
-                        heading.appendChild(
-
-                            versionText
-
-                        );
+                                : "First Submission";
 
                     }
 
+                    card
 
+                        .querySelector(
 
-                    const reviewNote =
+                            ".student-project-meta"
 
-                        card.querySelector(
+                        )
+
+                        ?.remove();
+
+                    card
+
+                        .querySelector(
+
+                            `.${PREFIX}-student-card-version`
+
+                        )
+
+                        ?.remove();
+
+                    card
+
+                        .querySelector(
+
+                            ".student-project-members"
+
+                        )
+
+                        ?.remove();
+
+                    card
+
+                        .querySelector(
 
                             ".student-project-review-note"
 
+                        )
+
+                        ?.remove();
+
+                    const badges =
+
+                        card.querySelector(
+
+                            ".student-project-badges"
+
                         );
 
-
-
                     if (
 
-                        version === 1 &&
-
-                        project
-
-                            .teacher_review_snapshot &&
-
-                        reviewNote
+                        badges
 
                     ) {
 
-                        reviewNote.textContent =
+                        const isMarked =
 
-                            project
+                            Boolean(
 
-                                .revision_info
+                                project
 
-                                ?.correction_submission_id
+                                    .teacher_review_snapshot
 
-                                ? "Teacher feedback available · Submission 2 has been started."
+                            );
 
-                                : "Teacher feedback available · Open this submission to review the marked work.";
+                        badges.innerHTML =
 
-                    }
+                            isMarked
 
+                                ? `
+<span class="teacher-review-badge">
+Marked
+</span>
+`
 
-
-                    if (
-
-                        version >= 2
-
-                    ) {
-
-                        if (
-
-                            reviewNote &&
-
-                            project
-
-                                .teacher_review_snapshot
-
-                        ) {
-
-                            reviewNote.textContent =
-
-                                "Teacher feedback on corrected work available — open to view marked Submission 2.";
-
-                        }
-
-
-
-                        else if (
-
-                            project.status ===
-
-                            "submitted"
-
-                        ) {
-
-                            const note =
-
-                                reviewNote ||
-
-                                document.createElement(
-
-                                    "div"
-
-                                );
-
-
-
-                            note.className =
-
-                                "student-project-review-note";
-
-
-
-                            note.textContent =
-
-                                "Corrected work handed in — waiting for teacher feedback.";
-
-
-
-                            if (
-
-                                !reviewNote
-
-                            ) {
-
-                                card.appendChild(
-
-                                    note
-
-                                );
-
-                            }
-
-                        }
-
-
-
-                        else {
-
-                            const note =
-
-                                reviewNote ||
-
-                                document.createElement(
-
-                                    "div"
-
-                                );
-
-
-
-                            note.className =
-
-                                "student-project-review-note";
-
-
-
-                            note.textContent =
-
-                                "Corrections in progress — open to continue editing.";
-
-
-
-                            if (
-
-                                !reviewNote
-
-                            ) {
-
-                                card.appendChild(
-
-                                    note
-
-                                );
-
-                            }
-
-                        }
+                                : `
+<span class="student-project-status">
+Not marked yet
+</span>
+`;
 
                     }
 
@@ -3476,13 +2740,9 @@ Enter a task code above to open a task.
 
             );
 
-
-
             return result;
 
         };
-
-
 
     /* =========================================================
 
@@ -3490,13 +2750,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalApplyStudentEditLockUI =
 
         applyStudentEditLockUI;
-
-
 
     applyStudentEditLockUI =
 
@@ -3514,17 +2770,11 @@ Enter a task code above to open a task.
 
                 );
 
-
-
             syncCorrectionLockBanner();
-
-
 
             return result;
 
         };
-
-
 
     /* =========================================================
 
@@ -3532,13 +2782,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalShowUpdatedStudentReview =
 
         showUpdatedStudentReview;
-
-
 
     showUpdatedStudentReview =
 
@@ -3568,19 +2814,13 @@ Enter a task code above to open a task.
 
                     );
 
-
-
                     statusBar.textContent =
 
                         "Your teacher has marked Submission 2 — Corrected Work.";
 
-
-
                     return;
 
                 }
-
-
 
                 refreshCurrentCorrectionsUI({
 
@@ -3590,13 +2830,9 @@ Enter a task code above to open a task.
 
                 });
 
-
-
                 return;
 
             }
-
-
 
             return originalShowUpdatedStudentReview(
 
@@ -3605,8 +2841,6 @@ Enter a task code above to open a task.
             );
 
         };
-
-
 
     /* =========================================================
 
@@ -3620,19 +2854,13 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     const originalTaskCodeInput =
 
         studentTaskCode;
 
-
-
     const originalTaskCodeButton =
 
         openStudentTaskButton;
-
-
 
     const taskCodeInputUI =
 
@@ -3642,8 +2870,6 @@ Enter a task code above to open a task.
 
         );
 
-
-
     const taskCodeButtonUI =
 
         originalTaskCodeButton.cloneNode(
@@ -3652,15 +2878,11 @@ Enter a task code above to open a task.
 
         );
 
-
-
     originalTaskCodeInput.replaceWith(
 
         taskCodeInputUI
 
     );
-
-
 
     originalTaskCodeButton.replaceWith(
 
@@ -3668,19 +2890,13 @@ Enter a task code above to open a task.
 
     );
 
-
-
     taskCodeInputUI.value =
 
         "";
 
-
-
     taskCodeButtonUI.textContent =
 
         "Continue";
-
-
 
     async function lookupTaskForCode(
 
@@ -3689,8 +2905,6 @@ Enter a task code above to open a task.
     ) {
 
         let result;
-
-
 
         if (
 
@@ -3718,8 +2932,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         else {
 
             result =
@@ -3734,8 +2946,6 @@ Enter a task code above to open a task.
 
                             code,
 
-
-
                         p_student_id:
 
                             currentStudentProfile
@@ -3748,8 +2958,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         if (
 
             result.error
@@ -3759,8 +2967,6 @@ Enter a task code above to open a task.
             throw result.error;
 
         }
-
-
 
         return Array.isArray(
 
@@ -3774,8 +2980,6 @@ Enter a task code above to open a task.
 
     }
 
-
-
     async function openUnlockedTaskFolder(
 
         task
@@ -3788,15 +2992,9 @@ Enter a task code above to open a task.
 
         );
 
-
-
         await loadStudentProjectHistory();
 
-
-
         syncProfileScopeUI();
-
-
 
         profileHistoryCard
 
@@ -3806,8 +3004,6 @@ Enter a task code above to open a task.
 
                     "smooth",
 
-
-
                 block:
 
                     "start"
@@ -3815,8 +3011,6 @@ Enter a task code above to open a task.
             });
 
     }
-
-
 
     async function routeTaskCodeFromGate() {
 
@@ -3830,8 +3024,6 @@ Enter a task code above to open a task.
 
         }
 
-
-
         const code =
 
             taskCodeInputUI
@@ -3842,13 +3034,9 @@ Enter a task code above to open a task.
 
                 .toUpperCase();
 
-
-
         studentTaskError.hidden =
 
             true;
-
-
 
         if (
 
@@ -3860,31 +3048,21 @@ Enter a task code above to open a task.
 
                 "Enter the task code from your teacher.";
 
-
-
             studentTaskError.hidden =
 
                 false;
-
-
 
             return;
 
         }
 
-
-
         taskCodeButtonUI.disabled =
 
             true;
 
-
-
         taskCodeInputUI.disabled =
 
             true;
-
-
 
         const oldText =
 
@@ -3892,13 +3070,9 @@ Enter a task code above to open a task.
 
                 .textContent;
 
-
-
         taskCodeButtonUI.textContent =
 
             "Checking…";
-
-
 
         try {
 
@@ -3909,8 +3083,6 @@ Enter a task code above to open a task.
                     code
 
                 );
-
-
 
             if (
 
@@ -3932,8 +3104,6 @@ Enter a task code above to open a task.
 
             }
 
-
-
             /*
 
             Existing submission(s): task code opens the TASK FOLDER,
@@ -3954,13 +3124,9 @@ Enter a task code above to open a task.
 
                 );
 
-
-
                 return;
 
             }
-
-
 
             /*
 
@@ -3978,19 +3144,13 @@ Enter a task code above to open a task.
 
             );
 
-
-
             originalTaskCodeInput.value =
 
                 code;
 
-
-
             await openTaskFromCode();
 
         }
-
-
 
         catch (
 
@@ -4006,15 +3166,11 @@ Enter a task code above to open a task.
 
             );
 
-
-
             studentTaskError.textContent =
 
                 error.message ||
 
                 "Could not open this task.";
-
-
 
             studentTaskError.hidden =
 
@@ -4022,21 +3178,15 @@ Enter a task code above to open a task.
 
         }
 
-
-
         finally {
 
             taskCodeButtonUI.disabled =
 
                 false;
 
-
-
             taskCodeInputUI.disabled =
 
                 false;
-
-
 
             taskCodeButtonUI.textContent =
 
@@ -4047,8 +3197,6 @@ Enter a task code above to open a task.
         }
 
     }
-
-
 
     /*
      * Public bridge used by app.js after the startup sign-in flow.
@@ -4068,7 +3216,6 @@ Enter a task code above to open a task.
                     .trim()
                     .toUpperCase();
 
-
             if (
                 !normalizedCode
             ) {
@@ -4076,20 +3223,16 @@ Enter a task code above to open a task.
                 return;
             }
 
-
             taskCodeInputUI.value =
                 normalizedCode;
-
 
             // Keep the detached original node in sync because the base
             // first-attempt flow still reads it when creating Submission 1.
             originalTaskCodeInput.value =
                 normalizedCode;
 
-
             await routeTaskCodeFromGate();
         };
-
 
     taskCodeButtonUI.addEventListener(
 
@@ -4102,13 +3245,9 @@ Enter a task code above to open a task.
 
     );
 
-
-
     taskCodeInputUI.addEventListener(
 
         "keydown",
-
-
 
         event => {
 
@@ -4124,11 +3263,7 @@ Enter a task code above to open a task.
 
             }
 
-
-
             event.preventDefault();
-
-
 
             window.oeOpenTaskFolderFromCode(
                 taskCodeInputUI.value
@@ -4137,8 +3272,6 @@ Enter a task code above to open a task.
         }
 
     );
-
-
 
     /* =========================================================
 
@@ -4150,39 +3283,27 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     switchTaskButton.addEventListener(
 
         "click",
-
-
 
         () => {
 
             lockTaskFolders();
 
-
-
             taskCodeInputUI.value =
 
                 "";
 
-
-
             studentTaskError.hidden =
 
                 true;
-
-
 
             taskCodeInputUI.focus();
 
         }
 
     );
-
-
 
     /*
 
@@ -4198,8 +3319,6 @@ Enter a task code above to open a task.
 
         "click",
 
-
-
         () => {
 
             const hasProjectForScope =
@@ -4208,8 +3327,6 @@ Enter a task code above to open a task.
 
                 0;
 
-
-
             if (
 
                 !hasProjectForScope
@@ -4217,8 +3334,6 @@ Enter a task code above to open a task.
             ) {
 
                 lockTaskFolders();
-
-
 
                 taskCodeInputUI.value =
 
@@ -4230,8 +3345,6 @@ Enter a task code above to open a task.
 
     );
 
-
-
     /* =========================================================
 
        ALWAYS-VISIBLE MY PROJECTS BUTTON
@@ -4239,8 +3352,6 @@ Enter a task code above to open a task.
        This means "back to the currently unlocked task folder".
 
     ========================================================= */
-
-
 
     const quickMyProjectsButton =
 
@@ -4250,39 +3361,27 @@ Enter a task code above to open a task.
 
         );
 
-
-
     quickMyProjectsButton.type =
 
         "button";
-
-
 
     quickMyProjectsButton.className =
 
         `mode-button ${PREFIX}-my-projects`;
 
-
-
     quickMyProjectsButton.textContent =
 
         "← My Projects";
 
-
-
     quickMyProjectsButton.hidden =
 
         true;
-
-
 
     taskIntro.appendChild(
 
         quickMyProjectsButton
 
     );
-
-
 
     function showQuickMyProjectsButton() {
 
@@ -4302,8 +3401,6 @@ Enter a task code above to open a task.
 
     }
 
-
-
     function hideQuickMyProjectsButton() {
 
         quickMyProjectsButton.hidden =
@@ -4312,29 +3409,19 @@ Enter a task code above to open a task.
 
     }
 
-
-
     async function returnToUnlockedTaskFolder() {
 
         await returnToStudentProfile();
 
-
-
         syncProfileScopeUI();
-
-
 
         hideQuickMyProjectsButton();
 
     }
 
-
-
     quickMyProjectsButton.addEventListener(
 
         "click",
-
-
 
         async () => {
 
@@ -4342,15 +3429,11 @@ Enter a task code above to open a task.
 
                 true;
 
-
-
             try {
 
                 await returnToUnlockedTaskFolder();
 
             }
-
-
 
             catch (
 
@@ -4368,8 +3451,6 @@ Enter a task code above to open a task.
 
             }
 
-
-
             finally {
 
                 quickMyProjectsButton.disabled =
@@ -4381,8 +3462,6 @@ Enter a task code above to open a task.
         }
 
     );
-
-
 
     /*
 
@@ -4400,47 +3479,33 @@ Enter a task code above to open a task.
 
         "click",
 
-
-
         () => {
 
             currentRevisionInfo =
 
                 null;
 
-
-
             parentReviewForCorrections =
 
                 null;
-
-
 
             reviewActions.hidden =
 
                 true;
 
-
-
             correctionNote.hidden =
 
                 true;
 
-
-
             inkNote.hidden =
 
                 true;
-
-
 
             hideQuickMyProjectsButton();
 
         }
 
     );
-
-
 
     /*
 
@@ -4452,8 +3517,6 @@ Enter a task code above to open a task.
 
         loadStudentProject;
 
-
-
     loadStudentProject =
 
         async function (
@@ -4464,8 +3527,6 @@ Enter a task code above to open a task.
 
             hideQuickMyProjectsButton();
 
-
-
             const result =
 
                 await previousLoadStudentProjectForQuickBack(
@@ -4474,23 +3535,15 @@ Enter a task code above to open a task.
 
                 );
 
-
-
             showQuickMyProjectsButton();
-
-
 
             return result;
 
         };
 
-
-
     const previousOpenSubmissionReviewForQuickBack =
 
         openSubmissionReview;
-
-
 
     openSubmissionReview =
 
@@ -4502,8 +3555,6 @@ Enter a task code above to open a task.
 
             hideQuickMyProjectsButton();
 
-
-
             return previousOpenSubmissionReviewForQuickBack(
 
                 ...args
@@ -4511,8 +3562,6 @@ Enter a task code above to open a task.
             );
 
         };
-
-
 
     /* =========================================================
 
@@ -4524,13 +3573,9 @@ Enter a task code above to open a task.
 
     ========================================================= */
 
-
-
     switchStudentButton.addEventListener(
 
         "click",
-
-
 
         () => {
 
@@ -4538,21 +3583,15 @@ Enter a task code above to open a task.
 
                 null;
 
-
-
             taskCodeInputUI.value =
 
                 "";
-
-
 
             hideQuickMyProjectsButton();
 
         }
 
     );
-
-
 
     const profileVisibilityObserver =
 
@@ -4574,8 +3613,6 @@ Enter a task code above to open a task.
 
         );
 
-
-
     profileVisibilityObserver.observe(
 
         studentProfilePage,
@@ -4585,8 +3622,6 @@ Enter a task code above to open a task.
             attributes:
 
                 true,
-
-
 
             attributeFilter: [
 
@@ -4598,8 +3633,6 @@ Enter a task code above to open a task.
 
     );
 
-
-
     /*
 
     Initial state after a fresh page load:
@@ -4609,8 +3642,6 @@ Enter a task code above to open a task.
     */
 
     syncProfileScopeUI();
-
-
 
     showQuickMyProjectsButton();
 
