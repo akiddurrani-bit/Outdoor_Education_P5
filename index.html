@@ -289,25 +289,29 @@ Choose a tool and start creating your map.
 type="button"
 id="northIndicator"
 class="north-indicator"
-aria-label="Set North direction. Drag to rotate or tap to turn 45 degrees."
-title="Set North: drag to rotate, or tap to turn 45°"
+aria-label="North"
+title="North"
 >
 
 <div
 id="northArrowInner"
 class="north-arrow-inner"
 >
-<strong>N</strong>
-<span class="north-arrow-symbol">↑</span>
-</div>
 
-<span class="north-control-label">
-SET NORTH
+<strong class="north-fixed-label">
+N
+</strong>
+
+<span class="north-arrow-symbol">
+↑
 </span>
+
+</div>
 
 <span
 id="northAngleLabel"
 class="north-angle-label"
+hidden
 >
 0°
 </span>
@@ -2635,5 +2639,6 @@ Save
 <script src="app.js"></script>
 <script src="map-improvements.js"></script>
 <script src="corrections-improvements.js"></script>
+<script src="tutorial-improvements.js"></script>
 </body>
 </html>
