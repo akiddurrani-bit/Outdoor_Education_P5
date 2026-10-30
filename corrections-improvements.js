@@ -130,9 +130,246 @@
 
         }
 
+        /* =====================================================
+           STARTUP LOGIN MODAL TWEAKS
+        ===================================================== */
+
+        .student-login-modal {
+
+            width: min(640px, calc(100vw - 32px));
+
+            display: flex;
+
+            flex-direction: column;
+        }
+
+        #continueTeacherStep {
+
+            margin-bottom: 2px;
+        }
+
+        #continueTeacherButton {
+
+            min-height: 40px;
+
+            padding: 8px 14px;
+
+            font-size: 14px;
+        }
+
+        #continueTeacherStep .login-divider {
+
+            margin: 12px 0 8px;
+        }
+
+        #startupTeacherLink.${PREFIX}-startup-teacher-link {
+
+            display: inline-flex;
+
+            align-items: center;
+
+            align-self: flex-end;
+
+            margin: 4px 0 10px auto;
+
+            padding: 0;
+
+            font-size: 12px;
+
+            font-weight: 700;
+
+            opacity: 0.88;
+        }
+
+        #startupTeacherLink.${PREFIX}-startup-teacher-link:hover {
+
+            opacity: 1;
+        }
+
+        #startupModal .modal-step-label {
+
+            margin-top: 2px;
+        }
+
+        #startupModal .modal-actions {
+
+            margin-top: 16px;
+        }
+
+        #startupModal .guest-entry-actions {
+
+            display: flex;
+
+            flex-direction: column;
+
+            gap: 8px;
+        }
+
+        #openGuestButton {
+
+            min-height: 42px;
+        }
+
+        @media (max-width: 700px) {
+
+            #startupTeacherLink.${PREFIX}-startup-teacher-link {
+
+                align-self: flex-start;
+
+                margin: 4px 0 12px;
+            }
+        }
+
     `;
 
     document.head.appendChild(style);
+
+    /* =========================================================
+
+       STARTUP LOGIN MODAL CLEANUP
+
+    ========================================================= */
+
+    const startupModalCard =
+        startupModal?.querySelector(
+            ".student-login-modal"
+        ) ||
+        null;
+
+    const startupTeacherLink =
+        document.getElementById(
+            "startupTeacherLink"
+        );
+
+    if (
+        startupModalCard &&
+        startupTeacherLink
+    ) {
+
+        startupTeacherLink.classList.add(
+            `${PREFIX}-startup-teacher-link`
+        );
+
+        const studentLoginLabel =
+            startupModalCard.querySelector(
+                ".modal-step-label"
+            );
+
+        if (
+            studentLoginLabel
+        ) {
+
+            startupModalCard.insertBefore(
+                startupTeacherLink,
+                studentLoginLabel
+            );
+        }
+    }
+
+    function syncStartupStudentButtonLabel() {
+
+        if (
+            !studentLoginButton
+        ) {
+
+            return;
+        }
+
+        const currentText =
+            String(
+                studentLoginButton.textContent ||
+                ""
+            )
+                .trim();
+
+        if (
+            currentText === "Checking…" ||
+            currentText === "Opening…"
+        ) {
+
+            return;
+        }
+
+        studentLoginButton.textContent =
+            pendingSignInTaskCode
+                ? "Continue"
+                : "Student Log In";
+    }
+
+    function syncStartupTeacherLinkLabel() {
+
+        if (
+            !startupTeacherLink
+        ) {
+
+            return;
+        }
+
+        startupTeacherLink.textContent =
+            continueTeacherStep?.hidden
+                ? "Teacher Log In"
+                : "Teacher Portal";
+    }
+
+    const originalShowStartupCodeStep =
+        showStartupCodeStep;
+
+    showStartupCodeStep =
+        function (
+            ...args
+        ) {
+
+            const result =
+                originalShowStartupCodeStep(
+                    ...args
+                );
+
+            syncStartupStudentButtonLabel();
+            syncStartupTeacherLinkLabel();
+
+            return result;
+        };
+
+    const originalPrepareStudentLogin =
+        prepareStudentLogin;
+
+    prepareStudentLogin =
+        async function (
+            ...args
+        ) {
+
+            const result =
+                await originalPrepareStudentLogin(
+                    ...args
+                );
+
+            syncStartupStudentButtonLabel();
+            syncStartupTeacherLinkLabel();
+
+            return result;
+        };
+
+    const originalFindStudentNamesForTaskCode =
+        findStudentNamesForTaskCode;
+
+    findStudentNamesForTaskCode =
+        async function (
+            ...args
+        ) {
+
+            const result =
+                await originalFindStudentNamesForTaskCode(
+                    ...args
+                );
+
+            syncStartupStudentButtonLabel();
+            syncStartupTeacherLinkLabel();
+
+            return result;
+        };
+
+    syncStartupStudentButtonLabel();
+    syncStartupTeacherLinkLabel();
 
     /* =========================================================
 
@@ -439,15 +676,11 @@
         0;
 
     /*
-
     activeTaskScope is the task folder currently unlocked by a
-
     valid task code.
 
     null = the pupil is at the task-code gate and cannot browse
-
     other projects.
-
     */
 
     let activeTaskScope =
@@ -867,7 +1100,6 @@ Enter a task code above to open a task.
         ) {
 
             return null;
-
         }
 
         if (
@@ -985,7 +1217,6 @@ Enter a task code above to open a task.
                     parent_submission_id:
 
                         row
-
                             .parent_submission_id ||
 
                         null,
@@ -993,79 +1224,51 @@ Enter a task code above to open a task.
                     correction_submission_id:
 
                         row
-
                             .correction_submission_id ||
 
                         null
-
                 }
-
                 : null;
 
         revisionCache.set(
-
             submissionId,
-
             info
-
         );
 
         return info;
-
     }
 
     function setCurrentRevisionInfo(
-
         info
-
     ) {
 
         currentRevisionInfo =
-
             info;
 
         if (
-
             currentSubmission &&
-
             info
-
         ) {
 
             currentSubmission
-
                 .submission_number =
-
                 integerVersion(
-
                     info
-
                         .submission_number
-
                 );
 
             currentSubmission
-
                 .parent_submission_id =
-
                 info
-
                     .parent_submission_id ||
-
                 null;
 
             currentSubmission
-
                 .correction_submission_id =
-
                 info
-
                     .correction_submission_id ||
-
                 null;
-
         }
-
     }
 
     /* =========================================================
@@ -1077,319 +1280,219 @@ Enter a task code above to open a task.
     function restoreSubmissionOneReviewUI() {
 
         parentReviewForCorrections =
-
             null;
 
         correctionNote.hidden =
-
             true;
 
         inkNote.hidden =
-
             true;
 
         viewOriginalButton.hidden =
-
             true;
 
         if (
-
             reviewTitle
-
         ) {
 
             reviewTitle.textContent =
-
                 "Marked work";
-
         }
 
         if (
-
             toggleStudentMarkedWorkButton
-
         ) {
 
             toggleStudentMarkedWorkButton.hidden =
-
                 !(
-
                     studentReviewData
-
                         ?.annotations
-
                         ?.length
-
                 );
-
         }
-
     }
 
     function renderCorrectionReference(
-
         review
-
     ) {
 
         parentReviewForCorrections =
-
             review ||
-
             null;
 
         if (
-
             !review
-
         ) {
 
             studentReviewPanel.hidden =
-
                 true;
 
             reviewActions.hidden =
-
                 true;
 
             return;
-
         }
 
         applyStudentReviewSnapshot(
-
             review
-
         );
 
         annotations =
-
             [];
 
         studentReviewVisible =
-
             false;
 
         renderAnnotations();
 
         if (
-
             reviewTitle
-
         ) {
 
             reviewTitle.textContent =
-
                 "Feedback for Submission 1";
-
         }
 
         studentReviewPanel.hidden =
-
             false;
 
         toggleStudentMarkedWorkButton.hidden =
-
             true;
 
         correctionNote.hidden =
-
             false;
 
         if (
-
             currentSubmission
-
                 ?.status ===
-
             "submitted"
-
         ) {
 
             correctionNote.textContent =
-
                 "Submission 2 — Corrected Work has been handed in. " +
-
                 "The feedback below is from Submission 1 for reference while you wait for your teacher to mark the corrected work.";
-
         }
 
         else {
 
             correctionNote.textContent =
-
                 "Use this feedback while editing Submission 2. " +
-
                 "Teacher markings stay on Submission 1 and are not placed over your correction map.";
-
         }
 
         const strokes =
-
             inkCount(
-
                 review
-
             );
 
         if (
-
             strokes > 0
-
         ) {
 
             inkNote.hidden =
-
                 false;
 
             inkNote.textContent =
-
                 `Your teacher also added ${strokes} red-pen marking${strokes === 1 ? "" : "s"}. ` +
-
                 "Open the marked Submission 1 below to see exactly where they were drawn.";
-
         }
 
         else {
 
             inkNote.hidden =
-
                 true;
-
         }
 
         const comments =
-
             pointComments(
-
                 review
-
             );
 
         if (
-
             !comments.length &&
-
             !review.feedback?.trim()
-
         ) {
 
             studentTeacherFeedbackText
-
                 .textContent =
-
                 "Your teacher reviewed Submission 1. Use the marked original as your reference.";
-
         }
 
         reviewActions.hidden =
-
             false;
 
         startCorrectionsButton.hidden =
-
             true;
 
         viewOriginalButton.hidden =
-
             false;
 
         syncCorrectionLockBanner();
-
     }
 
     function renderMarkedCorrection(
-
         review
-
     ) {
 
         parentReviewForCorrections =
-
             null;
 
         if (
-
             !review
-
         ) {
 
             return;
-
         }
 
         applyStudentReviewSnapshot(
-
             review
-
         );
 
         studentReviewVisible =
-
             true;
 
         annotations =
-
             deepClone(
-
                 review.annotations ||
-
                 []
-
             );
 
         renderAnnotations();
 
         if (
-
             reviewTitle
-
         ) {
 
             reviewTitle.textContent =
-
                 "Marked corrected work";
-
         }
 
         correctionNote.hidden =
-
             false;
 
         correctionNote.textContent =
-
             "This is your teacher's feedback on Submission 2 — Corrected Work.";
 
         inkNote.hidden =
-
             true;
 
         reviewActions.hidden =
-
             false;
 
         startCorrectionsButton.hidden =
-
             true;
 
         viewOriginalButton.hidden =
-
             !currentRevisionInfo
-
                 ?.parent_submission_id;
 
         toggleStudentMarkedWorkButton.hidden =
-
             !(
-
                 review.annotations &&
-
                 review.annotations.length
-
             );
 
         syncCorrectionLockBanner();
-
     }
 
     /* =========================================================
@@ -1401,193 +1504,129 @@ Enter a task code above to open a task.
     function syncVersionLabels() {
 
         if (
-
             !currentSubmission ||
-
             appMode !== "student"
-
         ) {
 
             return;
-
         }
 
         const version =
-
             projectVersion();
 
         submitButton.textContent =
-
             version >= 2
-
                 ? "Submit Corrected Work"
-
                 : "Submit to teacher";
 
         if (
-
             taskMembers &&
-
             !taskMembers.dataset
-
                 .correctionBaseText
-
         ) {
 
             taskMembers.dataset
-
                 .correctionBaseText =
-
                 taskMembers.textContent ||
-
                 "";
-
         }
 
         if (
-
             taskMembers
-
         ) {
 
             const baseText =
-
                 taskMembers.dataset
-
                     .correctionBaseText ||
-
                 taskMembers.textContent ||
-
                 "";
 
             taskMembers.textContent =
-
                 version >= 2
-
                     ? `Submission ${version} · Corrections · ${baseText}`
-
                     : `Submission 1 · ${baseText}`;
-
         }
-
     }
 
     function syncCorrectionLockBanner() {
 
         if (
-
             appMode !== "student" ||
-
             !isCorrectionProject() ||
-
             !projectHandedIn ||
-
             !studentReadOnly
-
         ) {
 
             return;
-
         }
 
         if (
-
             parentReviewForCorrections
-
         ) {
 
             editLockLabel.textContent =
-
                 "SUBMISSION 2";
 
             editLockTitle.textContent =
-
                 "Corrected work handed in — waiting for your teacher.";
 
             editLockMessage.textContent =
-
                 "Submission 2 is locked. Submission 1 feedback remains below for reference while you wait for your teacher to mark the corrected work.";
 
             return;
-
         }
 
         if (
-
             studentReviewData
-
         ) {
 
             editLockLabel.textContent =
-
                 "MARKED";
 
             editLockTitle.textContent =
-
                 "Your teacher has marked Submission 2.";
 
             editLockMessage.textContent =
-
                 "Read the feedback below. You can also return to marked Submission 1 for comparison.";
-
         }
-
     }
 
     function syncSubmissionOneActions() {
 
         if (
-
             !currentSubmission ||
-
             appMode !== "student" ||
-
             isCorrectionProject() ||
-
             !studentReviewData
-
         ) {
 
             startCorrectionsButton.hidden =
-
                 true;
 
             reviewActions.hidden =
-
                 viewOriginalButton.hidden;
 
             return;
-
         }
 
         const correctionId =
-
             currentRevisionInfo
-
                 ?.correction_submission_id ||
-
             null;
 
         startCorrectionsButton.hidden =
-
             false;
 
         startCorrectionsButton.textContent =
-
             correctionId
-
                 ? "Open Corrections"
-
                 : "Start Corrections";
 
         viewOriginalButton.hidden =
-
             true;
 
         reviewActions.hidden =
-
             false;
-
     }
 
     /* =========================================================
@@ -1597,255 +1636,168 @@ Enter a task code above to open a task.
     ========================================================= */
 
     async function refreshCurrentCorrectionsUI(
-
         {
-
             force = false
-
         } = {}
-
     ) {
 
         const requestId =
-
             ++correctionUiRequest;
 
         const submissionId =
-
             currentSubmission?.id;
 
         if (
-
             !submissionId ||
-
             appMode !== "student" ||
-
             !hasCurrentLearnerIdentity()
-
         ) {
 
             return;
-
         }
 
         let info =
-
             null;
 
         try {
 
             info =
-
                 await fetchRevisionInfo(
-
                     submissionId,
-
                     {
-
                         force
-
                     }
-
                 );
-
         }
 
         catch (
-
             error
-
         ) {
 
             console.warn(
-
                 "Could not load submission revision information:",
-
                 error
-
             );
 
             return;
-
         }
 
         if (
-
             requestId !==
-
                 correctionUiRequest ||
-
             currentSubmission?.id !==
-
                 submissionId
-
         ) {
 
             return;
-
         }
 
         setCurrentRevisionInfo(
-
             info
-
         );
 
         syncVersionLabels();
 
         if (
-
             integerVersion(
-
                 info
-
                     ?.submission_number
-
             ) >= 2
-
         ) {
 
             const parentId =
-
                 info
-
                     ?.parent_submission_id;
 
             if (
-
                 !parentId
-
             ) {
 
                 return;
-
             }
 
             let ownReview =
-
                 null;
 
             try {
 
                 ownReview =
-
                     await fetchStudentReview(
-
                         submissionId
-
                     );
-
             }
 
             catch (
-
                 error
-
             ) {
 
                 console.warn(
-
                     "Could not load Submission 2 teacher feedback:",
-
                     error
-
                 );
-
             }
 
             if (
-
                 requestId !==
-
                     correctionUiRequest ||
-
                 currentSubmission?.id !==
-
                     submissionId
-
             ) {
 
                 return;
-
             }
 
             if (
-
                 ownReview
-
             ) {
 
                 renderMarkedCorrection(
-
                     ownReview
-
                 );
 
                 return;
-
             }
 
             let parentReview =
-
                 null;
 
             try {
 
                 parentReview =
-
                     await fetchStudentReview(
-
                         parentId
-
                     );
-
             }
 
             catch (
-
                 error
-
             ) {
 
                 console.warn(
-
                     "Could not load Submission 1 feedback for corrections:",
-
                     error
-
                 );
-
             }
 
             if (
-
                 requestId !==
-
                     correctionUiRequest ||
-
                 currentSubmission?.id !==
-
                     submissionId
-
             ) {
 
                 return;
-
             }
 
             renderCorrectionReference(
-
                 parentReview
-
             );
 
             return;
-
         }
 
         restoreSubmissionOneReviewUI();
-
         syncSubmissionOneActions();
-
     }
 
     /* =========================================================
@@ -1857,199 +1809,130 @@ Enter a task code above to open a task.
     async function startOrOpenCorrections() {
 
         if (
-
             !currentSubmission?.id ||
-
             !studentReviewData ||
-
             appMode !== "student"
-
         ) {
 
             return;
-
         }
 
         startCorrectionsButton.disabled =
-
             true;
 
         const previousText =
-
             startCorrectionsButton
-
                 .textContent;
 
         startCorrectionsButton.textContent =
-
             "Opening…";
 
         try {
 
             const parentId =
-
                 currentSubmission.id;
 
             let correctionId =
-
                 currentRevisionInfo
-
                     ?.correction_submission_id ||
-
                 null;
 
             if (
-
                 !correctionId
-
             ) {
 
                 let result;
 
                 if (
-
                     currentIdentityType ===
-
                     "guest"
-
                 ) {
 
                     result =
-
                         await sb.rpc(
-
                             "guest_start_corrections",
-
                             {
-
                                 p_submission_id:
-
                                     parentId
-
                             }
-
                         );
-
                 }
 
                 else {
 
                     result =
-
                         await sb.rpc(
-
                             "student_start_corrections",
-
                             {
-
                                 p_submission_id:
-
                                     parentId,
-
                                 p_student_id:
-
                                     currentStudentProfile
-
                                         .student_id
-
                             }
-
                         );
-
                 }
 
                 if (
-
                     result.error
-
                 ) {
 
                     throw result.error;
-
                 }
 
                 correctionId =
-
                     result.data;
-
             }
 
             if (
-
                 !correctionId
-
             ) {
 
                 throw new Error(
-
                     "The correction submission could not be created."
-
                 );
-
             }
 
             revisionCache.delete(
-
                 parentId
-
             );
 
             revisionCache.delete(
-
                 correctionId
-
             );
 
             await loadStudentProject(
-
                 correctionId
-
             );
-
         }
 
         catch (
-
             error
-
         ) {
 
             console.error(
-
                 error
-
             );
 
             alert(
-
                 error.message ||
-
                 "Could not start corrections."
-
             );
-
         }
 
         finally {
 
             startCorrectionsButton.disabled =
-
                 false;
 
             startCorrectionsButton.textContent =
-
                 previousText;
-
         }
-
     }
 
     startCorrectionsButton.addEventListener(
-
         "click",
-
         startOrOpenCorrections
-
     );
 
     /* =========================================================
@@ -2059,109 +1942,73 @@ Enter a task code above to open a task.
     ========================================================= */
 
     viewOriginalButton.addEventListener(
-
         "click",
-
         async () => {
 
             const parentId =
-
                 currentRevisionInfo
-
                     ?.parent_submission_id;
 
             if (
-
                 !parentId
-
             ) {
 
                 return;
-
             }
 
             viewOriginalButton.disabled =
-
                 true;
 
             const oldText =
-
                 viewOriginalButton
-
                     .textContent;
 
             viewOriginalButton.textContent =
-
                 "Opening…";
 
             try {
 
                 if (
-
                     currentSubmission
-
                         ?.status !==
-
                         "submitted" &&
-
                     !studentReadOnly &&
-
                     editLockOwned
-
                 ) {
 
                     await saveStudentMap(
-
                         false
-
                     );
-
                 }
 
                 await loadStudentProject(
-
                     parentId
-
                 );
-
             }
 
             catch (
-
                 error
-
             ) {
 
                 console.error(
-
                     error
-
                 );
 
                 alert(
-
                     error.message ||
-
                     "Could not open Submission 1."
-
                 );
-
             }
 
             finally {
 
                 viewOriginalButton.disabled =
-
                     false;
 
                 viewOriginalButton.textContent =
-
                     oldText;
-
             }
-
         }
-
     );
 
     /* =========================================================
@@ -2171,51 +2018,34 @@ Enter a task code above to open a task.
     ========================================================= */
 
     submitButton.addEventListener(
-
         "click",
-
         event => {
 
             if (
-
                 appMode !== "student" ||
-
                 !isCorrectionProject()
-
             ) {
 
                 return;
-
             }
 
             event.preventDefault();
-
             event.stopImmediatePropagation();
-
             closeFlyouts();
 
             if (
-
                 !confirm(
-
                     "Submit your corrected work to your teacher?\n\n" +
-
                     "You won't be able to change Submission 2 afterwards."
-
                 )
-
             ) {
 
                 return;
-
             }
 
             submitToTeacher();
-
         },
-
         true
-
     );
 
     /* =========================================================
@@ -2225,65 +2055,45 @@ Enter a task code above to open a task.
     ========================================================= */
 
     const originalLoadStudentProject =
-
         loadStudentProject;
 
     loadStudentProject =
-
         async function (
-
             ...args
-
         ) {
 
             if (
-
                 taskMembers
-
             ) {
 
                 delete taskMembers
-
                     .dataset
-
                     .correctionBaseText;
-
             }
 
             currentRevisionInfo =
-
                 null;
 
             parentReviewForCorrections =
-
                 null;
 
             correctionUiRequest +=
-
                 1;
 
             const result =
-
                 await originalLoadStudentProject(
-
                     ...args
-
                 );
 
             if (
-
                 currentSubmission?.id &&
-
                 appMode === "student"
-
             ) {
 
                 await refreshCurrentCorrectionsUI();
-
             }
 
             return result;
-
         };
 
     /* =========================================================
@@ -2293,55 +2103,35 @@ Enter a task code above to open a task.
     ========================================================= */
 
     const previousApplyStudentReviewSnapshot =
-
         applyStudentReviewSnapshot;
 
     applyStudentReviewSnapshot =
-
         function (
-
             ...args
-
         ) {
 
             const result =
-
                 previousApplyStudentReviewSnapshot(
-
                     ...args
-
                 );
 
             if (
-
                 appMode === "student" &&
-
                 currentSubmission?.id &&
-
                 currentRevisionInfo &&
-
                 integerVersion(
-
                     currentRevisionInfo
-
                         .submission_number
-
                 ) === 1
-
             ) {
 
                 refreshCurrentCorrectionsUI({
-
                     force:
-
                         true
-
                 });
-
             }
 
             return result;
-
         };
 
     /* =========================================================
@@ -2351,47 +2141,34 @@ Enter a task code above to open a task.
     ========================================================= */
 
     const previousResetStudentReviewState =
-
         resetStudentReviewState;
 
     resetStudentReviewState =
-
         function (
-
             ...args
-
         ) {
 
             const result =
-
                 previousResetStudentReviewState(
-
                     ...args
-
                 );
 
             reviewActions.hidden =
-
                 true;
 
             startCorrectionsButton.hidden =
-
                 true;
 
             viewOriginalButton.hidden =
-
                 true;
 
             correctionNote.hidden =
-
                 true;
 
             inkNote.hidden =
-
                 true;
 
             return result;
-
         };
 
     /* =========================================================
@@ -2401,73 +2178,48 @@ Enter a task code above to open a task.
     ========================================================= */
 
     const originalFetchStudentProjects =
-
         fetchStudentProjects;
 
     fetchStudentProjects =
-
         async function (
-
             ...args
-
         ) {
 
             const projects =
-
                 await originalFetchStudentProjects(
-
                     ...args
-
                 );
 
             await Promise.all(
-
                 projects.map(
-
                     async project => {
 
                         try {
 
                             project.revision_info =
-
                                 await fetchRevisionInfo(
-
                                     project
-
                                         .submission_id
-
                                 );
-
                         }
 
                         catch (
-
                             error
-
                         ) {
 
                             console.warn(
-
                                 "Could not load project revision badge:",
-
                                 error
-
                             );
 
                             project.revision_info =
-
                                 null;
-
                         }
-
                     }
-
                 )
-
             );
 
             return projects;
-
         };
 
     /* =========================================================
@@ -2477,27 +2229,20 @@ Enter a task code above to open a task.
     ========================================================= */
 
     const originalRenderStudentProjectHistory =
-
         renderStudentProjectHistory;
 
     renderStudentProjectHistory =
-
         function (
-
             ...args
-
         ) {
 
             syncProfileScopeUI();
 
             if (
-
                 !activeTaskScope
-
             ) {
 
                 studentProjectsList.innerHTML =
-
                     `
 
 <p class="helper-text">
@@ -2509,239 +2254,152 @@ Enter a task code above to open a task.
 `;
 
                 return;
-
             }
 
             const allProjects =
-
                 currentStudentProjects;
 
             const taskProjects =
-
                 allProjects
-
                     .filter(
-
                         projectMatchesActiveTask
-
                     )
-
                     .sort(
-
                         (a, b) => {
 
                             const av =
-
                                 integerVersion(
-
                                     a
-
                                         .revision_info
-
                                         ?.submission_number
-
                                 );
 
                             const bv =
-
                                 integerVersion(
-
                                     b
-
                                         .revision_info
-
                                         ?.submission_number
-
                                 );
 
                             return av - bv;
-
                         }
-
                     );
 
             currentStudentProjects =
-
                 taskProjects;
 
             const result =
-
                 originalRenderStudentProjectHistory(
-
                     ...args
-
                 );
 
             currentStudentProjects =
-
                 allProjects;
 
             const cards =
-
                 Array.from(
-
                     studentProjectsList
-
                         .querySelectorAll(
-
                             ".student-project-card"
-
                         )
-
                 );
 
             cards.forEach(
-
                 (
-
                     card,
-
                     index
-
                 ) => {
 
                     const project =
-
                         taskProjects[
-
                             index
-
                         ];
 
                     if (
-
                         !project
-
                     ) {
 
                         return;
-
                     }
 
                     const version =
-
                         integerVersion(
-
                             project
-
                                 .revision_info
-
                                 ?.submission_number
-
                         );
 
                     const title =
-
                         card.querySelector(
-
                             ".student-project-card-head > div:first-child strong"
-
                         );
 
                     if (
-
                         title
-
                     ) {
 
                         title.textContent =
-
                             version >= 2
-
                                 ? "Correction"
-
                                 : "First Submission";
-
                     }
 
                     card
-
                         .querySelector(
-
                             ".student-project-meta"
-
                         )
-
                         ?.remove();
 
                     card
-
                         .querySelector(
-
                             `.${PREFIX}-student-card-version`
-
                         )
-
                         ?.remove();
 
                     card
-
                         .querySelector(
-
                             ".student-project-members"
-
                         )
-
                         ?.remove();
 
                     card
-
                         .querySelector(
-
                             ".student-project-review-note"
-
                         )
-
                         ?.remove();
 
                     const badges =
-
                         card.querySelector(
-
                             ".student-project-badges"
-
                         );
 
                     if (
-
                         badges
-
                     ) {
 
                         const isMarked =
-
                             Boolean(
-
                                 project
-
                                     .teacher_review_snapshot
-
                             );
 
                         badges.innerHTML =
-
                             isMarked
-
                                 ? `
 <span class="teacher-review-badge">
 Marked
 </span>
 `
-
                                 : `
 <span class="student-project-status">
 Not marked yet
 </span>
 `;
-
                     }
-
                 }
-
             );
 
             return result;
-
         };
 
     /* =========================================================
@@ -2751,29 +2409,21 @@ Not marked yet
     ========================================================= */
 
     const originalApplyStudentEditLockUI =
-
         applyStudentEditLockUI;
 
     applyStudentEditLockUI =
-
         function (
-
             ...args
-
         ) {
 
             const result =
-
                 originalApplyStudentEditLockUI(
-
                     ...args
-
                 );
 
             syncCorrectionLockBanner();
 
             return result;
-
         };
 
     /* =========================================================
@@ -2783,63 +2433,43 @@ Not marked yet
     ========================================================= */
 
     const originalShowUpdatedStudentReview =
-
         showUpdatedStudentReview;
 
     showUpdatedStudentReview =
-
         function (
-
             review
-
         ) {
 
             if (
-
                 appMode === "student" &&
-
                 isCorrectionProject()
-
             ) {
 
                 if (
-
                     review
-
                 ) {
 
                     renderMarkedCorrection(
-
                         review
-
                     );
 
                     statusBar.textContent =
-
                         "Your teacher has marked Submission 2 — Corrected Work.";
 
                     return;
-
                 }
 
                 refreshCurrentCorrectionsUI({
-
                     force:
-
                         true
-
                 });
 
                 return;
-
             }
 
             return originalShowUpdatedStudentReview(
-
                 review
-
             );
-
         };
 
     /* =========================================================
@@ -2847,149 +2477,97 @@ Not marked yet
        TASK-CODE GATE
 
        Replace the original input/button DOM nodes so all old
-
        app.js click / Enter listeners are physically removed from
-
        the controls the student is using.
 
     ========================================================= */
 
     const originalTaskCodeInput =
-
         studentTaskCode;
 
     const originalTaskCodeButton =
-
         openStudentTaskButton;
 
     const taskCodeInputUI =
-
         originalTaskCodeInput.cloneNode(
-
             true
-
         );
 
     const taskCodeButtonUI =
-
         originalTaskCodeButton.cloneNode(
-
             true
-
         );
 
     originalTaskCodeInput.replaceWith(
-
         taskCodeInputUI
-
     );
 
     originalTaskCodeButton.replaceWith(
-
         taskCodeButtonUI
-
     );
 
     taskCodeInputUI.value =
-
         "";
 
     taskCodeButtonUI.textContent =
-
         "Continue";
 
     async function lookupTaskForCode(
-
         code
-
     ) {
 
         let result;
 
         if (
-
             currentIdentityType ===
-
             "guest"
-
         ) {
 
             result =
-
                 await sb.rpc(
-
                     "guest_get_task_by_code",
-
                     {
-
                         p_code:
-
                             code
-
                     }
-
                 );
-
         }
 
         else {
 
             result =
-
                 await sb.rpc(
-
                     "student_get_task_by_code",
-
                     {
-
                         p_code:
-
                             code,
-
                         p_student_id:
-
                             currentStudentProfile
-
                                 .student_id
-
                     }
-
                 );
-
         }
 
         if (
-
             result.error
-
         ) {
 
             throw result.error;
-
         }
 
         return Array.isArray(
-
             result.data
-
         )
-
             ? result.data[0]
-
             : result.data;
-
     }
 
     async function openUnlockedTaskFolder(
-
         task
-
     ) {
 
         unlockTaskFolder(
-
             task
-
         );
 
         await loadStudentProjectHistory();
@@ -2997,205 +2575,138 @@ Not marked yet
         syncProfileScopeUI();
 
         profileHistoryCard
-
             ?.scrollIntoView({
-
                 behavior:
-
                     "smooth",
-
                 block:
-
                     "start"
-
             });
-
     }
 
     async function routeTaskCodeFromGate() {
 
         if (
-
             !hasCurrentLearnerIdentity()
-
         ) {
 
             return;
-
         }
 
         const code =
-
             taskCodeInputUI
-
                 .value
-
                 .trim()
-
                 .toUpperCase();
 
         studentTaskError.hidden =
-
             true;
 
         if (
-
             !code
-
         ) {
 
             studentTaskError.textContent =
-
                 "Enter the task code from your teacher.";
 
             studentTaskError.hidden =
-
                 false;
 
             return;
-
         }
 
         taskCodeButtonUI.disabled =
-
             true;
 
         taskCodeInputUI.disabled =
-
             true;
 
         const oldText =
-
             taskCodeButtonUI
-
                 .textContent;
 
         taskCodeButtonUI.textContent =
-
             "Checking…";
 
         try {
 
             const task =
-
                 await lookupTaskForCode(
-
                     code
-
                 );
 
             if (
-
                 !task
-
             ) {
 
                 throw new Error(
-
                     currentIdentityType ===
-
                         "guest"
-
                         ? "Task code not found, or this task does not allow guest students."
-
                         : "Task code not found for your class."
-
                 );
-
             }
 
             /*
-
             Existing submission(s): task code opens the TASK FOLDER,
-
             never a map.
-
             */
 
             if (
-
                 task.existing_submission_id
-
             ) {
 
                 await openUnlockedTaskFolder(
-
                     task
-
                 );
 
                 return;
-
             }
 
             /*
-
             First ever attempt for this task:
-
             remember the task folder, then hand off to the existing
-
             app.js first-time flow. It will create/open Submission 1.
-
             */
 
             unlockTaskFolder(
-
                 task
-
             );
 
             originalTaskCodeInput.value =
-
                 code;
 
             await openTaskFromCode();
-
         }
 
         catch (
-
             error
-
         ) {
 
             console.error(
-
                 "Could not open task code:",
-
                 error
-
             );
 
             studentTaskError.textContent =
-
                 error.message ||
-
                 "Could not open this task.";
 
             studentTaskError.hidden =
-
                 false;
-
         }
 
         finally {
 
             taskCodeButtonUI.disabled =
-
                 false;
 
             taskCodeInputUI.disabled =
-
                 false;
 
             taskCodeButtonUI.textContent =
-
                 oldText ||
-
                 "Continue";
-
         }
-
     }
 
     /*
@@ -3235,32 +2746,23 @@ Not marked yet
         };
 
     taskCodeButtonUI.addEventListener(
-
         "click",
-
         () =>
             window.oeOpenTaskFolderFromCode(
                 taskCodeInputUI.value
             )
-
     );
 
     taskCodeInputUI.addEventListener(
-
         "keydown",
-
         event => {
 
             if (
-
                 event.key !==
-
                 "Enter"
-
             ) {
 
                 return;
-
             }
 
             event.preventDefault();
@@ -3268,9 +2770,7 @@ Not marked yet
             window.oeOpenTaskFolderFromCode(
                 taskCodeInputUI.value
             );
-
         }
-
     );
 
     /* =========================================================
@@ -3278,71 +2778,50 @@ Not marked yet
        SWITCH TASK
 
        Closes the current task folder. No other project can be
-
        browsed until another valid task code is entered.
 
     ========================================================= */
 
     switchTaskButton.addEventListener(
-
         "click",
-
         () => {
 
             lockTaskFolders();
 
             taskCodeInputUI.value =
-
                 "";
 
             studentTaskError.hidden =
-
                 true;
 
             taskCodeInputUI.focus();
-
         }
-
     );
 
     /*
-
     If a brand-new registered task reaches group selection and
-
     the pupil cancels before creating Submission 1, return to the
-
     locked task-code gate.
-
     */
 
     cancelGroupButton.addEventListener(
-
         "click",
-
         () => {
 
             const hasProjectForScope =
-
                 scopedProjects().length >
-
                 0;
 
             if (
-
                 !hasProjectForScope
-
             ) {
 
                 lockTaskFolders();
 
                 taskCodeInputUI.value =
-
                     "";
-
             }
-
         }
-
     );
 
     /* =========================================================
@@ -3354,59 +2833,41 @@ Not marked yet
     ========================================================= */
 
     const quickMyProjectsButton =
-
         document.createElement(
-
             "button"
-
         );
 
     quickMyProjectsButton.type =
-
         "button";
 
     quickMyProjectsButton.className =
-
         `mode-button ${PREFIX}-my-projects`;
 
     quickMyProjectsButton.textContent =
-
         "← My Projects";
 
     quickMyProjectsButton.hidden =
-
         true;
 
     taskIntro.appendChild(
-
         quickMyProjectsButton
-
     );
 
     function showQuickMyProjectsButton() {
 
         quickMyProjectsButton.hidden =
-
             !(
-
                 appMode ===
-
                     "student" &&
-
                 currentSubmission?.id &&
-
                 !studentWorkspace.hidden
-
             );
-
     }
 
     function hideQuickMyProjectsButton() {
 
         quickMyProjectsButton.hidden =
-
             true;
-
     }
 
     async function returnToUnlockedTaskFolder() {
@@ -3416,151 +2877,105 @@ Not marked yet
         syncProfileScopeUI();
 
         hideQuickMyProjectsButton();
-
     }
 
     quickMyProjectsButton.addEventListener(
-
         "click",
-
         async () => {
 
             quickMyProjectsButton.disabled =
-
                 true;
 
             try {
 
                 await returnToUnlockedTaskFolder();
-
             }
 
             catch (
-
                 error
-
             ) {
 
                 console.error(
-
                     "Could not return to My Projects:",
-
                     error
-
                 );
-
             }
 
             finally {
 
                 quickMyProjectsButton.disabled =
-
                     false;
-
             }
-
         }
-
     );
 
     /*
-
     The old More-menu My Projects button already calls the base
-
     returnToStudentProfile(). Because our history renderer is scoped,
-
     it also returns to the current task folder rather than exposing
-
     every task.
-
     */
 
     backToProfileButton.addEventListener(
-
         "click",
-
         () => {
 
             currentRevisionInfo =
-
                 null;
 
             parentReviewForCorrections =
-
                 null;
 
             reviewActions.hidden =
-
                 true;
 
             correctionNote.hidden =
-
                 true;
 
             inkNote.hidden =
-
                 true;
 
             hideQuickMyProjectsButton();
-
         }
-
     );
 
     /*
-
     Wrap the CURRENT loadStudentProject function.
-
     */
 
     const previousLoadStudentProjectForQuickBack =
-
         loadStudentProject;
 
     loadStudentProject =
-
         async function (
-
             ...args
-
         ) {
 
             hideQuickMyProjectsButton();
 
             const result =
-
                 await previousLoadStudentProjectForQuickBack(
-
                     ...args
-
                 );
 
             showQuickMyProjectsButton();
 
             return result;
-
         };
 
     const previousOpenSubmissionReviewForQuickBack =
-
         openSubmissionReview;
 
     openSubmissionReview =
-
         async function (
-
             ...args
-
         ) {
 
             hideQuickMyProjectsButton();
 
             return previousOpenSubmissionReviewForQuickBack(
-
                 ...args
-
             );
-
         };
 
     /* =========================================================
@@ -3568,81 +2983,54 @@ Not marked yet
        PROFILE SAFETY
 
        Login starts at the task-code gate. Switching student also
-
        clears the unlocked task folder.
 
     ========================================================= */
 
     switchStudentButton.addEventListener(
-
         "click",
-
         () => {
 
             activeTaskScope =
-
                 null;
 
             taskCodeInputUI.value =
-
                 "";
 
             hideQuickMyProjectsButton();
-
         }
-
     );
 
     const profileVisibilityObserver =
-
         new MutationObserver(
-
             () => {
 
                 if (
-
                     !studentProfilePage.hidden
-
                 ) {
 
                     syncProfileScopeUI();
-
                 }
-
             }
-
         );
 
     profileVisibilityObserver.observe(
-
         studentProfilePage,
-
         {
-
             attributes:
-
                 true,
-
             attributeFilter: [
-
                 "hidden"
-
             ]
-
         }
-
     );
 
     /*
-
     Initial state after a fresh page load:
-
     task-code gate visible; project history locked.
-
     */
 
     syncProfileScopeUI();
-
     showQuickMyProjectsButton();
 
 })();

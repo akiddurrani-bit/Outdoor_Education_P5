@@ -949,20 +949,6 @@ let undoStack = [];
 
 let redoStack = [];
 
-let northAngle = 0;
-
-let northDragging = false;
-
-let northStartAngle = 0;
-
-let northStartRotation = 0;
-
-let northBeforeState = null;
-
-let northPointerStart = null;
-
-let northPointerMoved = false;
-
 let referenceHoldActive = false;
 
 let colourBeforeState = null;
@@ -1678,9 +1664,7 @@ function captureMapState() {
 
         pendingRouteId,
 
-        currentTool,
-
-        northAngle
+        currentTool
     });
 }
 
@@ -1748,11 +1732,6 @@ function restoreMapState(
     currentTool =
         state.currentTool ||
         "select";
-
-
-    northAngle =
-        state.northAngle ||
-        0;
 
 
     draftOriginState =
@@ -1928,7 +1907,10 @@ function serialiseMap() {
 
         nextHazardId,
 
-        northAngle
+        // Kept in saved map data for backwards compatibility.
+        // North is now permanently fixed upwards.
+        northAngle:
+            0
     };
 }
 
@@ -2039,15 +2021,6 @@ function loadMapData(
         ) +
 
         1;
-
-
-    northAngle =
-
-        Number(
-            stored.northAngle
-        ) ||
-
-        0;
 
 
     selectedItem =
@@ -2565,10 +2538,6 @@ function applyStudentEditLockUI() {
             true;
 
 
-        northIndicator.disabled =
-            true;
-
-
         editLockBanner.hidden =
             false;
 
@@ -2671,10 +2640,6 @@ function applyStudentEditLockUI() {
     else {
 
         floatingToolbar.hidden =
-            false;
-
-
-        northIndicator.disabled =
             false;
 
 
@@ -8113,8 +8078,6 @@ function duplicateSelectedLandmark() {
         "transform"
     );
 }
-
-
 duplicateButton.addEventListener(
     "click",
     duplicateSelectedLandmark
@@ -8456,377 +8419,51 @@ submitButton.addEventListener(
 NORTH
 ========================================================= */
 
-function displayNorthAngle(
-    angle
-) {
+/*
+North is intentionally fixed upwards.
 
-    return (
-
-        (
-            Math.round(angle) %
-            360
-        ) +
-
-        360
-
-    ) %
-
-    360;
-}
-
-
+There is no student or teacher interaction for this indicator.
+Older maps that stored a rotated North angle are displayed with
+North pointing straight up as well.
+*/
 function renderNorthArrow() {
 
     northArrowInner.style.transform =
-        `rotate(${northAngle}deg)`;
+        "rotate(0deg)";
 
 
     northAngleLabel.textContent =
-        `${displayNorthAngle(northAngle)}°`;
+        "0°";
 
 
     northIndicator.setAttribute(
-
         "aria-label",
-
-        `North is set to ${displayNorthAngle(northAngle)} degrees. Drag to rotate or tap to turn 45 degrees.`
+        "North. Fixed upwards."
     );
-}
 
 
-function finishNorthAdjustment() {
-
-    if (
-        !northDragging
-    ) {
-
-        return;
-    }
+    northIndicator.setAttribute(
+        "title",
+        "North is fixed upwards."
+    );
 
 
-    northDragging =
-        false;
+    northIndicator.tabIndex =
+        -1;
+
+
+    northIndicator.style.cursor =
+        "default";
+
+
+    northIndicator.style.pointerEvents =
+        "none";
 
 
     northIndicator.classList.remove(
         "setting-north"
     );
-
-
-    if (
-        !northPointerMoved
-    ) {
-
-        northAngle =
-            normaliseRotation(
-                northStartRotation +
-                45
-            );
-
-
-        renderNorthArrow();
-    }
-
-
-    commitHistory(
-        northBeforeState
-    );
-
-
-    northBeforeState =
-        null;
-
-
-    northPointerStart =
-        null;
-
-
-    northPointerMoved =
-        false;
-
-
-    renderAll();
-
-
-    statusBar.textContent =
-        `North set to ${displayNorthAngle(northAngle)}°.`;
 }
-
-
-northIndicator.addEventListener(
-
-    "pointerdown",
-
-    event => {
-
-        if (
-            !isStudentEditingAllowed()
-        ) {
-
-            return;
-        }
-
-
-        event.preventDefault();
-
-
-        const rectangle =
-            northIndicator
-                .getBoundingClientRect();
-
-
-        const centreX =
-            rectangle.left +
-            rectangle.width /
-            2;
-
-
-        const centreY =
-            rectangle.top +
-            rectangle.height /
-            2;
-
-
-        northBeforeState =
-            captureMapState();
-
-
-        northPointerStart = {
-
-            x:
-                event.clientX,
-
-            y:
-                event.clientY
-        };
-
-
-        northPointerMoved =
-            false;
-
-
-        northDragging =
-            true;
-
-
-        northStartAngle =
-            Math.atan2(
-
-                event.clientY -
-                centreY,
-
-                event.clientX -
-                centreX
-            );
-
-
-        northStartRotation =
-            northAngle;
-
-
-        northIndicator.classList.add(
-            "setting-north"
-        );
-
-
-        statusBar.textContent =
-            "Set North: drag the arrow until it points towards North. Tap once to rotate 45°.";
-
-
-        northIndicator.setPointerCapture(
-            event.pointerId
-        );
-    }
-);
-
-
-northIndicator.addEventListener(
-
-    "pointermove",
-
-    event => {
-
-        if (
-            !northDragging
-        ) {
-
-            return;
-        }
-
-
-        if (
-
-            northPointerStart &&
-
-            Math.hypot(
-
-                event.clientX -
-                northPointerStart.x,
-
-                event.clientY -
-                northPointerStart.y
-            ) >
-            5
-
-        ) {
-
-            northPointerMoved =
-                true;
-        }
-
-
-        if (
-            !northPointerMoved
-        ) {
-
-            return;
-        }
-
-
-        const rectangle =
-            northIndicator
-                .getBoundingClientRect();
-
-
-        const centreX =
-            rectangle.left +
-            rectangle.width /
-            2;
-
-
-        const centreY =
-            rectangle.top +
-            rectangle.height /
-            2;
-
-
-        const current =
-            Math.atan2(
-
-                event.clientY -
-                centreY,
-
-                event.clientX -
-                centreX
-            );
-
-
-        northAngle =
-            normaliseRotation(
-
-                northStartRotation +
-
-                (
-                    current -
-                    northStartAngle
-                ) *
-
-                180 /
-
-                Math.PI
-            );
-
-
-        renderNorthArrow();
-    }
-);
-
-
-northIndicator.addEventListener(
-    "pointerup",
-    finishNorthAdjustment
-);
-
-
-northIndicator.addEventListener(
-
-    "pointercancel",
-
-    () => {
-
-        northDragging =
-            false;
-
-
-        northIndicator.classList.remove(
-            "setting-north"
-        );
-
-
-        northBeforeState =
-            null;
-
-
-        northPointerStart =
-            null;
-
-
-        northPointerMoved =
-            false;
-
-
-        renderNorthArrow();
-    }
-);
-
-
-northIndicator.addEventListener(
-
-    "lostpointercapture",
-
-    () => {
-
-        if (
-            northDragging
-        ) {
-
-            finishNorthAdjustment();
-        }
-    }
-);
-
-
-northIndicator.addEventListener(
-
-    "click",
-
-    event => {
-
-        if (
-
-            event.detail !== 0 ||
-
-            !isStudentEditingAllowed()
-
-        ) {
-
-            return;
-        }
-
-
-        const before =
-            captureMapState();
-
-
-        northAngle =
-            normaliseRotation(
-                northAngle +
-                45
-            );
-
-
-        commitHistory(
-            before
-        );
-
-
-        renderAll();
-
-
-        statusBar.textContent =
-            `North set to ${displayNorthAngle(northAngle)}°.`;
-    }
-);
 
 
 /* =========================================================
@@ -10007,7 +9644,9 @@ function renderMapPreview(
 
     drawShapes(
 
-        previewShapeLayer,        Array.isArray(
+        previewShapeLayer,
+
+        Array.isArray(
             data.shapes
         )
             ? data.shapes
@@ -10051,7 +9690,7 @@ function renderMapPreview(
         `<strong>N</strong><span>↑</span>`;
 
     north.style.transform =
-        `rotate(${Number(data.northAngle) || 0}deg)`;
+        "rotate(0deg)";
 
 
     container.classList.add(
@@ -11518,8 +11157,6 @@ async function ensureAnonymousStudentSession() {
         session?.user?.is_anonymous
     ) {
 
-        // The browser remembers this sign-in, but its user may have been
-        // deleted in Supabase since; ask the server before reusing it.
         const {
             error: userError
         } =
@@ -11550,7 +11187,6 @@ async function ensureAnonymousStudentSession() {
 
     if (session) {
 
-        // A deleted user's sign-in can only be forgotten on this device.
         await sb
             .auth
             .signOut(
@@ -11601,7 +11237,6 @@ async function createFreshAnonymousSession() {
             .signOut();
 
 
-    // The server may refuse (e.g. the user was deleted); forget it here anyway.
     if (
         signOutError
     ) {
@@ -11744,9 +11379,6 @@ async function detectResumeGuestSession() {
 }
 
 
-/* Students sign in Task Code first: the code decides which
-   Classes' names are offered, so nobody browses every Class. */
-
 let pendingSignInTaskCode =
     "";
 
@@ -11776,12 +11408,6 @@ function showStartupCodeStep() {
 }
 
 
-/*
- * Route a task code through the live task-code gate.
- * corrections-improvements.js replaces the visible profile controls
- * after app.js loads so existing tasks open their task folder instead
- * of jumping straight into the latest submission.
- */
 async function routeSignedInTaskCode(
     code
 ) {
@@ -11818,7 +11444,6 @@ async function routeSignedInTaskCode(
     }
 
 
-    // The corrections layer owns task-folder navigation when present.
     if (
         typeof window.oeOpenTaskFolderFromCode ===
         "function"
@@ -11832,7 +11457,6 @@ async function routeSignedInTaskCode(
     }
 
 
-    // Safe fallback if app.js is ever used without the corrections layer.
     studentTaskCode.value =
         normalizedCode;
 
@@ -11842,7 +11466,6 @@ async function routeSignedInTaskCode(
 
 
 async function prepareStudentLogin() {
-
 
     showStartupCodeStep();
 
@@ -11888,15 +11511,11 @@ async function prepareStudentLogin() {
 
     try {
 
-
-        // A signed-in Teacher keeps their session until a student
-        // actually starts (Task Code or Guest), or they sign out.
         const teacherUser =
             await signedInTeacherUser();
 
 
         if (teacherUser) {
-
 
             continueTeacherButton.textContent =
                 `Continue as ${await savedTeacherName(teacherUser).catch(() => null) || teacherUser.email || "Teacher"}`;
@@ -11908,7 +11527,6 @@ async function prepareStudentLogin() {
 
 
         else {
-
 
             await ensureAnonymousStudentSession();
 
@@ -12043,7 +11661,6 @@ async function openGuestProfile(
     await loadStudentProjectHistory();
 
 
-    // A code typed before choosing "Create Guest Account" opens straight away.
     const signInTaskCode =
         startupTaskCode
             .value
@@ -12300,10 +11917,6 @@ resumeGuestButton.addEventListener(
 );
 
 
-/* =========================================================
-REGISTERED STUDENT LOGIN
-========================================================= */
-
 function rosterDisplayName(
     student
 ) {
@@ -12331,7 +11944,6 @@ function renderStartupNames(
             )
         ];
 
-    // Group names under their Class when the Task is set for several.
     classNames.forEach(
         className => {
 
@@ -12529,7 +12141,6 @@ async function loginStudentProfile() {
         true;
 
 
-    // Step 1: the Task Code decides which names are offered.
     if (
         !pendingSignInTaskCode
     ) {
@@ -12593,8 +12204,6 @@ async function loginStudentProfile() {
             await selectProfile();
 
 
-        // 23503: this device's sign-in belongs to a user deleted in
-        // Supabase. Start a fresh sign-in and try once more.
         if (
             error?.code === "23503"
         ) {
@@ -12703,7 +12312,6 @@ async function loginStudentProfile() {
         await loadStudentProjectHistory();
 
 
-        // Go straight into the Task the student signed in with.
         const signInTaskCode =
             pendingSignInTaskCode;
 
@@ -13137,9 +12745,6 @@ async function getProjectReviewSnapshot(
 
 /* =========================================================
 LIVE CHECKS
-Repeat a check every LIVE_CHECK_INTERVAL_MS (or the interval
-given) while it is active and the page is visible. Checks
-never overlap.
 ========================================================= */
 
 const liveChecks = [];
@@ -13267,9 +12872,6 @@ document.addEventListener(
 
 /* =========================================================
 HANDED IN IS FINAL
-Once a Project is Submitted (or Marked) nobody can draw on
-it: every member's device shows it locked. A student is
-signed in on one device at a time.
 ========================================================= */
 
 function handedInStatusText() {
@@ -13282,7 +12884,6 @@ function handedInStatusText() {
 }
 
 
-// Nobody draws on a handed-in map, so let the pen go.
 async function closeHandedInProject() {
 
     if (
@@ -13314,7 +12915,6 @@ async function closeHandedInProject() {
 }
 
 
-// Someone else handed it in (a groupmate or the Teacher).
 async function showHandedInProject() {
 
     if (
@@ -13396,7 +12996,6 @@ async function checkStillSignedIn() {
 
 async function signedOutElsewhere() {
 
-    // The other device already freed the pen.
     editLockOwned =
         false;
 
@@ -13466,8 +13065,6 @@ async function signedOutElsewhere() {
         false;
 }
 
-
-/* Teacher side: watch drafts, mark only handed-in work. */
 
 function reviewIsHandedIn() {
 
@@ -13689,11 +13286,6 @@ handInForThemButton.addEventListener(
 
 /* =========================================================
 EDIT REQUESTS
-A View-only Group member asks the Editor for a turn. The
-database decides every rule (one request at a time, the
-30-second countdown, whether the asker is still there); this
-page asks about every 5 seconds and shows the answer.
-View-only devices also follow the Editor's map.
 ========================================================= */
 
 const EDIT_REQUEST_CHECK_MS =
@@ -13786,7 +13378,6 @@ async function checkTurns() {
         1;
 
 
-    // About every 10 seconds: follow the map, notice a hand-in.
     if (
         viewOnlyChecks % 2 === 0
     ) {
@@ -13859,7 +13450,6 @@ async function checkEditRequest() {
             !editLockOwned
         ) {
 
-            // Our turn: open the latest saved map before drawing.
             await loadStudentProject(
                 submissionId
             );
@@ -13904,7 +13494,6 @@ async function checkEditRequest() {
             editLockOwned
         ) {
 
-            // The pen passed on without an answer.
             passTurnTo(
                 turn.editor_name
             );
@@ -14039,7 +13628,6 @@ async function followEditorMap() {
     }
 
 
-    // Handed in by a groupmate or the Teacher: show it locked.
     if (
         project.status === "submitted"
     ) {
@@ -14073,7 +13661,6 @@ async function followEditorMap() {
         project.submitted_at;
 
 
-    // Keeps this device's zoom and position.
     loadMapData(
         project.map_data ||
         {}
@@ -14178,7 +13765,6 @@ function renderEditRequestCountdown() {
             : "Handing over now…";
 
 
-    // Save at 0 so the last strokes are kept when the pen moves on.
     if (
         left === 0 &&
         !editRequestSavedAtZero &&
@@ -14520,8 +14106,6 @@ cancelEditRequestButton.addEventListener(
 
 /* =========================================================
 LIVE TEACHER FEEDBACK
-While a Project is open, show its Review as soon as a
-Teacher saves or changes it.
 ========================================================= */
 
 function reviewSignature(
@@ -14605,7 +14189,6 @@ async function checkForReviewUpdate() {
             submissionId
         );
 
-    // The student may have left this Project while we waited.
     if (
         !isWatchingOpenProject() ||
         reviewWatchSubmissionId !== submissionId
@@ -14638,7 +14221,6 @@ function showUpdatedStudentReview(
     review
 ) {
 
-    // Respect "Hide teacher markings" if the student chose it.
     const keepMarkingsHidden =
         Boolean(studentReviewData) &&
         !studentReviewVisible;
@@ -14671,8 +14253,6 @@ function showUpdatedStudentReview(
 
 /* =========================================================
 LIVE MY PROJECTS
-While a student is on their profile page, keep My Projects
-up to date: new Projects, status changes and new Reviews.
 ========================================================= */
 
 function isShowingStudentProfile() {
@@ -14730,7 +14310,6 @@ async function checkForProjectUpdates() {
     const projects =
         await fetchStudentProjects();
 
-    // The student may have opened a Project or switched while we waited.
     if (
         !isShowingStudentProfile() ||
         currentLearnerProfile() !== learner
@@ -14830,10 +14409,6 @@ function hideProjectsNotice() {
         "";
 }
 
-
-/* =========================================================
-PROJECT HISTORY
-========================================================= */
 
 async function loadStudentProjectHistory() {
 
@@ -15133,10 +14708,6 @@ refreshStudentProjectsButton.addEventListener(
 );
 
 
-/* =========================================================
-TASK CODE
-========================================================= */
-
 async function openTaskFromCode() {
 
     if (
@@ -15379,10 +14950,6 @@ studentTaskCode.addEventListener(
     }
 );
 
-
-/* =========================================================
-GROUP SELECTION
-========================================================= */
 
 async function showGroupSelection() {
 
@@ -15658,10 +15225,6 @@ startGroupTaskButton.addEventListener(
     }
 );
 
-
-/* =========================================================
-LOAD PROJECT
-========================================================= */
 
 async function loadStudentProject(
     submissionId
@@ -16071,10 +15634,6 @@ async function loadStudentProject(
 }
 
 
-/* =========================================================
-RETURN / SWITCH
-========================================================= */
-
 async function returnToStudentProfile() {
 
     if (
@@ -16232,10 +15791,6 @@ switchStudentButton.addEventListener(
 );
 
 
-/* =========================================================
-TEACHER LOGIN
-========================================================= */
-
 async function openTeacherLogin() {
 
     if (
@@ -16313,12 +15868,6 @@ teacherPortalButton.addEventListener(
 );
 
 
-/* =========================================================
-ROLE INDICATOR
-Shows in the header whether the app is being used as a
-Student or a Teacher, following whichever screen is open.
-========================================================= */
-
 function currentRole() {
 
     return (
@@ -16385,7 +15934,6 @@ function refreshRoleIndicator() {
         detail;
 
 
-    // App Feedback is for signed-in Teachers only, on every Teacher screen.
     appFeedbackButton.hidden =
         !(
             role === "teacher" &&
@@ -16566,12 +16114,6 @@ teacherLoginButton.addEventListener(
 );
 
 
-/* =========================================================
-TEACHER SIGN-IN WITH GOOGLE
-Google sends the Teacher back to this page, which then
-finishes signing in instead of starting a student session.
-========================================================= */
-
 const GOOGLE_SIGN_IN_KEY =
     "oeMapMakerGoogleSignInV1";
 
@@ -16584,7 +16126,6 @@ async function finishTeacherSignIn(
         user;
 
 
-    // Creates the profile if missing; never overwrites a saved name.
     const created =
         await sb
             .from(
@@ -16645,17 +16186,10 @@ async function finishTeacherSignIn(
 }
 
 
-/* =========================================================
-TEACHER NAME
-Chosen by the Teacher at first sign-in, suggested from their
-email, and shown only on their own screens.
-========================================================= */
-
 const TEACHER_NAME_MAX_LENGTH =
     40;
 
 
-// A saved name that is still an email address does not count.
 function isTeacherName(
     name
 ) {
@@ -16668,7 +16202,6 @@ function isTeacherName(
 }
 
 
-// "tan_mei_ling@moe.edu.sg" → "Tan Mei Ling"
 function suggestTeacherName(
     email
 ) {
@@ -16691,7 +16224,6 @@ function suggestTeacherName(
 }
 
 
-// The Teacher's saved Teacher Name, or null if they have none yet.
 async function savedTeacherName(
     user
 ) {
@@ -16732,7 +16264,6 @@ let resolveTeacherNameModal =
     null;
 
 
-// Opens the name box; resolves once a name is saved or the box is cancelled.
 function askTeacherName({
     canCancel
 }) {
@@ -16933,12 +16464,6 @@ editTeacherNameButton.addEventListener(
 );
 
 
-/* =========================================================
-APP FEEDBACK
-A Teacher's message to the people who build the app, with up
-to three screenshots. Teachers can send it but never read it.
-========================================================= */
-
 const APP_FEEDBACK_MAX_LENGTH =
     2000;
 
@@ -16948,7 +16473,6 @@ const APP_FEEDBACK_MAX_SCREENSHOTS =
 const APP_FEEDBACK_MAX_BYTES =
     5 * 1024 * 1024;
 
-// Allowed screenshot types, and the file ending each is stored with.
 const APP_FEEDBACK_IMAGE_TYPES = {
     "image/png":
         "png",
@@ -16957,12 +16481,10 @@ const APP_FEEDBACK_IMAGE_TYPES = {
 };
 
 
-// { file, url } for each screenshot waiting to be sent.
 let appFeedbackScreenshots =
     [];
 
 
-// Why this file cannot be added, or null if it can.
 function appFeedbackScreenshotProblem(
     file,
     alreadyAdded
@@ -16996,7 +16518,6 @@ function appFeedbackScreenshotProblem(
 }
 
 
-// Where the Teacher is now, for the App Feedback record.
 function currentAppFeedbackContext() {
 
     const screen =
@@ -17302,7 +16823,6 @@ async function sendAppFeedback() {
             currentAppFeedbackContext();
 
 
-        // Screenshots first: the message is only saved once all have arrived.
         const screenshotPaths =
             [];
 
@@ -17345,7 +16865,6 @@ async function sendAppFeedback() {
         }
 
 
-        // No .select(): Teachers may add App Feedback but not read it back.
         const {
             error
         } =
@@ -17370,7 +16889,6 @@ async function sendAppFeedback() {
                         context.taskId,
                     task_title:
                         context.taskTitle,
-                    // Without the query or #part, which can hold sign-in tokens.
                     page_url:
                         window.location.origin +
                         window.location.pathname,
@@ -17441,14 +16959,12 @@ appFeedbackFiles.addEventListener(
         );
 
 
-        // Lets the same file be chosen again after removing it.
         appFeedbackFiles.value =
             "";
     }
 );
 
 
-// Paste a screenshot anywhere while the form is open.
 appFeedbackModal.addEventListener(
     "paste",
     event => {
@@ -17539,8 +17055,6 @@ teacherGoogleButton.addEventListener(
 
                 throw error;
             }
-
-            // The browser now goes to Google.
         }
 
         catch (error) {
@@ -17564,10 +17078,7 @@ teacherGoogleButton.addEventListener(
 );
 
 
-// Returns true when this page load was the return from Google.
-/* The Teacher signed in on this browser, or null. */
 async function signedInTeacherUser() {
-
 
     const {
         data: {
@@ -17592,7 +17103,6 @@ continueTeacherButton.addEventListener(
     "click",
     async () => {
 
-
         continueTeacherButton.disabled =
             true;
 
@@ -17603,14 +17113,11 @@ continueTeacherButton.addEventListener(
 
         try {
 
-
             const user =
                 await signedInTeacherUser();
 
 
-            // Signed out elsewhere since the page loaded.
             if (!user) {
-
 
                 await prepareStudentLogin();
 
@@ -17630,7 +17137,6 @@ continueTeacherButton.addEventListener(
 
 
         catch (error) {
-
 
             console.error(
                 error
@@ -17653,7 +17159,6 @@ continueTeacherButton.addEventListener(
 
         finally {
 
-
             continueTeacherButton.disabled =
                 false;
         }
@@ -17669,12 +17174,9 @@ function rememberTeacherTask(
     taskId
 ) {
 
-
     try {
 
-
         if (taskId) {
-
 
             sessionStorage.setItem(
                 LAST_TEACHER_TASK_KEY,
@@ -17685,7 +17187,6 @@ function rememberTeacherTask(
 
         else {
 
-
             sessionStorage.removeItem(
                 LAST_TEACHER_TASK_KEY
             );
@@ -17695,17 +17196,13 @@ function rememberTeacherTask(
 
     catch (error) {
 
-
-        // Storage can be blocked; the Task is simply not remembered.
     }
 }
 
 
 function rememberedTeacherTaskId() {
 
-
     try {
-
 
         return sessionStorage.getItem(
             LAST_TEACHER_TASK_KEY
@@ -17714,7 +17211,6 @@ function rememberedTeacherTaskId() {
 
 
     catch (error) {
-
 
         return null;
     }
@@ -17757,7 +17253,6 @@ async function resumeGoogleTeacherSignIn() {
         returnedHash.get("error");
 
 
-    // Lets the Supabase client read the sign-in from the address first.
     const {
         data: {
             session
@@ -17804,7 +17299,6 @@ async function resumeGoogleTeacherSignIn() {
     }
 
 
-    // Cancelled or failed: back to the Teacher sign-in, with a reason.
     await prepareStudentLogin();
 
     await openTeacherLogin();
@@ -17812,7 +17306,6 @@ async function resumeGoogleTeacherSignIn() {
 
     teacherLoginError.textContent =
 
-        // Supabase refused a new non-MOE Teacher; its message says why.
         googleError?.includes("@moe.edu.sg")
 
             ? "Only MOE school email accounts (@moe.edu.sg) can sign in as a Teacher."
@@ -17831,10 +17324,6 @@ async function resumeGoogleTeacherSignIn() {
     return true;
 }
 
-
-/* =========================================================
-TEACHER DASHBOARD
-========================================================= */
 
 function setTeacherSection(
     section
@@ -17888,7 +17377,6 @@ function setTeacherSection(
     );
 
 
-    // Catch up on Student Maps that changed while on the Classes tab.
     if (
         showTasks
     ) {
@@ -17988,11 +17476,9 @@ async function openTeacherDashboard() {
     await loadTeacherTasks();
 
 
-    // After a refresh, reopen the Task this tab last had selected.
     if (
         !selectedTeacherTask
     ) {
-
 
         const lastTask =
             teacherTasks.find(
@@ -18003,7 +17489,6 @@ async function openTeacherDashboard() {
 
 
         if (lastTask) {
-
 
             await selectTeacherTask(
                 lastTask
@@ -18036,7 +17521,6 @@ teacherSignOutButton.addEventListener(
             null;
 
 
-        // An unsent message must not be left for the next person.
         resetAppFeedbackForm();
 
         closeAppFeedback();
@@ -18051,10 +17535,6 @@ teacherSignOutButton.addEventListener(
     }
 );
 
-
-/* =========================================================
-TEACHER CLASSES
-========================================================= */
 
 async function loadTeacherClasses() {
 
@@ -18894,14 +18374,6 @@ archiveClassButton.addEventListener(
 );
 
 
-/* =========================================================
-DELETE CLASS
-Deletes the Class, its Roster, and every Project its students
-worked on (with Reviews). Tasks are kept: they may be set for
-other Classes. Projects go first, while this Teacher can still
-see them through the Class.
-========================================================= */
-
 async function findClassProjectIds(
     classId
 ) {
@@ -18937,7 +18409,6 @@ async function findClassProjectIds(
     );
 
 
-    // Older Projects may not record their Class, so also go by membership.
     const roster =
         await sb
             .from(
@@ -19077,7 +18548,6 @@ deleteClassButton.addEventListener(
             );
 
 
-            // Reviews, group links and edit locks are removed with each Project.
             if (
                 projectIds.length
             ) {
@@ -19101,7 +18571,6 @@ deleteClassButton.addEventListener(
             }
 
 
-            // The Roster and the Class's Task assignments go with the Class.
             const classDelete =
                 await sb
                     .from(
@@ -19397,8 +18866,6 @@ async function parseClassListFile(
             )
     );
 }
-
-
 classListFile.addEventListener(
 
     "change",
@@ -19520,7 +18987,6 @@ importClassListButton.addEventListener(
         }
 
 
-        // Nudge towards first names only; never block the import.
         const fullNameCount =
             pendingClassImportNames.filter(
                 name =>
@@ -19814,7 +19280,6 @@ addStudentButton.addEventListener(
                 .trim();
 
 
-        // "26. Ahmad" or "26 Ahmad": 26 is the register number.
         const numbered =
             typedName.match(
                 /^(\d{1,3})\s*[.):-]?\s+(\S.*)$/
@@ -19916,7 +19381,6 @@ addStudentButton.addEventListener(
 
         else {
 
-            // Removed students keep their numbers, so count everyone.
             const everyoneResult =
                 await sb
                     .from(
@@ -20071,10 +19535,6 @@ addStudentButton.addEventListener(
     }
 );
 
-
-/* =========================================================
-TEACHER TASKS
-========================================================= */
 
 async function loadTeacherTasks() {
 
@@ -20477,7 +19937,6 @@ async function selectTeacherTask(
     task
 ) {
 
-
     selectedTeacherTask =
         task;
 
@@ -20709,9 +20168,6 @@ saveTaskSettingsButton.addEventListener(
             }
 
 
-            // Add newly ticked Classes first, then remove unticked ones.
-            // A co-Teacher only sees this Task through its Classes, so the
-            // Task must never be left with none of theirs in between.
             if (
                 selectedClassIds.length
             ) {
@@ -20880,10 +20336,6 @@ saveTaskSettingsButton.addEventListener(
     }
 );
 
-
-/* =========================================================
-DELETE TASK
-========================================================= */
 
 deleteTaskButton.addEventListener(
 
@@ -21075,7 +20527,6 @@ deleteTaskButton.addEventListener(
             }
 
 
-            // Remove the Reference Map while this Teacher can still see the Task.
             if (
                 referencePath
             ) {
@@ -21103,7 +20554,6 @@ deleteTaskButton.addEventListener(
             }
 
 
-            // Deleting the Task also removes which Classes it was set for.
             const taskDelete =
                 await sb
                     .from(
@@ -21212,10 +20662,6 @@ deleteTaskButton.addEventListener(
     }
 );
 
-
-/* =========================================================
-REFERENCE UPLOAD
-========================================================= */
 
 teacherReferenceFile.addEventListener(
 
@@ -21436,13 +20882,6 @@ removeReferenceButton.addEventListener(
 );
 
 
-/* =========================================================
-SUBMISSIONS
-========================================================= */
-
-/* Rows are kept per Project so live refreshes update them in
-   place: buttons never move under the Teacher's cursor. */
-
 let submissionRowEntries =
     new Map();
 
@@ -21506,7 +20945,6 @@ ${escapeHtml(error.message || "Could not load student maps.")}
     }
 
 
-    // Another Task may have been selected while we waited.
     if (
         selectedTeacherTask?.id !==
         taskId
@@ -21623,7 +21061,6 @@ updated_at
 
             review => {
 
-                // An emptied Review does not count as Marked.
                 const snapshot =
                     normaliseTeacherReviewSnapshot(
                         review
@@ -21795,7 +21232,6 @@ No student saves yet.
     }
 
 
-    // Drop any message left from an empty or failed load.
     Array.from(
         submissionList.children
     ).forEach(
@@ -22135,7 +21571,6 @@ function flashSubmissionRow(
     );
 
 
-    // Force a reflow so the highlight can replay.
     void row.offsetWidth;
 
 
@@ -22175,7 +21610,6 @@ async function checkForSubmissionUpdates() {
         selectedTeacherTask.id;
 
 
-    // Let loadSubmissions finish the first draw for a new Task.
     if (
         renderedSubmissionsTaskId !==
         taskId
@@ -22232,13 +21666,6 @@ refreshSubmissionsButton.addEventListener(
     "click",
     loadSubmissions
 );
-
-
-/* =========================================================
-GALLERY
-Every Project for the selected Task, side by side as small
-maps, for Teachers only. It has no actions of its own.
-========================================================= */
 
 
 function galleryStatus(
@@ -22332,16 +21759,6 @@ function formatTimeAgo(
 }
 
 
-/*
-Gallery shows only the latest Project for each student / group.
-
-Submission 1 stays available in the normal Teacher submission
-list and for marking/history, but once Submission 2 exists the
-Gallery displays Submission 2 instead.
-
-Using submission_members prevents pupils with the same first
-name from accidentally being treated as the same student.
-*/
 async function latestProjectsForGallery(
     projects
 ) {
@@ -22440,13 +21857,6 @@ student_id
                     .sort();
 
 
-            /*
-            Registered individual/group projects use their real
-            member IDs as the identity.
-
-            Older/guest Projects may not have submission_members,
-            so fall back to the visible class + group/student name.
-            */
             const ownerKey =
                 memberIds.length
 
@@ -22525,10 +21935,6 @@ student_id
             }
 
 
-            /*
-            Extremely unlikely tie:
-            use the ID as a stable final tiebreaker.
-            */
             if (
                 projectTime ===
                     existingTime &&
@@ -22561,13 +21967,6 @@ student_id
 }
 
 
-/*
-The Gallery's latest Projects in list order, each with its
-map data.
-
-Map data is downloaded only for Projects in
-needMapIds(items).
-*/
 async function fetchGalleryProjects(
     taskId,
     needMapIds = items =>
@@ -22827,7 +22226,6 @@ function updateGalleryTileTime(
             .join(" · ");
 
 
-    // Leave the text alone when unchanged, so nothing flickers.
     if (
         entry.meta.textContent !==
         text
@@ -22934,11 +22332,9 @@ function getOrCreateGalleryClassSection(
 }
 
 
-/* Clear every tile and show a message in their place. */
 function resetGallery(
     html
 ) {
-
 
     galleryEntries =
         new Map();
@@ -22953,10 +22349,6 @@ function resetGallery(
 }
 
 
-/*
-Bring the tiles in line with items (already in list order).
-Untouched tiles keep their elements; new tiles are put in place.
-*/
 function renderGallery(
     items,
     maps,
@@ -22967,7 +22359,6 @@ function renderGallery(
         !items.length
     ) {
 
-        // Already showing the message: leave it, so nothing flickers.
         if (
             galleryContent.querySelector(
                 ".gallery-empty-message"
@@ -22991,7 +22382,6 @@ No student saves yet.
     }
 
 
-    // Drop any message left from an empty or failed load.
     Array.from(
         galleryContent.children
     ).forEach(
@@ -23146,7 +22536,6 @@ No student saves yet.
 
             else {
 
-
                 entry.submission =
                     submission;
 
@@ -23265,7 +22654,6 @@ async function loadGallery() {
 
     try {
 
-
         result =
             await fetchGalleryProjects(
                 taskId
@@ -23275,13 +22663,10 @@ async function loadGallery() {
 
     catch (error) {
 
-
-        // A newer load (the Gallery was reopened) owns the page now.
         if (
             loadId !==
             galleryLoadCount
         ) {
-
 
             return;
         }
@@ -23302,22 +22687,18 @@ ${escapeHtml(error.message || "Could not load student maps.")}
 
     finally {
 
-
         if (
             loadId ===
             galleryLoadCount
         ) {
 
-
             galleryLoading =
                 false;
 
 
-            // Keep checking even after a failed load, so it can recover.
             if (
                 isShowingGallery()
             ) {
-
 
                 galleryWatcher.start();
             }
@@ -23325,7 +22706,6 @@ ${escapeHtml(error.message || "Could not load student maps.")}
     }
 
 
-    // The Teacher may have left or reopened the Gallery while we waited.
     if (
 
         loadId !==
@@ -23335,7 +22715,6 @@ ${escapeHtml(error.message || "Could not load student maps.")}
         taskId
 
     ) {
-
 
         return;
     }
@@ -23371,27 +22750,20 @@ const galleryWatcher =
     );
 
 
-/*
-Download map data only for Projects that are new or whose
-last-changed time moved since their tile was drawn.
-*/
 async function checkForGalleryUpdates() {
 
     const taskId =
         galleryTaskId;
 
 
-    // Let loadGallery finish the first draw.
     if (
         galleryLoading
     ) {
-
 
         return;
     }
 
 
-    // Move the "last changed" times on, even if this check then fails.
     galleryEntries.forEach(
         updateGalleryTileTime
     );
@@ -23436,7 +22808,6 @@ async function checkForGalleryUpdates() {
     }
 
 
-    // After a failed first load, draw quietly rather than flash every tile.
     const galleryWasDrawn =
         Boolean(
             galleryContent.querySelector(
@@ -23519,7 +22890,6 @@ function closeGallery() {
         false;
 
 
-    // Catch up on Student Maps that changed while in the Gallery.
     submissionsWatcher.start();
 
 
@@ -23538,10 +22908,6 @@ galleryBackButton.addEventListener(
     closeGallery
 );
 
-
-/* =========================================================
-TEACHER REVIEW
-========================================================= */
 
 async function openSubmissionReview(
     id,
@@ -23816,7 +23182,6 @@ backToDashboardButton.addEventListener(
             galleryTaskId !== null
         ) {
 
-
             reviewOpenedFromGallery =
                 false;
 
@@ -23829,7 +23194,6 @@ backToDashboardButton.addEventListener(
                 false;
 
 
-            // Catch up on what changed while the Teacher was reviewing.
             galleryWatcher.start();
 
 
@@ -23844,9 +23208,6 @@ backToDashboardButton.addEventListener(
     }
 );
 
-
-/* Before saving, make sure no other Teacher saved this Review
-   since this Teacher opened (or last saved) it. */
 
 async function confirmNoNewerReview(
     submissionId
@@ -24029,7 +23390,6 @@ saveTeacherFeedbackButton.addEventListener(
             }
 
 
-            // The database sets its own time on update, so remember what it stored.
             reviewLastSeenSavedAt =
                 reviewSave.data?.updated_at ??
                 savedAt;
@@ -24097,10 +23457,6 @@ saveTeacherFeedbackButton.addEventListener(
 );
 
 
-/* =========================================================
-EXPORT
-========================================================= */
-
 function buildExportSvg() {
 
     const clone =
@@ -24123,7 +23479,6 @@ function buildExportSvg() {
         ?.remove();
 
 
-    // A selected Hazard's ring is drawn with it, not in selectionLayer.
     clone
         .querySelectorAll(
             ".hazard-selected"
@@ -24306,10 +23661,6 @@ downloadButton.addEventListener(
 );
 
 
-/* =========================================================
-UI
-========================================================= */
-
 function updateStudentBadge() {
 
     if (
@@ -24381,10 +23732,6 @@ window.addEventListener(
     }
 );
 
-
-/* =========================================================
-STARTUP
-========================================================= */
 
 async function initialise() {
 
@@ -24458,10 +23805,6 @@ async function initialise() {
 
 initialise();
 
-
-/* =========================================================
-DELETE SUBMISSION / PROGRESS
-========================================================= */
 
 async function deleteStudentSubmissionProgress(
     submission,

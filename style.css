@@ -2424,6 +2424,7 @@ color:#2f5a3c;
 font-size:13px;
 font-variant-numeric:tabular-nums;
 }
+
 .google-sign-in-button {
 display:flex;
 align-items:center;
@@ -2535,7 +2536,9 @@ line-height:1.4;
 flex-direction:column;
 align-items:stretch;
 }
+
 }
+
 .task-intro-back {
 flex-shrink:0;
 align-self:center;
@@ -2607,7 +2610,9 @@ border-radius:999px;
 background:rgba(0,0,0,.65);
 color:white;
 font-size:13px;
-cursor:pointer;:root {
+cursor:pointer;
+}
+:root {
 
 --paper:#f3f0e8;
 
@@ -2722,8 +2727,6 @@ button {
 color:inherit;
 
 }
-
-
 
 
 
@@ -3077,8 +3080,6 @@ text-overflow:ellipsis;
 
 
 
-
-
 /* =========================================================
 
 MAIN PAGE
@@ -3167,8 +3168,6 @@ line-height:1.5;
 
 
 
-
-
 /* =========================================================
 
 MAP CANVAS
@@ -3237,8 +3236,6 @@ stroke-width:1;
 
 
 
-
-
 /* =========================================================
 
 REFERENCE MAP
@@ -3268,8 +3265,6 @@ pointer-events:none;
 user-select:none;
 
 }
-
-
 
 
 
@@ -3308,8 +3303,6 @@ font-size:13px;
 pointer-events:none;
 
 }
-
-
 
 
 
@@ -3425,8 +3418,6 @@ margin-top:-2px;
 
 
 
-
-
 /* =========================================================
 
 MAP PREVIEW
@@ -3532,8 +3523,6 @@ font-size:9px;
 font-weight:800;
 
 }
-
-
 
 
 
@@ -3739,8 +3728,6 @@ display:block;
 
 
 
-
-
 /* =========================================================
 
 TOOL FLYOUTS
@@ -3875,8 +3862,6 @@ font-size:20px;
 
 
 
-
-
 /* =========================================================
 
 SHAPE CHOICES
@@ -3943,8 +3928,6 @@ font-size:23px;
 
 
 
-
-
 /* =========================================================
 
 INPUTS
@@ -4006,8 +3989,6 @@ height:46px;
 padding:3px;
 
 }
-
-
 
 
 
@@ -4111,8 +4092,6 @@ font-weight:700;
 
 
 
-
-
 /* =========================================================
 
 CANVAS ACTIONS
@@ -4170,8 +4149,6 @@ background:var(--forest);
 color:white;
 
 }
-
-
 
 
 
@@ -4256,8 +4233,6 @@ text-shadow:
 1px 1px #fff;
 
 }
-
-
 
 
 
@@ -4360,8 +4335,6 @@ fill:#244d74;
 fill:#33352f;
 
 }
-
-
 
 
 
@@ -4511,8 +4484,6 @@ pointer-events:none;
 
 
 
-
-
 /* =========================================================
 
 TEACHER INK
@@ -4576,8 +4547,6 @@ color:#8b3e35;
 font-weight:800;
 
 }
-
-
 
 
 
@@ -4815,8 +4784,6 @@ line-height:1.5;
 
 
 
-
-
 /* =========================================================
 
 COLOUR PICKER
@@ -4902,8 +4869,6 @@ background:white;
 cursor:pointer;
 
 }
-
-
 
 
 
@@ -5092,8 +5057,6 @@ text-decoration:underline;
 cursor:pointer;
 
 }
-
-
 
 
 
@@ -5408,9 +5371,6 @@ border-radius:8px;
 background:#fffdf8;
 
 }
-
-
-
 .submission-name strong {
 
 display:block;
@@ -5520,8 +5480,6 @@ border-color:var(--forest);
 }
 
 }
-
-
 
 
 
@@ -5850,8 +5808,6 @@ font-size:11px;
 line-height:1.4;
 
 }
-
-
 
 
 
@@ -6210,8 +6166,6 @@ grid-template-columns:1fr;
 
 
 }
-
-
 
 
 
@@ -6711,8 +6665,6 @@ margin-top:2px;
 
 
 
-
-
 /* =========================================================
 
 TEACHER NAVIGATION
@@ -6844,8 +6796,6 @@ font-weight:700 !important;
 margin:0;
 
 }
-
-
 
 
 
@@ -7135,8 +7085,6 @@ flex:1 1 auto;
 
 
 
-
-
 /* =========================================================
 
 STUDENT MARKED WORK / TEACHER FEEDBACK
@@ -7306,8 +7254,6 @@ flex-direction:column;
 
 
 }
-
-
 
 
 
@@ -7697,8 +7643,6 @@ align-self:center;
 
 
 
-
-
 /* =========================================================
 
 APP FEEDBACK
@@ -7832,8 +7776,6 @@ font-size:13px;
 cursor:pointer;
 
 }
-
-
 
 
 
@@ -8547,13 +8489,118 @@ transform:none !important;
 }
 
 }
-}
+
+
 /* =========================================================
 FULL-WIDTH CURRENT TASK FOLDER
 ========================================================= */
 
 .profile-start-card[hidden] + .profile-history-card {
-    grid-column: 1 / -1;
-    width: 100%;
-    max-width: none;
+grid-column:1 / -1;
+width:100%;
+max-width:none;
+}
+
+
+/* =========================================================
+FINAL FIXED NORTH INDICATOR OVERRIDE
+========================================================= */
+
+/*
+North is permanently fixed upwards.
+This final override intentionally wins over older duplicated
+North styles elsewhere in this stylesheet.
+*/
+
+.north-indicator {
+position:absolute !important;
+z-index:23 !important;
+top:18px !important;
+right:22px !important;
+width:auto !important;
+min-width:0 !important;
+height:auto !important;
+min-height:0 !important;
+padding:0 !important;
+margin:0 !important;
+display:flex !important;
+flex-direction:column !important;
+align-items:center !important;
+justify-content:center !important;
+gap:0 !important;
+border:0 !important;
+border-radius:0 !important;
+background:transparent !important;
+box-shadow:none !important;
+transform:none !important;
+cursor:default !important;
+pointer-events:none !important;
+touch-action:none !important;
+user-select:none !important;
+transition:none !important;
+opacity:1 !important;
+}
+
+.north-indicator:hover,
+.north-indicator:active,
+.north-indicator.setting-north,
+.north-indicator:not(:disabled):hover {
+border:0 !important;
+background:transparent !important;
+box-shadow:none !important;
+transform:none !important;
+cursor:default !important;
+}
+
+.north-arrow-inner {
+display:flex !important;
+flex-direction:column !important;
+align-items:center !important;
+justify-content:center !important;
+gap:1px !important;
+transform:none !important;
+transform-origin:center !important;
+}
+
+.north-fixed-label,
+.north-arrow-inner strong {
+margin:0 0 1px !important;
+color:#2f3431 !important;
+font-size:12px !important;
+font-weight:900 !important;
+line-height:1 !important;
+}
+
+.north-arrow-symbol {
+display:block !important;
+margin:0 !important;
+color:#c9473f !important;
+font-size:31px !important;
+font-weight:700 !important;
+line-height:.82 !important;
+}
+
+.north-control-label,
+.north-angle-label {
+display:none !important;
+}
+
+/* Keep the fixed North indicator visible on smaller screens too. */
+@media (max-width:700px) {
+
+.north-indicator {
+display:flex !important;
+top:12px !important;
+right:12px !important;
+}
+
+.north-fixed-label,
+.north-arrow-inner strong {
+font-size:11px !important;
+}
+
+.north-arrow-symbol {
+font-size:27px !important;
+}
+
 }
